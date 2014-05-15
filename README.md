@@ -87,12 +87,12 @@ Test machine: Intel i5-3570 @ 3.8ghz, Nvidia GTX 560 Ti 448.
 - Dst face size: 256
 - Lighting model: blinnbrdf
 
-|Test case| CubeMapGen   | cmft Cpu only | cmft Gpu only | cmft |
-|:--------|:-------------|:--------------|:------------- |:---- |
-|#1       |1:27.7        |0:08.6         |0:18.7         |0:06.0|
-|#2       |4:39.5        |0:29.7         |0:19.6         |0:11.2|
-|#3       |5:38.1        |0:33.4         |1:03.7         |0:21.6|
-|#4       |18:34.1       |1:58.2         |1:07.7         |0:35.5|
+|Test case| CubeMapGen   | cmft Cpu only | cmft Gpu only | cmft  |
+|:--------|:-------------|:--------------|:--------------|:------|
+|#1       |01:27.7       |00:08.6        |00:18.7        |00:06.0|
+|#2       |04:39.5       |00:29.7        |00:19.6        |00:11.2|
+|#3       |05:38.1       |00:33.4        |01:03.7        |00:21.6|
+|#4       |18:34.1       |01:58.2        |01:07.7        |00:35.5|
 
 ![cmft-performance-chart](https://github.com/dariomanesku/cmft/raw/master/res/cmft_performance_chart.png)
 
