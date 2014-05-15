@@ -10,7 +10,7 @@ Utilizes both host CPU and OpenCL GPU at the same time for fast processing! (che
 - Supported input/output formats: \*.dds, \*.ktx, \*.hdr, \*.tga.
 - Supported input/output types: cubemap, cube cross, latlong, face list, horizontal strip.
 
-![cmft-cover](https://github.com/dariomanesku/cmft/raw/master/res/cmft-cover.jpg)
+![cmft-cover](https://github.com/dariomanesku/cmft/raw/master/res/cmft_cover.jpg)
 
 Download
 --------
@@ -58,7 +58,7 @@ Project status
 Performance
 -----------
 
-cmft was compared with the popular CubeMapGen tool for processing performance.
+cmft was compared with the popular CubeMapGen tool for processing performance.<br \>
 Test machine: Intel i5-3570 @ 3.8ghz, Nvidia GTX 560 Ti 448.
 
 ### Filter settings:
@@ -94,7 +94,7 @@ Test machine: Intel i5-3570 @ 3.8ghz, Nvidia GTX 560 Ti 448.
 |#3       |5:38.1        |0:33.4         |1:03.7         |0:21.6|
 |#4       |18:34.1       |1:58.2         |1:07.7         |0:35.5|
 
-![cmft-performance-chart](https://github.com/dariomanesku/cmft/raw/master/res/cmft-performance-chart.png)
+![cmft-performance-chart](https://github.com/dariomanesku/cmft/raw/master/res/cmft_performance_chart.png)
 
 
 Recommended tools
