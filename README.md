@@ -20,7 +20,7 @@ Download binaries here: <br \>
  * [cmft - Windows 64bit](https://github.com/dariomanesku/cmft-bin/raw/master/cmft_win64.zip)<br />
  * [cmft - Linux 32bit](https://github.com/dariomanesku/cmft-bin/raw/master/cmft_lin32.zip)<br />
  * [cmft - Linux 64bit](https://github.com/dariomanesku/cmft-bin/raw/master/cmft_lin64.zip)<br />
- * cmft - OSX 64bit (to come...)<br \>
+ * cmft - OSX 32bit (to come...)<br \>
  * cmft - OSX 64bit<br \>
 
 Building
@@ -61,31 +61,33 @@ Performance
 cmft was compared with the popular CubeMapGen tool for processing performance.<br \>
 Test machine: Intel i5-3570 @ 3.8ghz, Nvidia GTX 560 Ti 448.
 
-### Filter settings:
+Filter settings:
 - Gloss scale: 8
 - Gloss bias: 1
 - Mip count: 8
 - Exclude base: false
 
-### Test case #1:
+Test case #1:
 - Src face size: 256
 - Dst face size: 256
 - Lighting model: phongbrdf
 
-### Test case #2:
+Test case #2:
 - Src face size: 256
 - Dst face size: 256
 - Lighting model: blinnbrdf
 
-### Test case #3:
+Test case #3:
 - Src face size: 512
 - Dst face size: 256
 - Lighting model: phongbrdf
 
-### Test case #4:
+Test case #4:
 - Src face size: 512
 - Dst face size: 256
 - Lighting model: blinnbrdf
+
+
 
 |Test case| CubeMapGen   | cmft Cpu only | cmft Gpu only | cmft  |
 |:--------|:-------------|:--------------|:--------------|:------|
@@ -95,7 +97,6 @@ Test machine: Intel i5-3570 @ 3.8ghz, Nvidia GTX 560 Ti 448.
 |#4       |18:34.1       |01:58.2        |01:07.7        |00:35.5|
 
 ![cmft-performance-chart](https://github.com/dariomanesku/cmft/raw/master/res/cmft_performance_chart.png)
-
 
 Recommended tools
 -----------------
@@ -113,7 +114,7 @@ Similar projects
 ----------------
 
 [CubeMapGen](http://developer.amd.com/tools-and-sdks/archive/legacy-cpu-gpu-tools/cubemapgen/) - A well known for cubemap filtering from AMD.<br \>
-[Marmoset - Skyshop](http://www.marmoset.co/skyshop) - Commercial plugin for Unity3D Game engine.
+[Marmoset Skyshop](http://www.marmoset.co/skyshop) - Commercial plugin for Unity3D Game engine.
 
 Useful links
 ------------
