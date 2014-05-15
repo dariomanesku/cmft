@@ -5,12 +5,12 @@ What is it?
 -----------
 
 Cross-platform open-source command-line cubemap filtering tool.<br \>
-Utilizes both host CPU and OpenCL GPU at the same time for fast processing! (check [perfomance charts](https://github.com/dariomanesku/cmft#Performance)) <br \>
+Utilizes both host CPU and OpenCL GPU at the same time for fast processing! (check [perfomance charts](https://github.com/dariomanesku/cmft#performance)) <br \>
+
+![cmft-cover](https://github.com/dariomanesku/cmft/raw/master/res/cmft_cover.jpg)
 
 - Supported input/output formats: \*.dds, \*.ktx, \*.hdr, \*.tga.
 - Supported input/output types: cubemap, cube cross, latlong, face list, horizontal strip.
-
-![cmft-cover](https://github.com/dariomanesku/cmft/raw/master/res/cmft_cover.jpg)
 
 Download
 --------
