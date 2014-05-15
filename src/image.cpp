@@ -7,8 +7,9 @@
 #include "config.h"
 #include "utils.h"
 #include "macros.h"
-#include "float16.h"
 #include "cubemaputils.h"
+
+#include <bx/uint32_t.h>
 
 #include <string.h>
 #include <stdarg.h>
@@ -999,18 +1000,18 @@ namespace cmft
 
     inline void rgb16fToRgba32f(float* _rgba32f, const uint16_t* _rgb16f)
     {
-        _rgba32f[0] = float16Decompress(_rgb16f[0]);
-        _rgba32f[1] = float16Decompress(_rgb16f[1]);
-        _rgba32f[2] = float16Decompress(_rgb16f[2]);
+        _rgba32f[0] = bx::halfToFloat(_rgb16f[0]);
+        _rgba32f[1] = bx::halfToFloat(_rgb16f[1]);
+        _rgba32f[2] = bx::halfToFloat(_rgb16f[2]);
         _rgba32f[3] = 1.0f;
     }
 
     inline void rgba16fToRgba32f(float* _rgba32f, const uint16_t* _rgba16f)
     {
-        _rgba32f[0] = float16Decompress(_rgba16f[0]);
-        _rgba32f[1] = float16Decompress(_rgba16f[1]);
-        _rgba32f[2] = float16Decompress(_rgba16f[2]);
-        _rgba32f[3] = float16Decompress(_rgba16f[3]);
+        _rgba32f[0] = bx::halfToFloat(_rgba16f[0]);
+        _rgba32f[1] = bx::halfToFloat(_rgba16f[1]);
+        _rgba32f[2] = bx::halfToFloat(_rgba16f[2]);
+        _rgba32f[3] = bx::halfToFloat(_rgba16f[3]);
     }
 
     inline void rgb32fToRgba32f(float* _rgba32f, const float* _rgb32f)
@@ -1258,18 +1259,18 @@ namespace cmft
 
     inline void rgb16fFromRgba32f(uint16_t* _rgb16f, const float* _rgba32f)
     {
-        _rgb16f[0] = float16Compress(_rgba32f[0]);
-        _rgb16f[1] = float16Compress(_rgba32f[1]);
-        _rgb16f[2] = float16Compress(_rgba32f[2]);
-        _rgb16f[3] = float16Compress(_rgba32f[3]);
+        _rgb16f[0] = bx::halfFromFloat(_rgba32f[0]);
+        _rgb16f[1] = bx::halfFromFloat(_rgba32f[1]);
+        _rgb16f[2] = bx::halfFromFloat(_rgba32f[2]);
+        _rgb16f[3] = bx::halfFromFloat(_rgba32f[3]);
     }
 
     inline void rgba16fFromRgba32f(uint16_t* _rgba16f, const float* _rgba32f)
     {
-        _rgba16f[0] = float16Compress(_rgba32f[0]);
-        _rgba16f[1] = float16Compress(_rgba32f[1]);
-        _rgba16f[2] = float16Compress(_rgba32f[2]);
-        _rgba16f[3] = float16Compress(_rgba32f[3]);
+        _rgba16f[0] = bx::halfFromFloat(_rgba32f[0]);
+        _rgba16f[1] = bx::halfFromFloat(_rgba32f[1]);
+        _rgba16f[2] = bx::halfFromFloat(_rgba32f[2]);
+        _rgba16f[3] = bx::halfFromFloat(_rgba32f[3]);
     }
 
     inline void rgb32fFromRgba32f(float* _rgb32f, const float* _rgba32f)
@@ -2180,9 +2181,9 @@ namespace cmft
                 for (uint8_t key = 0; (true == result) && (key < 6); ++key)
                 {
                     const uint16_t* point = (const uint16_t*)((const uint8_t*)_image.m_data + keyPointsOffsets[key]);
-                    const bool tap0 = float16Decompress(point[0]) < 0.01f;
-                    const bool tap1 = float16Decompress(point[1]) < 0.01f;
-                    const bool tap2 = float16Decompress(point[2]) < 0.01f;
+                    const bool tap0 = bx::halfToFloat(point[0]) < 0.01f;
+                    const bool tap1 = bx::halfToFloat(point[1]) < 0.01f;
+                    const bool tap2 = bx::halfToFloat(point[2]) < 0.01f;
                     result &= (tap0 & tap1 & tap2);
                 }
             }
