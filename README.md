@@ -129,6 +129,7 @@ Contributors
 More to come
 ------------
 
+- Build configurations for using cmft as lib.
 - cmftViewer for viewing filtered cubemaps in action. cmftViewer will be as well cross-platform and open-source implemented using [bgfx rendering library](https://github.com/bkaradzic/bgfx/).
 - Tutorial and details on theory and implementation.
 
