@@ -1064,7 +1064,7 @@ int main(int _argc, char const* const* _argv)
             // Dynamically load opencl lib.
             if (bx::clLoad())
             {
-                clContext.init(inputParameters.m_clVendor
+                clContext.init((uint8_t)inputParameters.m_clVendor
                              , inputParameters.m_deviceType
                              , inputParameters.m_deviceIndex
                              );
@@ -1075,11 +1075,11 @@ int main(int _argc, char const* const* _argv)
         imageRadianceFilter(image
                           , inputParameters.m_dstFaceSize
                           , (LightingModel::Enum)inputParameters.m_lightingModel
-                          , inputParameters.m_excludeBase
-                          , inputParameters.m_mipCount
-                          , inputParameters.m_glossScale
-                          , inputParameters.m_glossBias
-                          , inputParameters.m_numCpuProcessingThreads
+                          , (bool)inputParameters.m_excludeBase
+                          , (uint8_t)inputParameters.m_mipCount
+                          , (uint8_t)inputParameters.m_glossScale
+                          , (uint8_t)inputParameters.m_glossBias
+                          , (int8_t)inputParameters.m_numCpuProcessingThreads
                           , &clContext
                           );
 
