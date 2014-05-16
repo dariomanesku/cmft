@@ -127,7 +127,7 @@ function toolchain(_buildDir, _libDir)
 		.. " -Wdisabled-optimization -Wdiv-by-zero -Wendif-labels"
 		.. " -Wformat-extra-args -Wformat-security"
 		.. " -Wformat-y2k -Wimport -Winit-self -Winline -Winvalid-pch"
-		.. " -Wlogical-op -Werror=missing-braces -Wno-missing-format-attribute"
+		.. " -Werror=missing-braces -Wno-missing-format-attribute"
 		.. " -Wmissing-include-dirs -Wmultichar -Wpacked -Wpointer-arith"
 		.. " -Wreturn-type -Wsequence-point -Wsign-compare -Wstrict-aliasing"
 		.. " -Wstrict-aliasing=2 -Wswitch -Wno-unused-function"
@@ -175,12 +175,12 @@ function toolchain(_buildDir, _libDir)
 
 	configuration { "x32", "vs*" }
 		targetdir (_buildDir .. "win32_" .. _ACTION .. "/bin")
-		objdir (_buildDir .. "win32_" .. _ACTION .. "/obj")
+		objdir    (_buildDir .. "win32_" .. _ACTION .. "/obj")
 
 	configuration { "x64", "vs*" }
 		defines { "_WIN64" }
 		targetdir (_buildDir .. "win64_" .. _ACTION .. "/bin")
-		objdir (_buildDir .. "win64_" .. _ACTION .. "/obj")
+		objdir    (_buildDir .. "win64_" .. _ACTION .. "/obj")
 
 	-- MinGW
 	configuration { "*mingw*" }
@@ -201,12 +201,12 @@ function toolchain(_buildDir, _libDir)
 
 	configuration { "x32", "*mingw" }
 		targetdir (_buildDir .. "win32_mingw" .. "/bin")
-		objdir (_buildDir .. "win32_mingw" .. "/obj")
+		objdir    (_buildDir .. "win32_mingw" .. "/obj")
 		buildoptions { "-m32" }
 
 	configuration { "x64", "*mingw" }
 		targetdir (_buildDir .. "win64_mingw" .. "/bin")
-		objdir (_buildDir .. "win64_mingw" .. "/obj")
+		objdir    (_buildDir .. "win64_mingw" .. "/obj")
 		buildoptions { "-m64" }
 
 	-- Linux
@@ -236,12 +236,12 @@ function toolchain(_buildDir, _libDir)
 
 	configuration { "linux-gcc", "x32" }
 		targetdir (_buildDir .. "linux32_gcc" .. "/bin")
-		objdir (_buildDir .. "linux32_gcc" .. "/obj")
+		objdir    (_buildDir .. "linux32_gcc" .. "/obj")
 		buildoptions { "-m32", }
 
 	configuration { "linux-gcc", "x64" }
 		targetdir (_buildDir .. "linux64_gcc" .. "/bin")
-		objdir (_buildDir .. "linux64_gcc" .. "/obj")
+		objdir    (_buildDir .. "linux64_gcc" .. "/obj")
 		buildoptions { "-m64 -Ofast", }
 
 	-- Linux Clang
@@ -251,7 +251,7 @@ function toolchain(_buildDir, _libDir)
 
 	configuration { "linux-clang", "x32" }
 		targetdir (_buildDir .. "linux32_clang" .. "/bin")
-		objdir (_buildDir .. "linux32_clang" .. "/obj")
+		objdir    (_buildDir .. "linux32_clang" .. "/obj")
 		buildoptions
 		{
 			"-m32",
@@ -259,7 +259,7 @@ function toolchain(_buildDir, _libDir)
 
 	configuration { "linux-clang", "x64" }
 		targetdir (_buildDir .. "linux64_clang" .. "/bin")
-		objdir (_buildDir .. "linux64_clang" .. "/obj")
+		objdir    (_buildDir .. "linux64_clang" .. "/obj")
 		buildoptions
 		{
 			"-m64",
@@ -268,7 +268,7 @@ function toolchain(_buildDir, _libDir)
 	-- Windows Clang
 	configuration { "win-clang", "x32" }
 		targetdir (_buildDir .. "win32_clang" .. "/bin")
-		objdir (_buildDir .. "win32_clang" .. "/obj")
+		objdir    (_buildDir .. "win32_clang" .. "/obj")
 		buildoptions
 		{
 			"-m32",
@@ -277,7 +277,7 @@ function toolchain(_buildDir, _libDir)
 
 	configuration { "win-clang", "x64" }
 		targetdir (_buildDir .. "win64_clang" .. "/bin")
-		objdir (_buildDir .. "win64_clang" .. "/obj")
+		objdir    (_buildDir .. "win64_clang" .. "/obj")
 		buildoptions
 		{
 			"-m64",
@@ -297,13 +297,31 @@ function toolchain(_buildDir, _libDir)
 
 	configuration { "osx*", "x32" }
 		targetdir (_buildDir .. "osx32_gcc" .. "/bin")
-		objdir (_buildDir .. "osx32_gcc" .. "/obj")
+		objdir    (_buildDir .. "osx32_gcc" .. "/obj")
 		buildoptions { "-m32" }
 
 	configuration { "osx*", "x64" }
 		targetdir (_buildDir .. "osx64_gcc" .. "/bin")
-		objdir (_buildDir .. "osx64_gcc" .. "/obj")
+		objdir    (_buildDir .. "osx64_gcc" .. "/obj")
 		buildoptions { "-m64", }
+
+	configuration { "xcode*", "x32" }
+		targetdir (_buildDir .. "osx32_" .. _ACTION .. "/bin")
+		objdir    (_buildDir .. "osx32_" .. _ACTION .. "/obj")
+		buildoptions
+		{
+			"-m32",
+			"-std=c++11",
+		}
+
+	configuration { "xcode*", "x64" }
+		targetdir (_buildDir .. "osx64_" .. _ACTION .. "/bin")
+		objdir    (_buildDir .. "osx64_" .. _ACTION .. "/obj")
+		buildoptions
+		{
+			"-m64",
+			"-std=c++11",
+		}
 
 	configuration {} -- reset configuration
 end

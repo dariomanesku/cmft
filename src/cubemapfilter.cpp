@@ -22,9 +22,6 @@
 
 #include <bx/float4_t.h> //intrinsics
 
-//TODO: get rid of this.
-#include <thread> //hardware_concurrency
-
 namespace cmft
 {
 
@@ -1079,19 +1076,19 @@ namespace cmft
                                                          ));
             }
 
-            CL_CHECK(clSetKernelArg(m_kernel,   5, sizeof(uint32_t), (const void*)&_image.m_width));
-            CL_CHECK(clSetKernelArg(m_kernel,   6, sizeof(cl_mem),   (const void*)&m_memSrcData[0]));
-            CL_CHECK(clSetKernelArg(m_kernel,   7, sizeof(cl_mem),   (const void*)&m_memSrcData[1]));
-            CL_CHECK(clSetKernelArg(m_kernel,   8, sizeof(cl_mem),   (const void*)&m_memSrcData[2]));
-            CL_CHECK(clSetKernelArg(m_kernel,   9, sizeof(cl_mem),   (const void*)&m_memSrcData[3]));
-            CL_CHECK(clSetKernelArg(m_kernel,  10, sizeof(cl_mem),   (const void*)&m_memSrcData[4]));
-            CL_CHECK(clSetKernelArg(m_kernel,  11, sizeof(cl_mem),   (const void*)&m_memSrcData[5]));
-            CL_CHECK(clSetKernelArg(m_kernel,  12, sizeof(cl_mem),   (const void*)&m_memNormalSolidAngle[0]));
-            CL_CHECK(clSetKernelArg(m_kernel,  13, sizeof(cl_mem),   (const void*)&m_memNormalSolidAngle[1]));
-            CL_CHECK(clSetKernelArg(m_kernel,  14, sizeof(cl_mem),   (const void*)&m_memNormalSolidAngle[2]));
-            CL_CHECK(clSetKernelArg(m_kernel,  15, sizeof(cl_mem),   (const void*)&m_memNormalSolidAngle[3]));
-            CL_CHECK(clSetKernelArg(m_kernel,  16, sizeof(cl_mem),   (const void*)&m_memNormalSolidAngle[4]));
-            CL_CHECK(clSetKernelArg(m_kernel,  17, sizeof(cl_mem),   (const void*)&m_memNormalSolidAngle[5]));
+            CL_CHECK(clSetKernelArg(m_kernel,   5, sizeof(int32_t), (const void*)&_image.m_width));
+            CL_CHECK(clSetKernelArg(m_kernel,   6, sizeof(cl_mem),  (const void*)&m_memSrcData[0]));
+            CL_CHECK(clSetKernelArg(m_kernel,   7, sizeof(cl_mem),  (const void*)&m_memSrcData[1]));
+            CL_CHECK(clSetKernelArg(m_kernel,   8, sizeof(cl_mem),  (const void*)&m_memSrcData[2]));
+            CL_CHECK(clSetKernelArg(m_kernel,   9, sizeof(cl_mem),  (const void*)&m_memSrcData[3]));
+            CL_CHECK(clSetKernelArg(m_kernel,  10, sizeof(cl_mem),  (const void*)&m_memSrcData[4]));
+            CL_CHECK(clSetKernelArg(m_kernel,  11, sizeof(cl_mem),  (const void*)&m_memSrcData[5]));
+            CL_CHECK(clSetKernelArg(m_kernel,  12, sizeof(cl_mem),  (const void*)&m_memNormalSolidAngle[0]));
+            CL_CHECK(clSetKernelArg(m_kernel,  13, sizeof(cl_mem),  (const void*)&m_memNormalSolidAngle[1]));
+            CL_CHECK(clSetKernelArg(m_kernel,  14, sizeof(cl_mem),  (const void*)&m_memNormalSolidAngle[2]));
+            CL_CHECK(clSetKernelArg(m_kernel,  15, sizeof(cl_mem),  (const void*)&m_memNormalSolidAngle[3]));
+            CL_CHECK(clSetKernelArg(m_kernel,  16, sizeof(cl_mem),  (const void*)&m_memNormalSolidAngle[4]));
+            CL_CHECK(clSetKernelArg(m_kernel,  17, sizeof(cl_mem),  (const void*)&m_memNormalSolidAngle[5]));
         }
 
         void setupOutputBuffer(uint32_t _dstFaceSize)
@@ -1353,7 +1350,7 @@ namespace cmft
         // Multi-threading parameters.
         bx::Thread cpuThreads[64];
         uint8_t activeCpuThreads = 0;
-        const uint8_t hardwareCpuThreads = uint8_t(std::thread::hardware_concurrency());
+        const uint8_t hardwareCpuThreads = 4; // Use 4 as default if unspecified.
         const uint8_t maxActiveCpuThreads = min(uint8_t(64), (-1 == _numCpuProcessingThreads) ? hardwareCpuThreads : uint8_t(_numCpuProcessingThreads));
 
         // Prepare OpenCL kernel and device memory.

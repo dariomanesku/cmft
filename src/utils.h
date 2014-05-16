@@ -15,7 +15,13 @@
 #include <string.h> //memcpy
 #include <ctype.h>  //tolower
 #include <math.h>   //log2
-#include <malloc.h> //alloca
+
+#include <bx/bx.h>
+#if BX_PLATFORM_OSX
+    #include <alloca.h>
+#else
+    #include <malloc.h> //alloca
+#endif //BX_PLATFORM_OSX
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
