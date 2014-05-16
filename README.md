@@ -132,8 +132,9 @@ Similar projects
 Useful links
 ------------
 
-1. [Sebastien Lagarde Blog - AMD Cubemapgen for physically based rendering](http://seblagarde.wordpress.com/2012/06/10/amd-cubemapgen-for-physically-based-rendering/)
-2. ...more to come
+1. [Sebastien Lagarde Blog - AMD Cubemapgen for physically based rendering](http://seblagarde.wordpress.com/2012/06/10/amd-cubemapgen-for-physically-based-rendering/) by [Sébastien Lagarde](https://twitter.com/SebLagarde)
+2. [The Witness Blog - Seamless Cube Map Filtering](http://the-witness.net/news/2012/02/seamless-cube-map-filtering/) by [Ignacio Castaño](https://twitter.com/castano)
+3. ...more to come
 
 Contributors
 ------------
