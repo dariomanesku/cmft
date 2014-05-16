@@ -9,15 +9,14 @@
 #include "macros.h"
 #include <stdlib.h> //abort()
 
-#define CMFT_DEBUG                     0
+#ifndef CMFT_CONFIG_DEBUG
+    #define CMFT_CONFIG_DEBUG 1
+#endif // CMFT_CONFIG_DEBUG
+
 #define CMFT_ENABLE_INFO_MESSAGES      1
 #define CMFT_ENABLE_WARNINGS           1
 
-#ifndef CMFT_DEBUG
-    #define CMFT_DEBUG 1
-#endif // CMFT_DEBUG
-
-#if CMFT_DEBUG
+#if CMFT_CONFIG_DEBUG
     #define CMFT_ENABLE_CL_CHECK           1
     #define CMFT_ENABLE_DEBUG_CHECK        1
     #define CMFT_ENABLE_FILE_ERROR_CHECK   1

@@ -360,6 +360,18 @@ configuration { "*gcc*" }
 	links { "dl" }
 	links { "pthread" }
 
+configuration "Debug"
+	defines
+	{
+		"CMFT_CONFIG_DEBUG=1",
+	}
+
+configuration "Release"
+	defines
+	{
+		"CMFT_CONFIG_DEBUG=0",
+	}
+
 toolchain(CMFT_BUILD_DIR, CMFT_3RDPARTY_DIR)
 
 project "cmft"
