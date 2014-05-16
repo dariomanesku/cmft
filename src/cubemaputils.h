@@ -174,15 +174,15 @@ namespace cmft
         // Get face id (max component == face vector).
         if (max == absVec[0])
         {
-            _faceIdx = (_vec[0] > 0) ? CMFT_FACE_POS_X : CMFT_FACE_NEG_X;
+            _faceIdx = (_vec[0] > 0) ? uint8_t(CMFT_FACE_POS_X) : uint8_t(CMFT_FACE_NEG_X);
         }
         else if (max == absVec[1])
         {
-            _faceIdx = (_vec[1] > 0) ? CMFT_FACE_POS_Y : CMFT_FACE_NEG_Y;
+            _faceIdx = (_vec[1] > 0) ? uint8_t(CMFT_FACE_POS_Y) : uint8_t(CMFT_FACE_NEG_Y);
         }
         else //if (max == absVec[2])
         {
-            _faceIdx = (_vec[2] > 0) ? CMFT_FACE_POS_Z : CMFT_FACE_NEG_Z;
+            _faceIdx = (_vec[2] > 0) ? uint8_t(CMFT_FACE_POS_Z) : uint8_t(CMFT_FACE_NEG_Z);
         }
 
         // Divide by max component.

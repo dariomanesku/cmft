@@ -102,7 +102,7 @@ namespace cmft
     {
         for( ; *_in; ++_in)
         {
-            *_out++ = tolower(*_in);
+            *_out++ = (char)tolower(*_in);
         }
         *_out = '\0';
     }
@@ -111,7 +111,7 @@ namespace cmft
     {
         for( ; *_str; ++_str)
         {
-            *_str = tolower(*_str);
+            *_str = (char)tolower(*_str);
         }
         *_str = '\0';
     }
@@ -120,7 +120,7 @@ namespace cmft
     {
         for( ; *_in; ++_in)
         {
-            *_out++ = toupper(*_in);
+            *_out++ = (char)toupper(*_in);
         }
         *_out = '\0';
     }
@@ -129,7 +129,7 @@ namespace cmft
     {
         for( ; *_str; ++_str)
         {
-            *_str = toupper(*_str);
+            *_str = (char)toupper(*_str);
         }
         *_str = '\0';
     }

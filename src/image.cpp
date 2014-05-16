@@ -2043,7 +2043,7 @@ namespace cmft
 
     bool imageValidCubemapFaceList(const Image _faceList[6])
     {
-        const uint8_t size = _faceList[0].m_width;
+        const uint32_t size = _faceList[0].m_width;
         const uint8_t numMips = _faceList[0].m_numMips;
         for (uint8_t face = 0; face < 6; ++face)
         {
@@ -3234,7 +3234,7 @@ namespace cmft
 
         if (TextureFormat::Unknown == format)
         {
-            const uint8_t bytesPerPixel = ddsHeader.m_pixelFormat.m_rgbBitCount/8;
+            const uint8_t bytesPerPixel = uint8_t(ddsHeader.m_pixelFormat.m_rgbBitCount/8);
             for (uint8_t ii = 0, end = CMFT_COUNTOF(s_ddsValidFormats); ii < end; ++ii)
             {
                 if (bytesPerPixel == getImageDataInfo(s_ddsValidFormats[ii]).m_bytesPerPixel)
@@ -3582,8 +3582,7 @@ namespace cmft
             int32_t count;
             while (numScanlines-- > 0)
             {
-                CMFT_UNUSED const int16_t scanlineWidth = ((uint16_t(rgbe[2])<<8)|(rgbe[3]&0xff));
-                DEBUG_CHECK(scanlineWidth == width, "Hdr file scanline width is invalid.");
+                DEBUG_CHECK(((uint16_t(rgbe[2])<<8)|(rgbe[3]&0xff)) == width, "Hdr file scanline width is invalid.");
 
                 ptr = scanlineBuffer;
                 for (uint8_t ii = 0; ii < 4; ++ii)
@@ -3712,7 +3711,7 @@ namespace cmft
         MALLOC_CHECK(data);
 
         // Skip to data.
-        const uint8_t skip = tgaHeader.m_idLength + (tgaHeader.m_colorMapType&0x1)*tgaHeader.m_colorMapLength;
+        const uint32_t skip = tgaHeader.m_idLength + (tgaHeader.m_colorMapType&0x1)*tgaHeader.m_colorMapLength;
         seek = fseek(_fp, skip, SEEK_CUR);
         DEBUG_CHECK(0 == seek, "File seek error.");
         FERROR_CHECK(_fp);

@@ -620,7 +620,7 @@ void inputParametersDefault(InputParameters& _inputParameters)
     _inputParameters.m_lightingModel = 0;
 
     // Processing devices.
-    _inputParameters.m_numCpuProcessingThreads = -1;
+    _inputParameters.m_numCpuProcessingThreads = UINT32_MAX;
     _inputParameters.m_useOpenCL = true;
     _inputParameters.m_deviceIndex = 0;
     _inputParameters.m_clVendor = CL_VENDOR_ANY_GPU;
@@ -640,7 +640,7 @@ void outputShCoeffs(const char* _fileName, double _shCoeffs[SH_COEFF_NUM][3])
     {
         strcpy(baseName, "cmft");
     }
-    baseName[0] = toupper(baseName[0]);
+    baseName[0] = (char)toupper(baseName[0]);
 
     char baseNameUpper[128];
     strtoupper(baseNameUpper, baseName);
