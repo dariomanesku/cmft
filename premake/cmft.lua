@@ -130,7 +130,7 @@ function toolchain(_buildDir, _libDir)
 		.. " -Werror=missing-braces -Wno-missing-format-attribute"
 		.. " -Wmissing-include-dirs -Wmultichar -Wpacked -Wpointer-arith"
 		.. " -Wreturn-type -Wsequence-point -Wsign-compare -Wstrict-aliasing"
-		.. " -Wstrict-aliasing=2 -Wswitch -Wno-unused-function -Wno-string-plus-int"
+		.. " -Wstrict-aliasing=2 -Wswitch -Wno-unused-function"
 		.. " -Wno-variadic-macros -Wwrite-strings -Werror=declaration-after-statement"
 		.. " -Werror=implicit-function-declaration -Werror=nested-externs"
 		.. " -Werror=old-style-definition -Werror=strict-prototypes"
@@ -291,6 +291,7 @@ function toolchain(_buildDir, _libDir)
 			"-U__STRICT_ANSI__",
 			"-Wfatal-errors",
 			"-Wunused-value",
+			"-Wno-string-plus-int",
 			"-msse2",
 		}
 		includedirs { BX_DIR .. "include/compat/osx" }
