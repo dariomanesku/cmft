@@ -5,7 +5,8 @@
 # License: http://www.opensource.org/licenses/BSD-2-Clause
 #
 
-CMFT=./../_build/osx64_xcode4/bin/cmftRelease
+#CMFT=./../_build/osx64_xcode4/bin/cmftRelease
+CMFT=./../_build/osx64_gcc/bin/cmftRelease
 
 # Prints help.
 #eval $CMFT --help

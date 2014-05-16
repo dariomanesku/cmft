@@ -33,7 +33,7 @@ function toolchain(_buildDir, _libDir)
 		trigger = "compiler",
 		description = "Choose compiler",
 		allowed = {
-			{ "osx",         "OSX"                      },
+			{ "osx-gcc",     "OSX"                      },
 			{ "linux-gcc",   "Linux (GCC compiler)"     },
 --			{ "linux-clang", "Linux (Clang compiler)"   },
 --			{ "win-clang",   "Windows (Clang compiler)" },
@@ -57,7 +57,7 @@ function toolchain(_buildDir, _libDir)
 			os.exit(1)
 		end
 
-		if "osx" == _OPTIONS["compiler"] then
+		if "osx-gcc" == _OPTIONS["compiler"] then
 			premake.gcc.cc  = OSX_GCC_DIR .. "gcc"
 			premake.gcc.cxx = OSX_GCC_DIR .. "g++"
 			premake.gcc.ar  = OSX_GCC_DIR .. "ar"
@@ -123,15 +123,15 @@ function toolchain(_buildDir, _libDir)
 
 	configuration { "*gcc* or *mingw" }
 		buildoptions
-		{  "-Wall -Wextra -Wcast-align -Wcast-qual"
+		{  "-Wall -Wextra -Wno-cast-align -Wcast-qual"
 		.. " -Wdisabled-optimization -Wdiv-by-zero -Wendif-labels"
 		.. " -Wformat-extra-args -Wformat-security"
 		.. " -Wformat-y2k -Wimport -Winit-self -Winline -Winvalid-pch"
 		.. " -Werror=missing-braces -Wno-missing-format-attribute"
 		.. " -Wmissing-include-dirs -Wmultichar -Wpacked -Wpointer-arith"
 		.. " -Wreturn-type -Wsequence-point -Wsign-compare -Wstrict-aliasing"
-		.. " -Wstrict-aliasing=2 -Wswitch -Wno-unused-function"
-		.. " -Wvariadic-macros -Wwrite-strings -Werror=declaration-after-statement"
+		.. " -Wstrict-aliasing=2 -Wswitch -Wno-unused-function -Wno-string-plus-int"
+		.. " -Wno-variadic-macros -Wwrite-strings -Werror=declaration-after-statement"
 		.. " -Werror=implicit-function-declaration -Werror=nested-externs"
 		.. " -Werror=old-style-definition -Werror=strict-prototypes"
 		}
@@ -298,12 +298,20 @@ function toolchain(_buildDir, _libDir)
 	configuration { "osx*", "x32" }
 		targetdir (_buildDir .. "osx32_gcc" .. "/bin")
 		objdir    (_buildDir .. "osx32_gcc" .. "/obj")
-		buildoptions { "-m32" }
+		buildoptions
+		{
+			"-m32",
+			"-std=c++11",
+		}
 
 	configuration { "osx*", "x64" }
 		targetdir (_buildDir .. "osx64_gcc" .. "/bin")
 		objdir    (_buildDir .. "osx64_gcc" .. "/obj")
-		buildoptions { "-m64", }
+		buildoptions
+		{
+			"-m64",
+			"-std=c++11",
+		}
 
 	configuration { "xcode*", "x32" }
 		targetdir (_buildDir .. "osx32_" .. _ACTION .. "/bin")

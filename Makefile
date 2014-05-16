@@ -27,7 +27,7 @@ all:
 	$(PREMAKE4) --file=premake/cmft.lua vs2008
 	$(PREMAKE4) --file=premake/cmft.lua vs2010
 	$(PREMAKE4) --file=premake/cmft.lua vs2012
-	$(PREMAKE4) --file=premake/cmft.lua --compiler=osx         gmake
+	$(PREMAKE4) --file=premake/cmft.lua --compiler=osx-gcc     gmake
 	$(PREMAKE4) --file=premake/cmft.lua --compiler=linux-gcc   gmake
 #	$(PREMAKE4) --file=premake/cmft.lua --compiler=linux-clang gmake
 #	$(PREMAKE4) --file=premake/cmft.lua --compiler=win-clang   gmake
@@ -84,7 +84,7 @@ vs2012-release64:
 	"$(subst /,\\,$(VS2012_DEVENV_DIR))\devenv" _projects/vs2012/cmft.sln /Build "Release|x64"
 
 _projects/gmake-linux-gcc:
-	$(PREMAKE4) --file=premake/cmft.lua --gcc=linux-gcc gmake
+	$(PREMAKE4) --file=premake/cmft.lua --compiler=linux-gcc gmake
 linux-gcc-debug32: _projects/gmake-linux-gcc
 	make -R -C _projects/gmake-linux-gcc config=debug32
 linux-gcc-release32: _projects/gmake-linux-gcc
@@ -95,17 +95,17 @@ linux-gcc-release64: _projects/gmake-linux-gcc
 	make -R -C _projects/gmake-linux-gcc config=release64
 linux-gcc: linux-debug32 linux-release32 linux-debug64 linux-release64
 
-_projects/gmake-osx:
-	$(PREMAKE4) --file=premake/cmft.lua --clang=osx gmake
-osx-debug32: _projects/gmake-osx
-	make -R -C _projects/gmake-osx config=debug32
-osx-release32: _projects/gmake-osx
-	make -R -C _projects/gmake-osx config=release32
-osx-debug64: _projects/gmake-osx
-	make -R -C _projects/gmake-osx config=debug64
-osx-release64: _projects/gmake-osx
-	make -R -C _projects/gmake-osx config=release64
-osx: osx-debug32 osx-release32 osx-debug64 osx-release64
+_projects/gmake-osx-gcc:
+	$(PREMAKE4) --file=premake/cmft.lua --compiler=osx-gcc gmake
+osx-gcc-debug32: _projects/gmake-osx-gcc
+	make -R -C _projects/gmake-osx-gcc config=debug32
+osx-gcc-release32: _projects/gmake-osx-gcc
+	make -R -C _projects/gmake-osx-gcc config=release32
+osx-gcc-debug64: _projects/gmake-osx-gcc
+	make -R -C _projects/gmake-osx-gcc config=debug64
+osx-gcc-release64: _projects/gmake-osx-gcc
+	make -R -C _projects/gmake-osx-gcc config=release64
+osx: osx-gcc-debug32 osx-gcc-release32 osx-gcc-debug64 osx-gcc-release64
 
 #_projects/gmake-linux-clang:
 #	$(PREMAKE4) --file=premake/cmft.lua --clang=linux-clang gmake
