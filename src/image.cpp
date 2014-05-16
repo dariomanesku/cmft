@@ -829,8 +829,10 @@ namespace cmft
                );
     }
 
-    void hdrHeaderFromImage(HdrHeader& _hdrHeader, CMFT_UNUSED const Image& _image)
+    void hdrHeaderFromImage(HdrHeader& _hdrHeader, const Image& _image)
     {
+        BX_UNUSED(_image);
+
         memset(&_hdrHeader, 0, sizeof(HdrHeader));
         _hdrHeader.m_valid = HDR_VALID_GAMMA | HDR_VALID_EXPOSURE;
         _hdrHeader.m_gamma = 1.0f;
@@ -3435,20 +3437,23 @@ namespace cmft
                         FERROR_CHECK(_fp);
 
                         // Jump row rounding.
-                        CMFT_UNUSED int seek = fseek(_fp, pitchRounding, SEEK_CUR);
+                        int seek = fseek(_fp, pitchRounding, SEEK_CUR);
+                        BX_UNUSED(seek);
                         DEBUG_CHECK(0 == seek, "File seek error.");
                         FERROR_CHECK(_fp);
                     }
                 }
 
                 // Jump face rounding.
-                CMFT_UNUSED int seek = fseek(_fp, faceRounding, SEEK_CUR);
+                int seek = fseek(_fp, faceRounding, SEEK_CUR);
+                BX_UNUSED(seek);
                 DEBUG_CHECK(0 == seek, "File seek error.");
                 FERROR_CHECK(_fp);
             }
 
             // Jump mip rounding.
-            CMFT_UNUSED int seek = fseek(_fp, mipRounding, SEEK_CUR);
+            int seek = fseek(_fp, mipRounding, SEEK_CUR);
+            BX_UNUSED(seek);
             DEBUG_CHECK(0 == seek, "File seek error.");
             FERROR_CHECK(_fp);
         }
