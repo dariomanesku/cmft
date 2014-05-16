@@ -1389,7 +1389,7 @@ namespace cmft
         // Alloc dst data.
         const uint32_t dstFaceSize = (0 == _dstFaceSize) ? _src.m_width : _dstFaceSize;
         const uint8_t mipMin = 1;
-        const uint8_t mipMax = (uint8_t)log2f((float)dstFaceSize);
+        const uint8_t mipMax = (uint8_t)log2f((float)dstFaceSize)+uint8_t(1);
         const uint8_t mipCount = clamp(_mipCount, mipMin, mipMax);
         const uint32_t bytesPerPixel = 4 /*numChannels*/ * 4 /*bytesPerChannel*/;
         uint32_t dstOffsets[CUBE_FACE_NUM][MAX_MIP_NUM];
