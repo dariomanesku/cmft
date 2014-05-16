@@ -36,7 +36,7 @@
 #if CMFT_ENABLE_WARNINGS
     #define WARN _WARN
 #else
-    #define WARN(_condition, ...) do {} while(0)
+    #define WARN(_format, ...) do {} while(0)
 #endif
 
 extern bool s_printWarnings;
@@ -57,7 +57,7 @@ do                                                                              
 #if CMFT_ENABLE_INFO_MESSAGES
     #define INFO _INFO
 #else
-    #define INFO(_condition, ...) do {} while(0)
+    #define INFO(_format, ...) do {} while(0)
 #endif
 
 extern bool s_printInfo;
