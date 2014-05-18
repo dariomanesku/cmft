@@ -724,108 +724,6 @@ namespace cmft
         }
     }
 
-    struct DataPool
-    {
-        DataPool()
-            : m_data(0)
-            , m_dataSize(0)
-            , m_dataPushOffset(0)
-            , m_dataConsumeOffset(0)
-        {
-        }
-
-        void init(uint32_t _totalDataSize)
-        {
-            m_data = malloc(_totalDataSize);
-            m_dataSize = _totalDataSize;
-        }
-
-        void cleanup()
-        {
-            if (NULL != m_data)
-            {
-                free(m_data);
-                m_data = NULL;
-            }
-            m_dataSize = 0;
-        }
-
-        void push(void* _data, uint32_t _size)
-        {
-            DEBUG_CHECK((m_dataPushOffset + _size) < m_dataSize, "Going past the size of allocated data.");
-
-            uint32_t offset = 0;
-            m_dataPushOffsetMutex.lock();
-            offset = m_dataPushOffset;
-            m_dataPushOffset += _size;
-            m_dataPushOffsetMutex.unlock();
-
-            memcpy((uint8_t*)m_data + offset, _data, _size);
-        }
-
-        void* consume(uint32_t _size)
-        {
-            DEBUG_CHECK((m_dataConsumeOffset + _size) < m_dataSize, "Going past the size of allocated data.");
-
-            bx::MutexScope lock(m_dataConsumeOffsetMutex);
-
-            void* ptr = (void*)((uint8_t*)m_data + m_dataConsumeOffset);
-            m_dataConsumeOffset += _size;
-
-            return ptr;
-        }
-
-        bool has(uint32_t _size) const
-        {
-            return (m_dataPushOffset - m_dataConsumeOffset) >= _size;
-        }
-
-        void* m_data;
-        uint32_t m_dataSize;
-        uint32_t m_dataPushOffset;
-        uint32_t m_dataConsumeOffset;
-        bx::Mutex m_dataPushOffsetMutex;
-        bx::Mutex m_dataConsumeOffsetMutex;
-    };
-
-    struct RadianceFilterGlobalState
-    {
-        RadianceFilterGlobalState()
-            : m_startTime(0)
-            , m_completedTasksGpu(0)
-            , m_completedTasksCpu(0)
-            , m_threadId(0)
-        {
-        }
-
-        uint8_t getThreadId()
-        {
-            bx::MutexScope lock(m_threadIdMutex);
-            return m_threadId++;
-        }
-
-        void incrCompletedTasksGpu()
-        {
-            bx::MutexScope lock(m_completedTasksCpuMutex);
-            m_completedTasksCpu++;
-        }
-
-        void incrCompletedTasksCpu()
-        {
-            bx::MutexScope lock(m_completedTasksGpuMutex);
-            m_completedTasksGpu++;
-        }
-
-        uint64_t m_startTime;
-        uint16_t m_completedTasksGpu;
-        uint16_t m_completedTasksCpu;
-        uint8_t m_threadId;
-        bx::Mutex m_threadIdMutex;
-        bx::Mutex m_completedTasksGpuMutex;
-        bx::Mutex m_completedTasksCpuMutex;
-    };
-    static RadianceFilterGlobalState s_globalState;
-
     void radianceFilter(float *_dstPtr
                       , uint8_t _face
                       , uint32_t _mipFaceSize
@@ -872,6 +770,44 @@ namespace cmft
         }
     }
 
+    struct RadianceFilterGlobalState
+    {
+        RadianceFilterGlobalState()
+            : m_startTime(0)
+            , m_completedTasksGpu(0)
+            , m_completedTasksCpu(0)
+            , m_threadId(0)
+        {
+        }
+
+        uint8_t getThreadId()
+        {
+            bx::MutexScope lock(m_threadIdMutex);
+            return m_threadId++;
+        }
+
+        void incrCompletedTasksGpu()
+        {
+            bx::MutexScope lock(m_completedTasksCpuMutex);
+            m_completedTasksCpu++;
+        }
+
+        void incrCompletedTasksCpu()
+        {
+            bx::MutexScope lock(m_completedTasksGpuMutex);
+            m_completedTasksGpu++;
+        }
+
+        uint64_t m_startTime;
+        uint16_t m_completedTasksGpu;
+        uint16_t m_completedTasksCpu;
+        uint8_t m_threadId;
+        bx::Mutex m_threadIdMutex;
+        bx::Mutex m_completedTasksGpuMutex;
+        bx::Mutex m_completedTasksCpuMutex;
+    };
+    static RadianceFilterGlobalState s_globalState;
+
     struct RadianceFilterParams
     {
         float* m_dstPtr;
@@ -888,36 +824,92 @@ namespace cmft
         const uint32_t* m_faceOffsets;
     };
 
-    int32_t radianceFilterCpu(void* _taskDataPool)
+    struct RadianceFilterTaskList
+    {
+        RadianceFilterTaskList(uint8_t _mipStart, uint8_t _mipCount)
+            : m_topMipIndex(_mipStart)
+            , m_bottomMipIndex(_mipCount-1)
+            , m_totalMipCount(_mipCount)
+        {
+            memset(m_mipFaceIdx, 0, MAX_MIP_NUM);
+        }
+
+        // Returns cube face radiance filter parameters starting from the top mip level.
+        const RadianceFilterParams* getFromTop()
+        {
+            bx::MutexScope lock(m_indexMutex);
+            while (m_topMipIndex <= m_bottomMipIndex)
+            {
+                if (m_mipFaceIdx[m_topMipIndex] >= 6)
+                {
+                    m_topMipIndex++;
+                }
+                else
+                {
+                    return &m_params[m_topMipIndex][m_mipFaceIdx[m_topMipIndex]++];
+                }
+
+            }
+            return NULL;
+        }
+
+        // Returns cube face radiance filter parameters starting from the bottom mip level.
+        const RadianceFilterParams* getFromBottom(uint8_t _numLevels = 0)
+        {
+            bx::MutexScope lock(m_indexMutex);
+            const uint8_t barrier = (0 == _numLevels) ? m_topMipIndex : max(m_topMipIndex, uint8_t(m_totalMipCount-_numLevels));
+            while (barrier <= m_bottomMipIndex)
+            {
+                if (m_mipFaceIdx[m_bottomMipIndex] >= 6)
+                {
+                    m_bottomMipIndex--;
+                }
+                else
+                {
+                    return &m_params[m_bottomMipIndex][m_mipFaceIdx[m_bottomMipIndex]++];
+                }
+            }
+            return NULL;
+        }
+
+        bx::Mutex m_indexMutex;
+        uint8_t m_topMipIndex;
+        uint8_t m_bottomMipIndex;
+        uint8_t m_totalMipCount;
+        uint8_t m_mipFaceIdx[MAX_MIP_NUM];
+        RadianceFilterParams m_params[MAX_MIP_NUM][CUBE_FACE_NUM];
+    };
+
+    int32_t radianceFilterCpu(void* _taskList)
     {
         const uint8_t threadId = s_globalState.getThreadId();
         const double freq = double(bx::getHPFrequency());
         const double toSec = 1.0/freq;
 
-        DataPool* dataPool = (DataPool*)_taskDataPool;
+        RadianceFilterTaskList* taskList = (RadianceFilterTaskList*)_taskList;
 
-        // While there are unfinshed tasks.
-        while (dataPool->has(sizeof(RadianceFilterParams)))
+        // Cpu is first requesting all 1x1, 2x2, 4x4, 8x8, 16x16 cubemap faces (5 levels from bottom).
+        // Then, it goes from the top level mipmap to the bottom until there are unprocessed faces.
+        const RadianceFilterParams* params;
+        while ((params = taskList->getFromBottom(5)) != NULL
+        ||     (params = taskList->getFromTop())     != NULL)
         {
             // Start timer.
             const uint64_t startTime = bx::getHPCounter();
 
-            // Get next unfinished task.
-            RadianceFilterParams* threadData = (RadianceFilterParams*)dataPool->consume(sizeof(RadianceFilterParams));
-
             // Process data.
-            radianceFilter(threadData->m_dstPtr
-                         , threadData->m_face
-                         , threadData->m_mipFaceSize
-                         , threadData->m_filterSizeUv
-                         , threadData->m_uvStart
-                         , threadData->m_uvEnd
-                         , threadData->m_uvSize
-                         , threadData->m_specularPower
-                         , threadData->m_specularAngle
-                         , threadData->m_cubemapVectors
-                         , threadData->m_imageRgba32f
-                         , threadData->m_faceOffsets
+            radianceFilter(params->m_dstPtr
+                         , params->m_face
+                         , params->m_mipFaceSize
+                         , params->m_filterSizeUv
+                         , params->m_uvStart
+                         , params->m_uvEnd
+                         , params->m_uvSize
+                         , params->m_specularPower
+                         , params->m_specularAngle
+                         , params->m_cubemapVectors
+                         , params->m_imageRgba32f
+                         , params->m_faceOffsets
                          );
 
             // Determine task duration.
@@ -930,7 +922,7 @@ namespace cmft
             sprintf(cpuId, "[CPU%u]", threadId);
             INFO("Radiance -> %-8s| %4u | %7.3fs | %7.3fs"
                 , cpuId
-                , threadData->m_mipFaceSize
+                , params->m_mipFaceSize
                 , double(taskDuration)*toSec
                 , double(totalDuration)*toSec
                 );
@@ -1207,7 +1199,7 @@ namespace cmft
     };
     RadianceProgram s_radianceProgram;
 
-    int32_t radianceFilterGpu(void* _taskDataPool)
+    int32_t radianceFilterGpu(void* _taskList)
     {
         if (!s_radianceProgram.isValid())
         {
@@ -1217,30 +1209,28 @@ namespace cmft
         const double freq = double(bx::getHPFrequency());
         const double toSec = 1.0/freq;
 
-        DataPool* dataPool = (DataPool*)_taskDataPool;
+        RadianceFilterTaskList* taskList = (RadianceFilterTaskList*)_taskList;
 
-        // While there are unfinshed tasks.
-        while (dataPool->has(sizeof(RadianceFilterParams)))
+        // Gpu is processing from the top level mip map to the bottom.
+        const RadianceFilterParams* params;
+        while ((params = taskList->getFromTop()) != NULL)
         {
             // Start timer.
             const uint64_t startTime = bx::getHPCounter();
 
-            // Get next unfinished task.
-            RadianceFilterParams* threadData = (RadianceFilterParams*)dataPool->consume(sizeof(RadianceFilterParams));
-
             // Prepare parameters.
-            s_radianceProgram.setupOutputBuffer(threadData->m_mipFaceSize);
-            s_radianceProgram.setArgs(threadData->m_face
-                                    , threadData->m_mipFaceSize
-                                    , threadData->m_specularPower
-                                    , threadData->m_specularAngle
+            s_radianceProgram.setupOutputBuffer(params->m_mipFaceSize);
+            s_radianceProgram.setArgs(params->m_face
+                                    , params->m_mipFaceSize
+                                    , params->m_specularPower
+                                    , params->m_specularAngle
                                     );
 
             // Enqueue processing job.
-            s_radianceProgram.run(threadData->m_mipFaceSize);
+            s_radianceProgram.run(params->m_mipFaceSize);
 
             // Read results.
-            s_radianceProgram.readResults(threadData->m_dstPtr, threadData->m_mipFaceSize);
+            s_radianceProgram.readResults(params->m_dstPtr, params->m_mipFaceSize);
 
             // Determine task duration.
             const uint64_t currentTime = bx::getHPCounter();
@@ -1249,7 +1239,7 @@ namespace cmft
 
             // Output process info.
             INFO("Radiance ->  <GPU>  | %4u | %7.3fs | %7.3fs"
-                , threadData->m_mipFaceSize
+                , params->m_mipFaceSize
                 , double(taskDuration)*toSec
                 , double(totalDuration)*toSec
                 );
@@ -1350,8 +1340,7 @@ namespace cmft
         // Multi-threading parameters.
         bx::Thread cpuThreads[64];
         uint8_t activeCpuThreads = 0;
-        const uint8_t hardwareCpuThreads = 4; // Use 4 as default if unspecified.
-        const uint8_t maxActiveCpuThreads = min(uint8_t(64), (-1 == _numCpuProcessingThreads) ? hardwareCpuThreads : uint8_t(_numCpuProcessingThreads));
+        const uint8_t maxActiveCpuThreads = (uint8_t)max(int8_t(1), min(_numCpuProcessingThreads, int8_t(64)));
 
         // Prepare OpenCL kernel and device memory.
         s_radianceProgram.setClContext(_clContext);
@@ -1522,14 +1511,14 @@ namespace cmft
             }
 
             // Alloc data for tasks parameters.
-            DataPool taskDataQueue;
-            taskDataQueue.init(MAX_MIP_NUM*CUBE_FACE_NUM*sizeof(RadianceFilterParams));
+            const uint8_t mipStart = uint8_t(_excludeBase);
+            RadianceFilterTaskList taskList(mipStart, _mipCount);
 
             const float glossScalef = float(int32_t(_glossScale));
             const float glossBiasf = float(int32_t(_glossBias));
 
             //Prepare processing tasks parameters.
-            for (uint32_t mip = uint32_t(_excludeBase); mip < mipCount; ++mip)
+            for (uint32_t mip = mipStart; mip < mipCount; ++mip)
             {
                 // Determine filter parameters.
                 const uint32_t mipFaceSize = max(UINT32_C(1), dstFaceSize >> mip);
@@ -1572,7 +1561,7 @@ namespace cmft
                     };
 
                     // Enqueue processing parameters.
-                    taskDataQueue.push(&taskParams, sizeof(RadianceFilterParams));
+                    memcpy(&taskList.m_params[mip][face], &taskParams, sizeof(RadianceFilterParams));
                 }
             }
 
@@ -1584,7 +1573,7 @@ namespace cmft
             // Single thread, no OpenCL.
             if (maxActiveCpuThreads == 1 && !s_radianceProgram.isValid())
             {
-                radianceFilterCpu((void*)&taskDataQueue);
+                radianceFilterCpu((void*)&taskList);
             }
             // Multi thread (with or without OpenCL).
             else
@@ -1592,13 +1581,13 @@ namespace cmft
                 // Start CPU processing threads.
                 while (activeCpuThreads < maxActiveCpuThreads)
                 {
-                    cpuThreads[activeCpuThreads++].init(radianceFilterCpu, (void*)&taskDataQueue);
+                    cpuThreads[activeCpuThreads++].init(radianceFilterCpu, (void*)&taskList);
                 }
 
                 // Start one GPU host thread.
                 if (s_radianceProgram.isValid() && s_radianceProgram.isIdle())
                 {
-                    cpuThreads[activeCpuThreads++].init(radianceFilterGpu, (void*)&taskDataQueue);
+                    cpuThreads[activeCpuThreads++].init(radianceFilterGpu, (void*)&taskList);
                 }
 
                 // Wait for everything to finish.
@@ -1625,7 +1614,6 @@ namespace cmft
                 s_radianceProgram.releaseDeviceMemory();
                 s_radianceProgram.destroy();
             }
-            taskDataQueue.cleanup();
         }
 
         // Fill result structure.

@@ -236,10 +236,10 @@ namespace cmft
 
         // Compute solid angle of texel area.
         const float solidAngle = areaElement(x1, y1)
-            - areaElement(x0, y1)
-            - areaElement(x1, y0)
-            + areaElement(x0, y0)
-            ;
+                               - areaElement(x0, y1)
+                               - areaElement(x1, y0)
+                               + areaElement(x0, y0)
+                               ;
 
         return solidAngle;
     }
