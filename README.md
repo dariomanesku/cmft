@@ -59,10 +59,12 @@ Building
 Using
 -----
 - Use *runtime/cmft\_win.bat* on Windows, *runtime/cmft\_lin.sh* on Linux and *runtime/cmft\_osx.sh* on OSX as a starting point.<br \>
-- First compile the project, edit *runtime/cmft\_\** file as needed and then run it.<br \>
+- First compile the project, edit *runtime/cmft\_\* * file as needed and then run it.<br \>
 
 Project status
 --------------
+
+- There are still issues to be fixed. Before using cmft in production, wait until [cmftViewer](https://github.com/dariomanesku/cmftViewer) gets released. Throughout [cmftViewer](https://github.com/dariomanesku/cmftViewer) development, all cmft major problems should be discovered and fixed. [cmftViewer](https://github.com/dariomanesku/cmftViewer) will also be a good showcase of what exactly you can get and expect from cmft, so stay tuned.
 
 ### Known issues
 - Linux GCC build works but processing on CPU is noticeably slower comparing to Windows build (haven't yet figured out why). OpenCL runs fine.
