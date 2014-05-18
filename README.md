@@ -59,7 +59,7 @@ Building
 Using
 -----
 - Use *runtime/cmft\_win.bat* on Windows, *runtime/cmft\_lin.sh* on Linux and *runtime/cmft\_osx.sh* on OSX as a starting point.<br \>
-- First compile the project, edit *runtime/cmft\_\* * file as needed and then run it.<br \>
+- First compile the project, edit *runtime/cmft\_*\* file as needed and then run it.<br \>
 
 Project status
 --------------
