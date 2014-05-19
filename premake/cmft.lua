@@ -158,7 +158,7 @@ function toolchain(_buildDir, _libDir)
 		}
 
 	configuration { "vs*", "Debug" }
-		buildoptions { "/Oy-", "/Ob2" }
+		buildoptions { "/Oy-" }
 
 	configuration { "vs*", "Release" }
 		buildoptions
