@@ -28,7 +28,6 @@ Building
 
 	git clone git://github.com/dariomanesku/cmft.git
 	cd cmft
-	git submodule update --init
 	make
 
 - After calling `make`, *\_projects* folder will be created with all suppored project files. Deleting *\_projects* folder is safe at any time.<br \>
