@@ -902,15 +902,13 @@ namespace cmft
         DEBUG_CHECK(0 != _image.m_numMips, "Mips count cannot be 0.");
 
         uint32_t count = 0;
-        for (uint8_t face = 0; face < _image.m_numFaces; ++face)
+        for (uint8_t mip = 0; mip < _image.m_numMips; ++mip)
         {
-            for (uint8_t mip = 0; mip < _image.m_numMips; ++mip)
-            {
-                const uint32_t width  = max(UINT32_C(1), _image.m_width  >> mip);
-                const uint32_t height = max(UINT32_C(1), _image.m_height >> mip);
-                count += width * height;
-            }
+            const uint32_t width  = max(UINT32_C(1), _image.m_width  >> mip);
+            const uint32_t height = max(UINT32_C(1), _image.m_height >> mip);
+            count += width * height;
         }
+        count *= _image.m_numFaces;
 
         return count;
     }
