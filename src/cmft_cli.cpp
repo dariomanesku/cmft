@@ -8,8 +8,8 @@
 
 #include <bx/commandline.h>
 
-#include <cmft/image.h>
-#include <cmft/cubemapfilter.h>
+#include "cmft/image.h"
+#include "cmft/cubemapfilter.h"
 
 #include "base/config.h"
 #include "base/macros.h" //countof

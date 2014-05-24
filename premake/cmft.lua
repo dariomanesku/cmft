@@ -48,6 +48,8 @@ project "cmft"
         CMFT_SRC_DIR .. "**.cpp",
         CMFT_SRC_DIR .. "**/**.h",
         CMFT_SRC_DIR .. "**/**.cpp",
+
+        CMFT_INCLUDE_DIR .. "**.h",
     }
 
     includedirs
