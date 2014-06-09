@@ -949,7 +949,7 @@ namespace cmft
         }
     }
 
-    // Source to rgba32f.
+    // To rgba32f.
     //-----
 
     inline void bgr8ToRgba32f(float* _rgba32f, const uint8_t* _bgr8)
@@ -1046,6 +1046,25 @@ namespace cmft
             _rgba32f[2] = 0.0f;
             _rgba32f[3] = 1.0f;
         }
+    }
+
+    void toRgba32f(float _rgba32f[4], TextureFormat::Enum _srcFormat, const void* _src)
+    {
+        switch(_srcFormat)
+        {
+        case TextureFormat::BGR8:     bgr8ToRgba32f(_rgba32f,     (uint8_t*)_src); break;
+        case TextureFormat::RGB8:     rgb8ToRgba32f(_rgba32f,     (uint8_t*)_src); break;
+        case TextureFormat::RGB16:    rgb16ToRgba32f(_rgba32f,   (uint16_t*)_src); break;
+        case TextureFormat::RGB16F:   rgb16fToRgba32f(_rgba32f,  (uint16_t*)_src); break;
+        case TextureFormat::RGB32F:   rgb32fToRgba32f(_rgba32f,     (float*)_src); break;
+        case TextureFormat::RGBE:     rgbeToRgba32f(_rgba32f,     (uint8_t*)_src); break;
+        case TextureFormat::BGRA8:    bgra8ToRgba32f(_rgba32f,    (uint8_t*)_src); break;
+        case TextureFormat::RGBA8:    rgba8ToRgba32f(_rgba32f,    (uint8_t*)_src); break;
+        case TextureFormat::RGBA16:   rgba16ToRgba32f(_rgba32f,  (uint16_t*)_src); break;
+        case TextureFormat::RGBA16F:  rgba16fToRgba32f(_rgba32f, (uint16_t*)_src); break;
+        case TextureFormat::RGBA32F:  rgba32fToRgba32f(_rgba32f,    (float*)_src); break;
+        default: DEBUG_CHECK(false, "Unknown image format.");
+        };
     }
 
     void imageToRgba32f(Image& _dst, const Image& _src)
@@ -1211,7 +1230,7 @@ namespace cmft
         imageMove(_image, tmp);
     }
 
-    // Rgba32f to destination.
+    // From Rgba32f.
     //-----
 
     inline void bgr8FromRgba32f(uint8_t* _bgr8, const float* _rgba32f)
@@ -1298,7 +1317,7 @@ namespace cmft
         _rgbe[3] = uint8_t(exp+128.0f);
     }
 
-    void rgba32fTo(void* _out, TextureFormat::Enum _format, const float _rgba32f[4])
+    void fromRgba32f(void* _out, TextureFormat::Enum _format, const float _rgba32f[4])
     {
         switch(_format)
         {
@@ -1540,6 +1559,52 @@ namespace cmft
             imageUnload(_dst);
             imageConvert(_dst, _format, _src);
             return false;
+        }
+    }
+
+    void imageGetPixel(void* _out, TextureFormat::Enum _format, uint32_t _x, uint32_t _y, uint8_t _mip, uint8_t _face, const Image& _image)
+    {
+        // Input check.
+        DEBUG_CHECK(_x < _image.m_width,       "Invalid input parameters. X coord bigger than image width.");
+        DEBUG_CHECK(_y < _image.m_height,      "Invalid input parameters. Y coord bigger than image heigh.");
+        DEBUG_CHECK(_face < _image.m_numFaces, "Invalid input parameters. Requesting pixel from non-existing face.");
+        DEBUG_CHECK(_mip < _image.m_numMips,   "Invalid input parameters. Requesting pixel from non-existing mip level.");
+
+        const uint32_t bytesPerPixel = getImageDataInfo(_image.m_format).m_bytesPerPixel;
+        const uint32_t pitch = _image.m_width * bytesPerPixel;
+
+        // Get face and mip offset.
+        uint32_t offset = 0;
+        for (uint8_t face = 0; face < _face; ++face)
+        {
+            for (uint8_t mip = 0; mip < _mip; ++mip)
+            {
+                const uint32_t width  = max(UINT32_C(1), _image.m_width  >> mip);
+                const uint32_t height = max(UINT32_C(1), _image.m_height >> mip);
+                offset += width * height * bytesPerPixel;
+            }
+        }
+
+        const void* src = (const void*)((const uint8_t*)_image.m_data + offset + _y*pitch + _x*bytesPerPixel);
+
+        // Output.
+        if (_image.m_format == _format)
+        {
+            // Image is already in requested format, just copy data.
+            memcpy(_out, src, bytesPerPixel);
+        }
+        else if (_image.m_format == TextureFormat::RGBA32F)
+        {
+            // Image is in rgba32f format. Transform to output format.
+            fromRgba32f(_out, _format, (const float*)src);
+        }
+        else
+        {
+            // Image is in some other format.
+            // Transform to rgba32f and then back to requested output format.
+            float buf[4];
+            toRgba32f(buf, _image.m_format, src);
+            fromRgba32f(_out, _format, buf);
         }
     }
 
@@ -2975,7 +3040,7 @@ namespace cmft
         // Get black pixel.
         void* blackPixel = alloca(bytesPerPixel);
         const float blackPixelRgba32f[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
-        rgba32fTo(blackPixel, TextureFormat::Enum(srcCpy.m_format), blackPixelRgba32f);
+        fromRgba32f(blackPixel, TextureFormat::Enum(srcCpy.m_format), blackPixelRgba32f);
 
         // Fill with black.
         for (uint8_t mip = 0; mip < srcCpy.m_numMips; ++mip)

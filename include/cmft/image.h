@@ -148,13 +148,16 @@ namespace cmft
     void imageGetFaceOffsets(uint32_t _faceOffsets[CUBE_FACE_NUM], const Image& _image);
 
     ///
+    void toRgba32f(float _rgba32f[4], TextureFormat::Enum _srcFormat, const void* _src);
+
+    ///
     void imageToRgba32f(Image& _dst, const Image& _src);
 
     ///
     void imageToRgba32f(Image& _image);
 
     ///
-    void rgba32fTo(void* _out, TextureFormat::Enum _format, const float _rgba32f[4]);
+    void fromRgba32f(void* _out, TextureFormat::Enum _format, const float _rgba32f[4]);
 
     ///
     void imageFromRgba32f(Image& _dst, TextureFormat::Enum _dstFormat, const Image& _src);
@@ -175,6 +178,9 @@ namespace cmft
     /// If _dst is a physical copy of _src, function returns false (data should be released with imageUnload()).
     ///
     bool imageRefOrConvert(Image& _dst, TextureFormat::Enum _format, const Image& _src);
+
+    ///
+    void imageGetPixel(void* _out, TextureFormat::Enum _format, uint32_t _x, uint32_t _y, uint8_t _mip, uint8_t _face, const Image& _image);
 
     /// Notice: only base image gets resized. Mipmaps are lost.
     void imageResize(Image& _dst, uint32_t _width, uint32_t _height, const Image& _src);
