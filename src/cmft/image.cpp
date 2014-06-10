@@ -1566,7 +1566,7 @@ namespace cmft
     {
         // Input check.
         DEBUG_CHECK(_x < _image.m_width,       "Invalid input parameters. X coord bigger than image width.");
-        DEBUG_CHECK(_y < _image.m_height,      "Invalid input parameters. Y coord bigger than image heigh.");
+        DEBUG_CHECK(_y < _image.m_height,      "Invalid input parameters. Y coord bigger than image height.");
         DEBUG_CHECK(_face < _image.m_numFaces, "Invalid input parameters. Requesting pixel from non-existing face.");
         DEBUG_CHECK(_mip < _image.m_numMips,   "Invalid input parameters. Requesting pixel from non-existing mip level.");
 
