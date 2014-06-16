@@ -12,6 +12,13 @@ Utilizes both host CPU and OpenCL GPU at the same time for fast processing! (che
 - Supported input/output formats: \*.dds, \*.ktx, \*.hdr, \*.tga.
 - Supported input/output types: cubemap, cube cross, latlong, face list, horizontal strip.
 
+
+See it in action - [here](https://github.com/dariomanesku/cmftViewer)
+----------------
+Shading with a prefiltered cubemap:
+![cmftViewer8](https://github.com/dariomanesku/cmftViewer/raw/master/screenshots/cmftViewer8.jpg)
+
+
 Download
 --------
 
