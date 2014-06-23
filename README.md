@@ -30,6 +30,8 @@ Download binaries here: <br \>
  * [cmft - OSX 32bit](https://github.com/dariomanesku/cmft-bin/raw/master/cmft_osx32.zip)<br />
  * [cmft - OSX 64bit](https://github.com/dariomanesku/cmft-bin/raw/master/cmft_osx64.zip)<br />
 
+Notice: Binaries are outdated. They will be updated after some bugfixes. Check the notice in [project status](https://github.com/dariomanesku/cmft#project-status)!
+
 Building
 --------
 
@@ -71,6 +73,7 @@ Project status
 --------------
 
 - There are still issues to be fixed. Before using cmft in production, wait until [cmftViewer](https://github.com/dariomanesku/cmftViewer) gets released. Throughout [cmftViewer](https://github.com/dariomanesku/cmftViewer) development, all cmft major problems should be discovered and fixed. [cmftViewer](https://github.com/dariomanesku/cmftViewer) will also be a good showcase of what exactly you can get and expect from cmft, so stay tuned.
+- **NOTICE: there have been some bug reports on twitter. It is not in a stable state at the moment, it has to be extensively tested and fixed. Test cases are on their way. Thank you for patience.**
 
 ### Known issues
 - Linux GCC build works but processing on CPU is noticeably slower comparing to Windows build (haven't yet figured out why). OpenCL runs fine.
