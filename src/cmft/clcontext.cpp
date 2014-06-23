@@ -29,6 +29,7 @@ namespace cmft
 
         // Choose preferred platform.
         cl_platform_id choosenPlatform = platforms[0];
+        if (NULL != _vendorStrPart)
         {
             // If specific vendor is requested, transform input to lowercase.
             if (_vendor&CL_VENDOR_OTHER)
