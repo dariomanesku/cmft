@@ -32,6 +32,12 @@ namespace bx
 	}
 #define BX_ENABLED(_x) bx::isEnabled<!!(_x)>()
 
+	inline bool ignoreC4127(bool _x)
+	{
+		return _x;
+	}
+#define BX_IGNORE_C4127(_x) bx::ignoreC4127(!!(_x) )
+
 } // namespace bx
 
 // Annoying C++0x stuff..

@@ -67,7 +67,7 @@ namespace bx
 		const float4_t tmp0   = float4_or(_a, zwxy);
 		const float4_t tmp1   = float4_swiz_yyyy(_a);
 		const float4_t tmp2   = float4_or(tmp0, tmp1);
-		const float4_t mf000  = float4_ild(-1, 0, 0, 0);
+		const float4_t mf000  = float4_ild(UINT32_MAX, 0, 0, 0);
 		const float4_t result = float4_and(tmp2, mf000);
 
 		return result;
@@ -76,7 +76,7 @@ namespace bx
 	BX_FLOAT4_INLINE float4_t float4_orc_ni(float4_t _a, float4_t _b)
 	{
 		const float4_t aorb   = float4_or(_a, _b);
-		const float4_t mffff  = float4_isplat(-1);
+		const float4_t mffff  = float4_isplat(UINT32_MAX);
 		const float4_t result = float4_xor(aorb, mffff);
 
 		return result;
@@ -109,7 +109,7 @@ namespace bx
 
 	BX_FLOAT4_INLINE float4_t float4_not_ni(float4_t _a)
 	{
-		const float4_t mffff  = float4_isplat(-1);
+		const float4_t mffff  = float4_isplat(UINT32_MAX);
 		const float4_t result = float4_xor(_a, mffff);
 
 		return result;

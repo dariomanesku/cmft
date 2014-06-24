@@ -16,7 +16,7 @@ else
 OS=windows
 endif
 
-PREMAKE4=./dependency/3rdparty/bx/tools/bin/$(OS)/premake4
+PREMAKE4=./dependency/bx/tools/bin/$(OS)/premake4
 
 export CMFT_WIN_CLANG_DIR_=$(subst \,\\,$(subst /,\,$(WIN_CLANG_DIR)))
 export CMFT_WIN_MINGW_DIR_=$(subst \,\\,$(subst /,\,$(WIN_MINGW_DIR)))

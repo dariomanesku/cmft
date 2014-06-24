@@ -28,6 +28,11 @@ namespace bx
 #	if BX_CONFIG_SEMAPHORE_PTHREAD
 	class Semaphore
 	{
+		BX_CLASS(Semaphore
+			, NO_COPY
+			, NO_ASSIGNMENT
+			);
+
 	public:
 		Semaphore()
 			: m_count(0)
@@ -114,9 +119,6 @@ namespace bx
 		}
 
 	private:
-		Semaphore(const Semaphore& _rhs); // no copy constructor
-		Semaphore& operator=(const Semaphore& _rhs); // no assignment operator
-
 		pthread_mutex_t m_mutex;
 		pthread_cond_t m_cond;
 		int32_t m_count;
@@ -126,6 +128,11 @@ namespace bx
 
 	class Semaphore
 	{
+		BX_CLASS(Semaphore
+			, NO_COPY
+			, NO_ASSIGNMENT
+			);
+
 	public:
 		Semaphore()
 		{
@@ -179,9 +186,6 @@ namespace bx
 		}
 
 	private:
-		Semaphore(const Semaphore& _rhs); // no copy constructor
-		Semaphore& operator=(const Semaphore& _rhs); // no assignment operator
-
 		sem_t m_handle;
 	};
 #	endif // BX_CONFIG_SEMAPHORE_PTHREAD
@@ -190,6 +194,11 @@ namespace bx
 
 	class Semaphore
 	{
+		BX_CLASS(Semaphore
+			, NO_COPY
+			, NO_ASSIGNMENT
+			);
+
 	public:
 		Semaphore()
 		{
@@ -214,9 +223,6 @@ namespace bx
 		}
 
 	private:
-		Semaphore(const Semaphore& _rhs); // no copy constructor
-		Semaphore& operator=(const Semaphore& _rhs); // no assignment operator
-
 		HANDLE m_handle;
 	};
 

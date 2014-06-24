@@ -56,6 +56,11 @@ namespace bx
 
 	class Mutex
 	{
+		BX_CLASS(Mutex
+			, NO_COPY
+			, NO_ASSIGNMENT
+			);
+
 	public:
 		Mutex()
 		{
@@ -78,14 +83,17 @@ namespace bx
 		}
 
 	private:
-		Mutex(const Mutex& _rhs); // no copy constructor
-		Mutex& operator=(const Mutex& _rhs); // no assignment operator
-
 		pthread_mutex_t m_handle;
 	};
 
 	class MutexScope
 	{
+		BX_CLASS(MutexScope
+			, NO_DEFAULT_CTOR
+			, NO_COPY
+			, NO_ASSIGNMENT
+			);
+
 	public:
 		MutexScope(Mutex& _mutex)
 			: m_mutex(_mutex)
@@ -99,10 +107,6 @@ namespace bx
 		}
 
 	private:
-		MutexScope(); // no default constructor
-		MutexScope(const MutexScope& _rhs); // no copy constructor
-		MutexScope& operator=(const MutexScope& _rhs); // no assignment operator
-
 		Mutex& m_mutex;
 	};
 
@@ -110,6 +114,12 @@ namespace bx
 
 	class LwMutexScope
 	{
+		BX_CLASS(LwMutexScope
+			, NO_DEFAULT_CTOR
+			, NO_COPY
+			, NO_ASSIGNMENT
+			);
+
 	public:
 		LwMutexScope(LwMutex& _mutex)
 			: m_mutex(_mutex)
@@ -123,10 +133,6 @@ namespace bx
 		}
 
 	private:
-		LwMutexScope(); // no default constructor
-		LwMutexScope(const LwMutexScope& _rhs); // no copy constructor
-		LwMutexScope& operator=(const LwMutexScope& _rhs); // no assignment operator
-
 		LwMutex& m_mutex;
 	};
 

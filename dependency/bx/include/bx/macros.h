@@ -80,7 +80,11 @@
 #define BX_ALIGN_STRUCT_16(_struct) BX_ALIGN_STRUCT(16, _struct)
 #define BX_ALIGN_STRUCT_256(_struct) BX_ALIGN_STRUCT(256, _struct)
 
-#define BX_UNUSED_1(_a1) do { (void)(true ? (void)0 : ( (void)(_a1) ) ); } while(0)
+#define BX_MACRO_BLOCK_BEGIN for(;;) {
+#define BX_MACRO_BLOCK_END break; }
+#define BX_NOOP(...) BX_MACRO_BLOCK_BEGIN BX_MACRO_BLOCK_END
+
+#define BX_UNUSED_1(_a1) BX_MACRO_BLOCK_BEGIN (void)(true ? (void)0 : ( (void)(_a1) ) ); BX_MACRO_BLOCK_END
 #define BX_UNUSED_2(_a1, _a2) BX_UNUSED_1(_a1); BX_UNUSED_1(_a2)
 #define BX_UNUSED_3(_a1, _a2, _a3) BX_UNUSED_2(_a1, _a2); BX_UNUSED_1(_a3)
 #define BX_UNUSED_4(_a1, _a2, _a3, _a4) BX_UNUSED_3(_a1, _a2, _a3); BX_UNUSED_1(_a4)
@@ -127,15 +131,15 @@
 #endif // BX_COMPILER_MSVC
 
 #ifndef BX_CHECK
-#	define BX_CHECK(_condition, ...) do {} while(0)
+#	define BX_CHECK(_condition, ...) BX_NOOP()
 #endif // BX_CHECK
 
 #ifndef BX_TRACE
-#	define BX_TRACE(...) do {} while(0)
+#	define BX_TRACE(...) BX_NOOP()
 #endif // BX_TRACE
 
 #ifndef BX_WARN
-#	define BX_WARN(_condition, ...) do {} while(0)
+#	define BX_WARN(_condition, ...) BX_NOOP()
 #endif // BX_CHECK
 
 #ifndef BX_CONFIG_ALLOCATOR_DEBUG

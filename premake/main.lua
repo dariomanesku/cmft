@@ -3,9 +3,8 @@
 -- License: http://www.opensource.org/licenses/BSD-2-Clause
 --
 
-CMFT_DIR = (path.getabsolute("..") .. "/")
-BX_DIR = (CMFT_DIR .. "dependency/3rdparty/bx/")
-DEPENDENCY_DIR = (CMFT_DIR .. "dependency/")
+local CMFT_DIR = (path.getabsolute("..") .. "/")
+local BX_DIR = (CMFT_DIR .. "dependency/bx/")
 
 local CMFT_BUILD_DIR    = (CMFT_DIR .. "_build/")
 local CMFT_PROJECTS_DIR = (CMFT_DIR .. "_projects/")
@@ -23,11 +22,13 @@ dofile "toolchain.lua"
 cmft_toolchain(CMFT_BUILD_DIR, CMFT_PROJECTS_DIR)
 compat(BX_DIR)
 
--- cmft_cli project
+-- cmft_cli project.
 dofile "cmft_cli.lua"
+cmftCliProject(CMFT_DIR, BX_DIR)
 
--- cmft project
+-- cmft project.
 dofile "cmft.lua"
+cmftProject(CMFT_DIR, BX_DIR)
 
 strip()
 
