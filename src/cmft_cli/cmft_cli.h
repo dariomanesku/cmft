@@ -3,19 +3,22 @@
  * License: http://www.opensource.org/licenses/BSD-2-Clause
  */
 
+#ifndef CMFT_CMFT_CLI_H_HEADER_GUARD
+#define CMFT_CMFT_CLI_H_HEADER_GUARD
+
 #include <stdio.h>
 #include <stdint.h>
 
 #include <bx/commandline.h>
 
-#include "cmft/image.h"
-#include "cmft/cubemapfilter.h"
+#include <cmft/image.h>
+#include <cmft/cubemapfilter.h>
 
-#include "base/config.h"
-#include "base/macros.h" //countof
-#include "base/utils.h" //strncpy
+#include <base/config.h>
+#include <base/macros.h> //countof
+#include <base/utils.h> //strncpy
 
-#include "messages.h" //INFO, WARN, g_printInfo, g_printWarnings
+#include <cmft/messages.h> //INFO, WARN, g_printInfo, g_printWarnings
 
 using namespace cmft;
 
@@ -921,7 +924,7 @@ void printHelp()
           );
 }
 
-int main(int _argc, char const* const* _argv)
+int cmftMain(int _argc, char const* const* _argv)
 {
     bx::CommandLine cmdLine(_argc, _argv);
 
@@ -1260,5 +1263,7 @@ int main(int _argc, char const* const* _argv)
     INFO("Done.");
     return EXIT_SUCCESS;
 }
+
+#endif //CMFT_CMFT_CLI_H_HEADER_GUARD
 
 /* vim: set sw=4 ts=4 expandtab: */
