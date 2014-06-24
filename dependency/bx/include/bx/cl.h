@@ -888,6 +888,7 @@ namespace bx
 			if (0 == ref)
 			{
 				dlclose(m_handle);
+				m_handle = NULL;
 			}
 
 			return ref;
