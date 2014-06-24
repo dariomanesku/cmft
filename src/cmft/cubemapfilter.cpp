@@ -890,8 +890,8 @@ namespace cmft
         // Cpu is first requesting all 1x1, 2x2, 4x4, 8x8, 16x16 cubemap faces (5 levels from bottom).
         // Then, it goes from the top level mipmap to the bottom until there are unprocessed faces.
         const RadianceFilterParams* params;
-        while ((params = taskList->getFromBottom(5)) != NULL
-        ||     (params = taskList->getFromTop())     != NULL)
+        while ( ((params = taskList->getFromBottom(5)) != NULL)
+             || ((params = taskList->getFromTop())     != NULL) )
         {
             // Start timer.
             const uint64_t startTime = bx::getHPCounter();
@@ -1377,7 +1377,7 @@ namespace cmft
         // Alloc dst data.
         const uint32_t dstFaceSize = (0 == _dstFaceSize) ? _src.m_width : _dstFaceSize;
         const uint8_t mipMin = 1;
-        const uint8_t mipMax = (uint8_t)log2f((float)dstFaceSize)+uint8_t(1);
+        const uint8_t mipMax = (uint8_t)log2f(float(int32_t(dstFaceSize)))+uint8_t(1);
         const uint8_t mipCount = clamp(_mipCount, mipMin, mipMax);
         const uint32_t bytesPerPixel = 4 /*numChannels*/ * 4 /*bytesPerChannel*/;
         uint32_t dstOffsets[CUBE_FACE_NUM][MAX_MIP_NUM];
@@ -1494,20 +1494,12 @@ namespace cmft
             s_globalState.m_startTime = bx::getHPCounter();
             INFO("Radiance -> Starting filter...");
 
-            if (s_radianceProgram.isValid())
-            {
-                INFO("Radiance -> Utilizing %u CPU processing threads and %s."
-                    , maxActiveCpuThreads
-                    , s_radianceProgram.m_clContext->m_deviceName
-                    );
-            }
-            else
-            {
-                INFO("Radiance -> Utilizing %u CPU processing thread%s."
-                    , maxActiveCpuThreads
-                    , maxActiveCpuThreads==1?"":"s"
-                    );
-            }
+            INFO("Radiance -> Utilizing %u CPU processing thread%s%s%s."
+                 , maxActiveCpuThreads
+                 , maxActiveCpuThreads==1?"":"s"
+                 , !s_radianceProgram.isValid()?"":" and "
+                 , !s_radianceProgram.isValid()?"":s_radianceProgram.m_clContext->m_deviceName
+                 );
 
             // Alloc data for tasks parameters.
             const uint8_t mipStart = uint8_t(_excludeBase);
