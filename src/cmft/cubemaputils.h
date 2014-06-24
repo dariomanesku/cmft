@@ -198,12 +198,12 @@ namespace cmft
     /// _x, _y are in [0.0-1.0] range.
     static inline void latLongFromVec(float& _x, float& _y, const float _vec[3])
     {
-        const float theta = acosf(_vec[1]);
         const float phi = atan2f(_vec[2], -_vec[0]);
+        const float theta = acosf(_vec[1]);
 
-        const float halfInvPi = 0.15915494309f;
+        const float invHalfPi = 0.15915494309f;
         const float invPi = 0.31830988618f;
-        _x = (float(M_PI)+phi)*halfInvPi;
+        _x = (float(M_PI)+phi)*invHalfPi;
         _y = theta*invPi;
     }
 
@@ -211,8 +211,8 @@ namespace cmft
     /// _x, _y are in [0.0-1.0] range.
     static inline void vecFromLatLong(float _vec[3], float _x, float _y)
     {
-        const float theta = _y * float(M_PI);
         const float phi = _x * float(M_PI)*2.0f;
+        const float theta = _y * float(M_PI);
 
         _vec[0] = sinf(theta)*cosf(phi);
         _vec[1] = cosf(theta);
