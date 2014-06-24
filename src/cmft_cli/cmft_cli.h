@@ -1065,10 +1065,12 @@ int cmftMain(int _argc, char const* const* _argv)
     {
         ClContext clContext;
 
+        int32_t clLoaded = 0;
         if (inputParameters.m_useOpenCL)
         {
             // Dynamically load opencl lib.
-            if (bx::clLoad())
+            clLoaded = bx::clLoad();
+            if (clLoaded)
             {
                 clContext.init((uint8_t)inputParameters.m_clVendor
                              , inputParameters.m_deviceType
@@ -1089,7 +1091,14 @@ int cmftMain(int _argc, char const* const* _argv)
                           , &clContext
                           );
 
+
         clContext.destroy();
+
+        // Unload opencl lib.
+        if (clLoaded)
+        {
+            bx::clUnload();
+        }
     }
     else if (FilterType::Irradiance == inputParameters.m_filterType)
     {
@@ -1256,9 +1265,6 @@ int cmftMain(int _argc, char const* const* _argv)
 
     // Cleanup.
     imageUnload(image);
-
-    // Unload opencl lib.
-    bx::clUnload();
 
     INFO("Done.");
     return EXIT_SUCCESS;
