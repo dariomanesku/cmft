@@ -1511,7 +1511,7 @@ namespace cmft
 
             // Alloc data for tasks parameters.
             const uint8_t mipStart = uint8_t(_excludeBase);
-            RadianceFilterTaskList taskList(mipStart, _mipCount);
+            RadianceFilterTaskList taskList(mipStart, mipCount);
 
             const float glossScalef = float(int32_t(_glossScale));
             const float glossBiasf = float(int32_t(_glossBias));
