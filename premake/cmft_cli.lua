@@ -8,6 +8,7 @@ function cmftCliProject(_cmftDir, _bxDir)
     local CMFT_INCLUDE_DIR  = (_cmftDir .. "include/")
     local CMFT_SRC_DIR      = (_cmftDir .. "src/cmft/")
     local CMFT_CLI_SRC_DIR  = (_cmftDir .. "src/")
+    local CMFT_RUNTIME_DIR  = (_cmftDir .. "runtime/")
 
     local BX_INCLUDE_DIR    = (_bxDir .. "include/")
     local BX_THIRDPARTY_DIR = (_bxDir .. "3rdparty/")
