@@ -7,6 +7,7 @@
 #define CMFT_TESTS_H_HEADER_GUARD
 
 #include "../cmft_cli/cmft_cli.h"
+#include "tokenize.h"
 
 static const char s_test0[] =
 {
