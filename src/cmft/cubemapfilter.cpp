@@ -1522,9 +1522,10 @@ namespace cmft
                                        ;
                 const float specularPowerRef = powf(2.0f, glossScalef * glossiness + glossBiasf);
                 const float specularPower = applyLightningModel(specularPowerRef, _lightingModel);
-                const float cosAngle = clamp(cosinePowerFilterAngle(specularPower), minAngle, maxAngle);
+                const float filterAngle = clamp(cosinePowerFilterAngle(specularPower), minAngle, maxAngle);
+                const float cosAngle = max(0.0f, cosf(filterAngle));
                 const float texelSize = 1.0f/mipFaceSizef;
-                const float filterSize = max(texelSize, cosAngle * toFilterSize);
+                const float filterSize = max(texelSize, filterAngle * toFilterSize);
 
                 for (uint8_t face = 0; face < 6; ++face)
                 {
