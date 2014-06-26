@@ -851,7 +851,7 @@ void printHelp()
             "          phongbrdf\n"
             "          blinn\n"
             "          blinnbrdf\n"
-            "    --numCpuProcessingThreads <uint>   Should not be bigger than the number of physical CPU cores/threads. Regardless of this parameter, at least one CPU processing thread will used. [radiance filter param]\n"
+            "    --numCpuProcessingThreads <uint>   Should not be bigger than the number of physical CPU cores/threads. [radiance filter param]\n"
             "    --useOpenCL <bool>                 OpenCL processing can be used alongside processing on CPU. Therefore, OpenCL device should be GPU. [radiance filter param]\n"
             "    --clVendor <vendor>                This parameter should generally be 'anyGpuVendor'. If other vendor is to be choosen, type in part of the vendor name. Use 'cmft --printCLDevices' to list available devices and vendors. [radiance filter param]\n"
             "          intel\n"

@@ -133,12 +133,13 @@ namespace cmft
         },
         { //NEG_Z
             { CMFT_FACE_POS_X, CMFT_EDGE_RIGHT  },
-            { CMFT_FACE_POS_X, CMFT_EDGE_LEFT   },
+            { CMFT_FACE_NEG_X, CMFT_EDGE_LEFT   },
             { CMFT_FACE_POS_Y, CMFT_EDGE_TOP    },
-            { CMFT_FACE_POS_Y, CMFT_EDGE_BOTTOM },
+            { CMFT_FACE_NEG_Y, CMFT_EDGE_BOTTOM },
         }
     };
 
+    /// _u and _v should be center adressing and in [-1.0+invSize..1.0-invSize] range.
     static inline void texelCoordToVec(float* _out3f, float _u, float _v, uint8_t _faceId, uint32_t _faceSize = 1)
     {
         if (1 != _faceSize)
@@ -161,6 +162,7 @@ namespace cmft
         vec3Norm(_out3f, tmp0);
     }
 
+    /// _u and _v are in [0.0 .. 1.0] range.
     static inline void vecToTexelCoord(float& _u, float& _v, uint8_t& _faceIdx, const float* _vec)
     {
         const float absVec[3] =
@@ -174,15 +176,15 @@ namespace cmft
         // Get face id (max component == face vector).
         if (max == absVec[0])
         {
-            _faceIdx = (_vec[0] > 0) ? uint8_t(CMFT_FACE_POS_X) : uint8_t(CMFT_FACE_NEG_X);
+            _faceIdx = (_vec[0] >= 0.0f) ? uint8_t(CMFT_FACE_POS_X) : uint8_t(CMFT_FACE_NEG_X);
         }
         else if (max == absVec[1])
         {
-            _faceIdx = (_vec[1] > 0) ? uint8_t(CMFT_FACE_POS_Y) : uint8_t(CMFT_FACE_NEG_Y);
+            _faceIdx = (_vec[1] >= 0.0f) ? uint8_t(CMFT_FACE_POS_Y) : uint8_t(CMFT_FACE_NEG_Y);
         }
         else //if (max == absVec[2])
         {
-            _faceIdx = (_vec[2] > 0) ? uint8_t(CMFT_FACE_POS_Z) : uint8_t(CMFT_FACE_NEG_Z);
+            _faceIdx = (_vec[2] >= 0.0f) ? uint8_t(CMFT_FACE_POS_Z) : uint8_t(CMFT_FACE_NEG_Z);
         }
 
         // Divide by max component.
@@ -195,24 +197,24 @@ namespace cmft
     }
 
     /// For right-handed coordinate system.
-    /// _x, _y are in [0.0-1.0] range.
-    static inline void latLongFromVec(float& _x, float& _y, const float _vec[3])
+    /// _u, _v are in [0.0-1.0] range.
+    static inline void latLongFromVec(float& _u, float& _v, const float _vec[3])
     {
         const float phi = atan2f(_vec[2], -_vec[0]);
         const float theta = acosf(_vec[1]);
 
         const float invHalfPi = 0.15915494309f;
         const float invPi = 0.31830988618f;
-        _x = (float(M_PI)+phi)*invHalfPi;
-        _y = theta*invPi;
+        _u = (float(M_PI)+phi)*invHalfPi;
+        _v = theta*invPi;
     }
 
     /// For right-handed coordinate system.
-    /// _x, _y are in [0.0-1.0] range.
-    static inline void vecFromLatLong(float _vec[3], float _x, float _y)
+    /// _u, _v are in [0.0-1.0] range.
+    static inline void vecFromLatLong(float _vec[3], float _u, float _v)
     {
-        const float phi = _x * float(M_PI)*2.0f;
-        const float theta = _y * float(M_PI);
+        const float phi = _u * float(M_PI)*2.0f;
+        const float theta = _v * float(M_PI);
 
         _vec[0] = sinf(theta)*cosf(phi);
         _vec[1] = cosf(theta);
@@ -223,16 +225,17 @@ namespace cmft
     /// http://www.rorydriscoll.com/2012/01/15/cubemap-texel-solid-angle/
     static inline float areaElement(float _x, float _y)
     {
-        return atan2f(_x*_y, sqrt(_x*_x + _y*_y + 1*1));
+        return atan2f(_x*_y, sqrtf(_x*_x + _y*_y + 1.0f));
     }
 
-    static inline float texelSolidAngle(float _u, float _v, float _halfTexelSize)
+    /// _u and _v should be center adressing and in [-1.0+invSize..1.0-invSize] range.
+    static inline float texelSolidAngle(float _u, float _v, float _invFaceSize)
     {
         // Specify texel area.
-        const float x0 = _u - _halfTexelSize;
-        const float x1 = _u + _halfTexelSize;
-        const float y0 = _v - _halfTexelSize;
-        const float y1 = _v + _halfTexelSize;
+        const float x0 = _u - _invFaceSize;
+        const float x1 = _u + _invFaceSize;
+        const float y0 = _v - _invFaceSize;
+        const float y1 = _v + _invFaceSize;
 
         // Compute solid angle of texel area.
         const float solidAngle = areaElement(x1, y1)

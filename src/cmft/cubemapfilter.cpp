@@ -45,20 +45,23 @@ namespace cmft
         float* dst = (float*)malloc(size);
         MALLOC_CHECK(dst);
 
-        const float uvHalf = 1.0f/float(int32_t(_cubemapFaceSize));
-        const float uvSize = uvHalf*2.0f;
-        const float uvStart = -1.0f+uvHalf;
-        const float uvEnd = 1.0f-uvHalf;
+        const float invFaceSize = 1.0f/float(int32_t(_cubemapFaceSize));
 
         float* dstPtr = dst;
         for(uint8_t face = 0; face < 6; ++face)
         {
-            for (float vv = uvStart; vv <= uvEnd; vv+=uvSize)
+            for (uint32_t yy = 0; yy < _cubemapFaceSize; ++yy)
             {
-                for (float uu = uvStart; uu <= uvEnd; uu+=uvSize)
+                for (uint32_t xx = 0; xx < _cubemapFaceSize; ++xx)
                 {
+                    // From [0..size-1] to [-1.0+invSize .. 1.0-invSize].
+                    const float xxf = float(int32_t(xx));
+                    const float yyf = float(int32_t(yy));
+                    const float uu = 2.0f*(xxf+0.5f)*invFaceSize - 1.0f;
+                    const float vv = 2.0f*(yyf+0.5f)*invFaceSize - 1.0f;
+
                     texelCoordToVec(dstPtr, uu, vv, face, _cubemapFaceSize);
-                    dstPtr[3] = texelSolidAngle(uu, vv, uvHalf);
+                    dstPtr[3] = texelSolidAngle(uu, vv, invFaceSize);
 
                     dstPtr += 4;
                 }
@@ -649,9 +652,9 @@ namespace cmft
     {
         floatOrDouble colorWeight[4] = { floatOrDouble(0.0), floatOrDouble(0.0), floatOrDouble(0.0), floatOrDouble(0.0) };
 
-        const float widthf = float(int32_t(_srcFaceSize));
         const uint32_t bytesPerPixel = 4 /*numChannels*/ * 4 /*bytesPerChannel*/;
         const uint32_t pitch = _srcFaceSize*bytesPerPixel;
+        const float faceSize_MinusOne = float(int32_t(_srcFaceSize-1));
 
         for (uint8_t face = 0; face < 6; ++face)
         {
@@ -660,22 +663,22 @@ namespace cmft
                 continue;
             }
 
-            const uint32_t minU = uint32_t(_filterArea[face].m_min[0] * widthf);
-            const uint32_t maxU = uint32_t(_filterArea[face].m_max[0] * widthf);
-            const uint32_t minV = uint32_t(_filterArea[face].m_min[1] * widthf);
-            const uint32_t maxV = uint32_t(_filterArea[face].m_max[1] * widthf);
+            const uint32_t minX = uint32_t(_filterArea[face].m_min[0] * faceSize_MinusOne);
+            const uint32_t maxX = uint32_t(_filterArea[face].m_max[0] * faceSize_MinusOne);
+            const uint32_t minY = uint32_t(_filterArea[face].m_min[1] * faceSize_MinusOne);
+            const uint32_t maxY = uint32_t(_filterArea[face].m_max[1] * faceSize_MinusOne);
 
             const uint8_t* faceData    = (const uint8_t*)_srcData                 + _faceOffsets[face];
             const uint8_t* faceNormals = (const uint8_t*)_cubemapNormalSolidAngle + _faceOffsets[face];
 
-            for (uint32_t vv = minV; vv < maxV; ++vv)
+            for (uint32_t yy = minY; yy <= maxY; ++yy)
             {
-                const uint8_t* rowData    = (const uint8_t*)faceData    + vv*pitch;
-                const uint8_t* rowNormals = (const uint8_t*)faceNormals + vv*pitch;
+                const uint8_t* rowData    = (const uint8_t*)faceData    + yy*pitch;
+                const uint8_t* rowNormals = (const uint8_t*)faceNormals + yy*pitch;
 
-                for (uint32_t uu = minU; uu < maxU; ++uu)
+                for (uint32_t xx = minX; xx <= maxX; ++xx)
                 {
-                    const float* normalPtr = (const float*)((const uint8_t*)rowNormals + uu*bytesPerPixel);
+                    const float* normalPtr = (const float*)((const uint8_t*)rowNormals + xx*bytesPerPixel);
                     const float dotProduct = vec3Dot(normalPtr, _tapVec);
 
                     if (dotProduct >= _specularAngle)
@@ -683,7 +686,7 @@ namespace cmft
                         const float solidAngle = normalPtr[3];
                         const floatOrDouble weight = floatOrDouble(solidAngle * powf(dotProduct, _specularPower));
 
-                        const float* dataPtr = (const float*)((const uint8_t*)rowData + uu*bytesPerPixel);
+                        const float* dataPtr = (const float*)((const uint8_t*)rowData + xx*bytesPerPixel);
                         colorWeight[0] += floatOrDouble(dataPtr[0]) * weight;
                         colorWeight[1] += floatOrDouble(dataPtr[1]) * weight;
                         colorWeight[2] += floatOrDouble(dataPtr[2]) * weight;
@@ -726,10 +729,7 @@ namespace cmft
     void radianceFilter(float *_dstPtr
                       , uint8_t _face
                       , uint32_t _mipFaceSize
-                      , float _filterSizeUv
-                      , float _uvStart
-                      , float _uvEnd
-                      , float _uvSize
+                      , float _filterSize
                       , float _specularPower
                       , float _specularAngle
                       , const float* _cubemapVectors
@@ -737,15 +737,23 @@ namespace cmft
                       , const uint32_t _faceOffsets[CUBE_FACE_NUM]
                       )
     {
-        for (float vv = _uvStart; vv <= _uvEnd; vv+=_uvSize)
+        const float invFaceSize = 1.0f/float(int32_t(_mipFaceSize));
+
+        for (uint32_t yy = 0; yy < _mipFaceSize; ++yy)
         {
-            for (float uu = _uvStart; uu <= _uvEnd; uu+=_uvSize)
+            for (uint32_t xx = 0; xx < _mipFaceSize; ++xx)
             {
+                // From [0..size-1] to [-1.0+invSize .. 1.0-invSize].
+                const float xxf = float(int32_t(xx));
+                const float yyf = float(int32_t(yy));
+                const float uu = 2.0f*(xxf+0.5f)*invFaceSize - 1.0f;
+                const float vv = 2.0f*(yyf+0.5f)*invFaceSize - 1.0f;
+
                 float tapVec[3];
                 texelCoordToVec(tapVec, uu, vv, _face, _mipFaceSize);
 
                 Aabb facesBb[6];
-                determineFilterArea(facesBb, tapVec, _filterSizeUv);
+                determineFilterArea(facesBb, tapVec, _filterSize);
 
                 float color[3];
                 processFilterArea<float>(color
@@ -812,10 +820,7 @@ namespace cmft
         float* m_dstPtr;
         uint8_t m_face;
         uint32_t m_mipFaceSize;
-        float m_filterSizeUv;
-        float m_uvStart;
-        float m_uvEnd;
-        float m_uvSize;
+        float m_filterSize;
         float m_specularPower;
         float m_specularAngle;
         const float* m_cubemapVectors;
@@ -887,11 +892,9 @@ namespace cmft
 
         RadianceFilterTaskList* taskList = (RadianceFilterTaskList*)_taskList;
 
-        // Cpu is first requesting all 1x1, 2x2, 4x4, 8x8, 16x16 cubemap faces (5 levels from bottom).
-        // Then, it goes from the top level mipmap to the bottom until there are unprocessed faces.
+        // Gpu is processing from the top level mip map to the bottom.
         const RadianceFilterParams* params;
-        while ( ((params = taskList->getFromBottom(5)) != NULL)
-             || ((params = taskList->getFromTop())     != NULL) )
+        while ((params = taskList->getFromTop()) != NULL)
         {
             // Start timer.
             const uint64_t startTime = bx::getHPCounter();
@@ -900,10 +903,7 @@ namespace cmft
             radianceFilter(params->m_dstPtr
                          , params->m_face
                          , params->m_mipFaceSize
-                         , params->m_filterSizeUv
-                         , params->m_uvStart
-                         , params->m_uvEnd
-                         , params->m_uvSize
+                         , params->m_filterSize
                          , params->m_specularPower
                          , params->m_specularAngle
                          , params->m_cubemapVectors
@@ -1108,11 +1108,9 @@ namespace cmft
 
         void setArgs(uint8_t _faceId, uint32_t _dstFaceSize, float _specularPower, float _specularAngle) const
         {
-            const float invDstFaceSize_Mul2 = 2.0f/float(_dstFaceSize);
-
             CL_CHECK(clSetKernelArg(m_kernel, 1, sizeof(float),   (const void*)&_specularPower));
             CL_CHECK(clSetKernelArg(m_kernel, 2, sizeof(float),   (const void*)&_specularAngle));
-            CL_CHECK(clSetKernelArg(m_kernel, 3, sizeof(float),   (const void*)&invDstFaceSize_Mul2));
+            CL_CHECK(clSetKernelArg(m_kernel, 3, sizeof(int32_t), (const void*)&_dstFaceSize));
             CL_CHECK(clSetKernelArg(m_kernel, 4, sizeof(uint8_t), (const void*)&_faceId));
         }
 
@@ -1267,8 +1265,9 @@ namespace cmft
     /// Returns the angle of cosine power function where the results are above a small empirical treshold.
     static float cosinePowerFilterAngle(float _cosinePower)
     {
-        // Empirical value. Bigger value might lead to performance improvement but might hurt result corectness.
-        const float treshold = 0.0001f;
+        // Bigger value leads to performance improvement but might hurt the results.
+        // 0.00001f was tested empirically and it gives almost the same values as reference.
+        const float treshold = 0.00001f;
 
         // Cosine power filter is: pow(cos(angle), power).
         // We want the value of the angle above each result is <= treshold.
@@ -1339,7 +1338,7 @@ namespace cmft
         // Multi-threading parameters.
         bx::Thread cpuThreads[64];
         uint8_t activeCpuThreads = 0;
-        const uint8_t maxActiveCpuThreads = (uint8_t)max(int8_t(1), min(_numCpuProcessingThreads, int8_t(64)));
+        const uint8_t maxActiveCpuThreads = (uint8_t)max(int8_t(0), min(_numCpuProcessingThreads, int8_t(64)));
 
         // Prepare OpenCL kernel and device memory.
         s_radianceProgram.setClContext(_clContext);
@@ -1516,20 +1515,16 @@ namespace cmft
                 const float mipFaceSizef = float(int32_t(mipFaceSize));
                 const float minAngle = atan2f(1.0f, mipFaceSizef);
                 const float maxAngle = float(M_PI)/2.0f;
-                const float toFilterSize = 1.0f/(minAngle*mipFaceSizef); //texelCount = (totalAngle / anglePerTexel)
+                const float toFilterSize = 1.0f/(minAngle*mipFaceSizef*2.0f);
                 const float glossiness = (mipCount == 1)
                                        ? 1.0f
                                        : max(0.0f, 1.0f - (float)(int32_t)mip/(float)(int32_t)(mipCount-1))
                                        ;
                 const float specularPowerRef = powf(2.0f, glossScalef * glossiness + glossBiasf);
                 const float specularPower = applyLightningModel(specularPowerRef, _lightingModel);
-                const float filterAngle = clamp(cosinePowerFilterAngle(specularPower), minAngle, maxAngle);
-                const float cosAngle = cosf(filterAngle);
-                const float filterSizeUv = filterAngle * toFilterSize;
-                const float uvHalf = 1.0f/float(int32_t(mipFaceSize));
-                const float uvSize = uvHalf*2.0f;
-                const float uvStart = -1.0f+(uvHalf-0.0001f);
-                const float uvEnd = 1.0f-(uvHalf-0.0001f);
+                const float cosAngle = clamp(cosinePowerFilterAngle(specularPower), minAngle, maxAngle);
+                const float texelSize = 1.0f/mipFaceSizef;
+                const float filterSize = max(texelSize, cosAngle * toFilterSize);
 
                 for (uint8_t face = 0; face < 6; ++face)
                 {
@@ -1540,10 +1535,7 @@ namespace cmft
                         dstPtr,
                         face,
                         mipFaceSize,
-                        filterSizeUv,
-                        uvStart,
-                        uvEnd,
-                        uvSize,
+                        filterSize,
                         specularPower,
                         cosAngle,
                         cubemapVectors,
