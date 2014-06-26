@@ -1580,6 +1580,28 @@ namespace cmft
                 }
             }
 
+            // Average 1x1 face size.
+            if ((dstFaceSize>>(mipCount-1)) <= 1)
+            {
+                float* face0 = (float*)((uint8_t*)dstData + dstOffsets[0][mipCount-1]);
+                float* face1 = (float*)((uint8_t*)dstData + dstOffsets[1][mipCount-1]);
+                float* face2 = (float*)((uint8_t*)dstData + dstOffsets[2][mipCount-1]);
+                float* face3 = (float*)((uint8_t*)dstData + dstOffsets[3][mipCount-1]);
+                float* face4 = (float*)((uint8_t*)dstData + dstOffsets[4][mipCount-1]);
+                float* face5 = (float*)((uint8_t*)dstData + dstOffsets[5][mipCount-1]);
+
+                const float color[3] =
+                {
+                    (face0[0] + face1[0] + face2[0] + face3[0] + face4[0] + face5[0]) / 6.0f,
+                    (face0[1] + face1[1] + face2[1] + face3[1] + face4[1] + face5[1]) / 6.0f,
+                    (face0[2] + face1[2] + face2[2] + face3[2] + face4[2] + face5[2]) / 6.0f,
+                };
+
+                face0[0] = face1[0] = face2[0] = face3[0] = face4[0] = face5[0] = color[0];
+                face0[1] = face1[1] = face2[1] = face3[1] = face4[1] = face5[1] = color[1];
+                face0[2] = face1[2] = face2[2] = face3[2] = face4[2] = face5[2] = color[2];
+            }
+
             // Get filter duration.
             const double freq = double(bx::getHPFrequency());
             const double toSec = 1.0/freq;
