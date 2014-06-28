@@ -112,7 +112,7 @@ namespace cmft
         "    const float uu = ((float)column + 0.5f) * invDstFaceSize_Mul2 - 1.0f;\n"
         "    const float3 tapVec = texelCoordToVec(uu, vv, _faceId, _dstFaceSize);\n"
         "\n"
-        "    float4 colorWeight = { 0.0, 0.0, 0.0, 0.0 };\n"
+        "    float4 colorWeight = { 0.0f, 0.0f, 0.0f, 0.0f };\n"
         "    for (int32_t yy = 0; yy < _srcFaceSize; ++yy)\n"
         "    {\n"
         "        for (int32_t xx = 0; xx < _srcFaceSize; ++xx)\n"
