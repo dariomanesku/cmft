@@ -133,7 +133,7 @@ Environment maps
 ----------------
 
 For testing purposes, you can use environment maps from [here](https://github.com/dariomanesku/environment-maps).<br />
-Also, have a look [here](http://www.hdrlabs.com/sibl/archive.html).
+Also, have a look at [hdrlabs.com archive](http://www.hdrlabs.com/sibl/archive.html).
 
 Similar projects
 ----------------
