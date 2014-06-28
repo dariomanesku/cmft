@@ -2431,7 +2431,7 @@ namespace cmft
         const float srcWidthf  = float(int32_t(imageRgba32f.m_width));
         const float srcHeightf = float(int32_t(imageRgba32f.m_height));
         const uint32_t srcPitch = imageRgba32f.m_width * bytesPerPixel;
-        const float invDstFaceSizef = 1.0f/float(dstFaceSize-1);
+        const float invDstFaceSizef = 1.0f/float(dstFaceSize);
 
         // Iterate over destination image (cubemap).
         for (uint8_t face = 0; face < 6; ++face)
@@ -2457,9 +2457,9 @@ namespace cmft
                     float ySrc;
                     latLongFromVec(xSrc, ySrc, vec);
 
-                    // Convert from [0-1] to [0-size] range.
-                    xSrc *= srcWidthf;
-                    ySrc *= srcHeightf;
+                    // Convert from [0..1] to [0..(size-1)] range.
+                    xSrc *= srcWidthf-1.0f;
+                    ySrc *= srcHeightf-1.0f;
 
                     // Sample from latlong (u,v).
                     if (_useBilinearInterpolation)
