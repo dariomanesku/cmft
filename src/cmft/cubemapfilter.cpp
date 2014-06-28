@@ -654,6 +654,7 @@ namespace cmft
 
         const uint32_t bytesPerPixel = 4 /*numChannels*/ * 4 /*bytesPerChannel*/;
         const uint32_t pitch = _srcFaceSize*bytesPerPixel;
+        const uint32_t normalFaceSize = pitch*_srcFaceSize;
         const float faceSize_MinusOne = float(int32_t(_srcFaceSize-1));
 
         for (uint8_t face = 0; face < 6; ++face)
@@ -669,7 +670,7 @@ namespace cmft
             const uint32_t maxY = uint32_t(_filterArea[face].m_max[1] * faceSize_MinusOne);
 
             const uint8_t* faceData    = (const uint8_t*)_srcData                 + _faceOffsets[face];
-            const uint8_t* faceNormals = (const uint8_t*)_cubemapNormalSolidAngle + _faceOffsets[face];
+            const uint8_t* faceNormals = (const uint8_t*)_cubemapNormalSolidAngle + normalFaceSize*face;
 
             for (uint32_t yy = minY; yy <= maxY; ++yy)
             {
@@ -1043,6 +1044,7 @@ namespace cmft
             imageGetFaceOffsets(faceOffsets, _image);
             const cl_image_format imageFormat = { CL_RGBA, CL_FLOAT };
             const uint32_t bytesPerPixel = 4 /*numChannels*/ * 4 /*bytesPerChannel*/;
+            const uint32_t normalFaceSize = _image.m_width * _image.m_width * bytesPerPixel;
 
             for (uint8_t face = 0; face < 6; ++face)
             {
@@ -1062,7 +1064,7 @@ namespace cmft
                                                          , _image.m_width
                                                          , _image.m_height
                                                          , _image.m_width*bytesPerPixel
-                                                         , (void*)((uint8_t*)_cubemapNormalSolidAngle + faceOffsets[face])
+                                                         , (void*)((uint8_t*)_cubemapNormalSolidAngle + normalFaceSize*face)
                                                          , &err
                                                          ));
             }
