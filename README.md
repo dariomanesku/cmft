@@ -68,6 +68,7 @@ Using
 -----
 - Use *runtime/cmft\_win.bat* on Windows, *runtime/cmft\_lin.sh* on Linux and *runtime/cmft\_osx.sh* on OSX as a starting point.<br \>
 - First compile the project, edit *runtime/cmft\_*\* file as needed and then run it.<br \>
+- Notice: your screen will freeze during OpenCL execution on the GPU (if the screen is connected to that same GPU). This is because cmft is using one kernel per cubemap face that usually takes a lot of time to execute and durring that time GPU is 100% dedicated to the task and unresponsive to the OS. In the future, cmft will be changed to use smaller kernels to avoid this problem.<br \>
 
 Project status
 --------------
