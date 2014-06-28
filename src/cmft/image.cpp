@@ -3650,7 +3650,7 @@ namespace cmft
             const uint8_t* ptrEnd;
             uint32_t numScanlines = height-1;
             int32_t count;
-            while (numScanlines-- > 0)
+            for (;;)
             {
                 DEBUG_CHECK(((uint16_t(rgbe[2])<<8)|(rgbe[3]&0xff)) == width, "Hdr file scanline width is invalid.");
 
@@ -3700,6 +3700,12 @@ namespace cmft
                     dataPtr[2] = scanlineBuffer[ii+(2*width)];
                     dataPtr[3] = scanlineBuffer[ii+(3*width)];
                     dataPtr += 4;
+                }
+
+                // Break if reached the end.
+                if (0 == numScanlines--)
+                {
+                    break;
                 }
 
                 // Read next scanline.
