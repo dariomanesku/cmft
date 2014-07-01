@@ -45,10 +45,10 @@ REM           --output0 "okretnica"
           --deviceType gpu                  ^
           --deviceIndex 0                   ^
           ::Aditional operations            ^
-          --inputGammaNumerator 1.0         ^
+          --inputGammaNumerator 2.2         ^
           --inputGammaDenominator 1.0       ^
           --outputGammaNumerator 1.0        ^
-          --outputGammaDenominator 1.0      ^
+          --outputGammaDenominator 2.2      ^
           --generateMipChain false          ^
           ::Output                          ^
           --outputNum 2                     ^
