@@ -1410,7 +1410,7 @@ namespace cmft
              "\n\t[dstFaceSize=%u]"
              , imageRgba32f.m_width
              , getLightingModelStr(_lightingModel)
-             , "false\0true"+6*_excludeBase
+             , &"false\0true"[6*_excludeBase]
              , mipCount
              , _glossScale
              , _glossBias
