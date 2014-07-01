@@ -30,7 +30,7 @@ Download binaries here: <br \>
  * [cmft - OSX 32bit](https://github.com/dariomanesku/cmft-bin/raw/master/cmft_osx32.zip)<br />
  * [cmft - OSX 64bit](https://github.com/dariomanesku/cmft-bin/raw/master/cmft_osx64.zip)<br />
 
-Notice: Linux and OSX binaries are outdated. For now, on those systems, compile from source.
+Notice: Linux binaries are outdated. For now, on Linux, compile from source.
 
 Building
 --------
