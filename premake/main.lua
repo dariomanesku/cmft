@@ -25,10 +25,12 @@ compat(BX_DIR)
 -- cmft_cli project.
 dofile "cmft_cli.lua"
 cmftCliProject(CMFT_DIR, BX_DIR)
+compat(BX_DIR)
 
 -- cmft project.
 dofile "cmft.lua"
 cmftProject(CMFT_DIR, BX_DIR)
+compat(BX_DIR)
 
 strip()
 

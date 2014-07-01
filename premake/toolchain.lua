@@ -362,7 +362,7 @@ function compat(_bxDir)
         includedirs { _bxDir .. "include/compat/mingw" }
 
     -- OSX
-    configuration { "osx*" }
+    configuration { "osx* or xcode*" }
         includedirs { _bxDir .. "include/compat/osx" }
 
     configuration {} -- reset configuration
