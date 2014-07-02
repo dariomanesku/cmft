@@ -138,7 +138,7 @@ static const CliOptionMap s_validTextureFormats[] =
     { "bgra8",   TextureFormat::BGRA8   },
     { "rgba8",   TextureFormat::RGBA8   },
     { "rgba16",  TextureFormat::RGBA16  },
-    { "rgba16",  TextureFormat::RGBA16F },
+    { "rgba16f", TextureFormat::RGBA16F },
     { "rgba32f", TextureFormat::RGBA32F },
     CLI_OPTION_MAP_TERMINATOR,
 };
