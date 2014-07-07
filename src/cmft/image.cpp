@@ -3956,6 +3956,11 @@ namespace cmft
         return true;
     }
 
+    bool imageIsValid(const Image& _image)
+    {
+        return (NULL != _image.m_data);
+    }
+
     // Image saving.
     //-----
 
