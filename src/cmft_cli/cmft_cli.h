@@ -41,6 +41,7 @@ struct OutputType
         Cubemap,
         CubeCross,
         HStrip,
+        VStrip,
         FaceList,
 
         Count,
@@ -53,6 +54,7 @@ static const char* s_outputTypeStr[OutputType::Count] =
     "Cubemap",
     "CubeCross",
     "HStrip",
+    "VStrip",
     "FaceList",
 };
 
@@ -168,6 +170,7 @@ static const CliOptionMap s_validTgaOutputTypes[] =
     { "latlong",   OutputType::LatLong   },
     { "cubecross", OutputType::CubeCross },
     { "hstrip",    OutputType::HStrip    },
+    { "vstrip",    OutputType::VStrip    },
     { "facelist",  OutputType::FaceList  },
     CLI_OPTION_MAP_TERMINATOR,
 };
@@ -177,6 +180,7 @@ static const CliOptionMap s_validHdrOutputTypes[] =
     { "latlong",   OutputType::LatLong   },
     { "cubecross", OutputType::CubeCross },
     { "hstrip",    OutputType::HStrip    },
+    { "vstrip",    OutputType::VStrip    },
     { "facelist",  OutputType::FaceList  },
     CLI_OPTION_MAP_TERMINATOR,
 };
@@ -828,7 +832,7 @@ void printHelp()
             "All options listed:\n"
             "    --help                             Prints this message\n"
             "    --printCLDevices                   Prints OpenCL devices that can be used for processing. Although application allows CPU-type devices to be picked, GPU-type devices are meant to be used as OpenCL devices!\n"
-            "    --input <file path>                Input cubemap for filtering. Can be *.dds, *.ktx, *.hdr, *.tga and in form of: cubemap, latlong image, cube cross, horizontal strip.\n"
+            "    --input <file path>                Input environment map for filtering. Can be *.dds, *.ktx, *.hdr, *.exr, *.tga and in form of: cubemap, latlong image, cube cross, horizontal or vertical strip.\n"
             "    --inputFacePosX <file path>        Input face +x in case --input is not specified.\n"
             "    --inputFaceNegX <file path>        Input face -x in case --input is not specified.\n"
             "    --inputFacePosY <file path>        Input face +y in case --input is not specified.\n"
@@ -1023,9 +1027,14 @@ int cmftMain(int _argc, char const* const* _argv)
             INFO("Converting hstrip image to cubemap.");
             imageCubemapFromHStrip(image);
         }
+        else if (imageIsVStrip(image))
+        {
+            INFO("Converting vstrip image to cubemap.");
+            imageCubemapFromVStrip(image);
+        }
         else
         {
-            INFO("Image is not cubemap(6 faces), cubecross(ratio 3:4 or 4:3), latlong(ratio 2:1), hstrip(ratio 6:1).");
+            INFO("Image is not cubemap(6 faces), cubecross(ratio 3:4 or 4:3), latlong(ratio 2:1), hstrip(ratio 6:1), vstrip(ration 1:6)");
         }
     }
 
@@ -1234,6 +1243,10 @@ int cmftMain(int _argc, char const* const* _argv)
             else if (OutputType::HStrip == ot)
             {
                 imageHStripFromCubemap(outputImage, image);
+            }
+            else if (OutputType::VStrip == ot)
+            {
+                imageVStripFromCubemap(outputImage, image);
             }
             else
             {
