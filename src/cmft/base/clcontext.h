@@ -48,7 +48,7 @@ namespace cmft
     } while (0)
 
 /// Notice: 'cl_int err;' should be defined earlier and _expr should be called with 'err' parameter for the error field.
-#define _CL_CHECK_ERR(_expr)                                                              \
+#define _CL_CHECK_ERR(_expr)                                                          \
     _expr;                                                                            \
     if (CL_SUCCESS != err)                                                            \
     {                                                                                 \

@@ -14,6 +14,7 @@
 #include <cmft/image.h>
 #include <cmft/cubemapfilter.h>
 
+#include <base/clcontext.h>
 #include <base/config.h>
 #include <base/macros.h> //countof
 #include <base/utils.h> //strncpy

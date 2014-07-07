@@ -7,6 +7,7 @@
 
 #include "base/config.h"
 #include "base/utils.h"
+#include "base/clcontext.h"
 #include "cubemaputils.h"
 #include "radiance.h"
 #include "messages.h"

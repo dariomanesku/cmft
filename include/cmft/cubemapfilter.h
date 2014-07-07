@@ -7,7 +7,6 @@
 #define CMFT_CUBEMAPFILTER_H_HEADER_GUARD
 
 #include "image.h"
-#include "clcontext.h"
 #include <stdint.h> //uint32_t
 
 namespace cmft
@@ -39,6 +38,8 @@ namespace cmft
             Count
         };
     };
+
+    struct ClContext;
 
     /// Creates radiance cubemap image.
     bool imageRadianceFilter(Image& _dst
