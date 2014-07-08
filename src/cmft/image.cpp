@@ -2108,6 +2108,11 @@ namespace cmft
         return (_image.m_width == 6*_image.m_height);
     }
 
+    bool imageIsVStrip(const Image& _image)
+    {
+        return (6*_image.m_width == _image.m_height);
+    }
+
     bool imageValidCubemapFaceList(const Image _faceList[6])
     {
         const uint32_t size = _faceList[0].m_width;
@@ -2790,10 +2795,92 @@ namespace cmft
         return true;
     }
 
+    bool imageVStripFromCubemap(Image& _dst, const Image& _src)
+    {
+        // Input check.
+        if(!imageIsCubemap(_src))
+        {
+            return false;
+        }
+
+        // Calculate destination offsets and alloc data.
+        uint32_t dstDataSize = 0;
+        uint32_t dstMipOffsets[MAX_MIP_NUM];
+        const uint32_t dstWidth = _src.m_width;
+        const uint32_t dstHeight = _src.m_width*6;
+        const uint32_t bytesPerPixel = getImageDataInfo(_src.m_format).m_bytesPerPixel;
+        for (uint8_t mip = 0; mip < _src.m_numMips; ++mip)
+        {
+            dstMipOffsets[mip] = dstDataSize;
+            const uint32_t mipWidth  = max(UINT32_C(1), dstWidth  >> mip);
+            const uint32_t mipHeight = max(UINT32_C(1), dstHeight >> mip);
+
+            dstDataSize += mipWidth * mipHeight * bytesPerPixel;
+        }
+        void* dstData = malloc(dstDataSize);
+        MALLOC_CHECK(dstData);
+
+        // Get source image offsets.
+        uint32_t srcOffsets[CUBE_FACE_NUM][MAX_MIP_NUM];
+        imageGetMipOffsets(srcOffsets, _src);
+
+        for (uint8_t face = 0; face < 6; ++face)
+        {
+            for (uint8_t mip = 0; mip < _src.m_numMips; ++mip)
+            {
+                // Get src data ptr for current mip and face.
+                const uint8_t* srcFaceData = (const uint8_t*)_src.m_data + srcOffsets[face][mip];
+
+                // Get dst ptr for current mip level.
+                uint8_t* dstMipData = (uint8_t*)dstData + dstMipOffsets[mip];
+
+                // Advance by (srcPitch * srcPitch * faceIdx) to get to the desired face in the strip.
+                const uint32_t srcMipSize = max(UINT32_C(1), _src.m_width >> mip);
+                const uint32_t srcMipPitch = srcMipSize * bytesPerPixel;
+                const uint32_t facePitch = srcMipPitch * srcMipSize;
+                uint8_t* dstFaceData = (uint8_t*)dstMipData + facePitch*face;
+
+                const uint32_t dstMipPitch = srcMipPitch;
+
+                for (uint32_t yy = 0; yy < srcMipSize; ++yy)
+                {
+                    const uint8_t* srcRowData = (const uint8_t*)srcFaceData + yy*srcMipPitch;
+                    uint8_t* dstRowData = (uint8_t*)dstFaceData + yy*dstMipPitch;
+
+                    memcpy(dstRowData, srcRowData, srcMipPitch);
+                }
+            }
+        }
+
+        // Fill image structure.
+        Image result;
+        result.m_width = dstWidth;
+        result.m_height = dstHeight;
+        result.m_dataSize = dstDataSize;
+        result.m_format = _src.m_format;
+        result.m_numMips = _src.m_numMips;
+        result.m_numFaces = 1;
+        result.m_data = dstData;
+
+        // Output.
+        imageMove(_dst, result);
+
+        return true;
+    }
+
     void imageHStripFromCubemap(Image& _cubemap)
     {
         Image tmp;
         if (imageHStripFromCubemap(tmp, _cubemap))
+        {
+            imageMove(_cubemap, tmp);
+        }
+    }
+
+    void imageVStripFromCubemap(Image& _cubemap)
+    {
+        Image tmp;
+        if (imageVStripFromCubemap(tmp, _cubemap))
         {
             imageMove(_cubemap, tmp);
         }
@@ -2871,10 +2958,91 @@ namespace cmft
         return true;
     }
 
+    bool imageCubemapFromVStrip(Image& _dst, const Image& _src)
+    {
+        // Input check.
+        if(!imageIsVStrip(_src))
+        {
+            return false;
+        }
+
+        // Calculate destination offsets and alloc data.
+        uint32_t dstDataSize = 0;
+        uint32_t dstOffsets[CUBE_FACE_NUM][MAX_MIP_NUM];
+        const uint32_t dstSize = _src.m_height;
+        const uint32_t bytesPerPixel = getImageDataInfo(_src.m_format).m_bytesPerPixel;
+        for (uint8_t face = 0; face < 6; ++face)
+        {
+            for (uint8_t mip = 0; mip < _src.m_numMips; ++mip)
+            {
+                dstOffsets[face][mip] = dstDataSize;
+                const uint32_t mipSize = max(UINT32_C(1), dstSize >> mip);
+
+                dstDataSize += mipSize * mipSize * bytesPerPixel;
+            }
+        }
+        void* dstData = malloc(dstDataSize);
+        MALLOC_CHECK(dstData);
+
+        uint32_t srcOffsets[CUBE_FACE_NUM][MAX_MIP_NUM];
+        imageGetMipOffsets(srcOffsets, _src);
+
+        for (uint8_t face = 0; face < 6; ++face)
+        {
+            for (uint8_t mip = 0; mip < _src.m_numMips; ++mip)
+            {
+                // Get dst data ptr for current mip and face.
+                uint8_t* dstFaceData = (uint8_t*)dstData + dstOffsets[face][mip];
+
+                // Get src ptr for current mip level.
+                const uint8_t* srcMipData = (const uint8_t*)_src.m_data + srcOffsets[0][mip];
+
+                // Advance by (dstPitch * faceIdx) to get to the desired face in the strip.
+                const uint32_t dstMipSize = max(UINT32_C(1), dstSize >> mip);
+                const uint32_t dstMipPitch = dstMipSize * bytesPerPixel;
+                const uint8_t* srcFaceData = (const uint8_t*)srcMipData + dstMipPitch*face*_src.m_height;
+
+                const uint32_t srcMipPitch = dstMipPitch*6;
+
+                for (uint32_t yy = 0; yy < dstMipSize; ++yy)
+                {
+                    const uint8_t* srcRowData = (const uint8_t*)srcFaceData + srcMipPitch;
+                    uint8_t* dstRowData = (uint8_t*)dstFaceData + yy*dstMipPitch;
+
+                    memcpy(dstRowData, srcRowData, dstMipPitch);
+                }
+            }
+        }
+
+        // Fill image structure.
+        Image result;
+        result.m_width = dstSize;
+        result.m_height = dstSize;
+        result.m_dataSize = dstDataSize;
+        result.m_format = _src.m_format;
+        result.m_numMips = _src.m_numMips;
+        result.m_numFaces = 6;
+        result.m_data = dstData;
+
+        // Output.
+        imageMove(_dst, result);
+
+        return true;
+    }
+
     void imageCubemapFromHStrip(Image& _image)
     {
         Image tmp;
         if (imageCubemapFromHStrip(tmp, _image))
+        {
+            imageMove(_image, tmp);
+        }
+    }
+
+    void imageCubemapFromVStrip(Image& _image)
+    {
+        Image tmp;
+        if (imageCubemapFromVStrip(tmp, _image))
         {
             imageMove(_image, tmp);
         }

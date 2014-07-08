@@ -207,16 +207,16 @@ namespace cmft
     void imageClamp(Image& _image);
 
     ///
-    ///     +------+  ....__.......   ___________                         ___
-    ///    /|     /|  .  |  |     .  |           |                       |   |_
-    ///   +-+----+ |  .__|__|__ __.  |           |   __ __ __ __ __ __   |___| |_
-    ///   | |    | |  |  |  |  |  |  |           |  |  |  |  |  |  |  |    |___| |_
-    ///   | +----+-+  |__|__|__|__|  |           |  |__|__|__|__|__|__|      |___| |_
-    ///   |/     |/   .  |  |     .  |           |                             |___| |_
-    ///   +------+    ...|__|......  |___________|                               |___| |
+    ///     +------+  ....__.......   ___________                         ___   ___
+    ///    /|     /|  .  |  |     .  |           |                       |___| |   |_
+    ///   +-+----+ |  .__|__|__ __.  |           |   __ __ __ __ __ __   |___| |___| |_
+    ///   | |    | |  |  |  |  |  |  |           |  |  |  |  |  |  |  |  |___|   |___| |_
+    ///   | +----+-+  |__|__|__|__|  |           |  |__|__|__|__|__|__|  |___|     |___| |_
+    ///   |/     |/   .  |  |     .  |           |                       |___|       |___| |_
+    ///   +------+    ...|__|......  |___________|                       |___|         |___| |
     ///                                                                            |___|
     ///
-    ///    Cubemap     Cube Cross      Lat Long       Horizonatal Srip     Face list
+    ///    Cubemap     Cube Cross      Lat Long     Horizonatal Strip  Vertical Strip  Face list
     ///
 
     ///
@@ -229,6 +229,9 @@ namespace cmft
 
     ///
     bool imageIsHStrip(const Image& _image);
+
+    ///
+    bool imageIsVStrip(const Image& _image);
 
     ///
     bool imageValidCubemapFaceList(const Image _faceList[6]);
@@ -265,6 +268,18 @@ namespace cmft
 
     ///
     void imageCubemapFromHStrip(Image& _image);
+
+    ///
+    bool imageVStripFromCubemap(Image& _dst, const Image& _src);
+
+    ///
+    void imageVStripFromCubemap(Image& _image);
+
+    ///
+    bool imageCubemapFromVStrip(Image& _dst, const Image& _src);
+
+    ///
+    void imageCubemapFromVStrip(Image& _image);
 
     ///
     bool imageFaceListFromCubemap(Image _faceList[6], const Image& _cubemap);
