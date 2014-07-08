@@ -227,7 +227,7 @@ void getValidOutputTypesStr(char* _str, ImageFileType::Enum _fileType)
     }
 }
 
-bool valueFromOptionMap(uint32_t& _val, const CliOptionMap* _cliOptionMap, const char* _optionStr, size_t _optionStrLen = UINT32_MAX)
+bool valueFromOptionMap(uint32_t& _val, const CliOptionMap* _cliOptionMap, const char* _optionStr, size_t _optionStrSize = UINT32_MAX)
 {
     // Check for valid cliOptionMap.
     if (NULL == _cliOptionMap
@@ -247,7 +247,7 @@ bool valueFromOptionMap(uint32_t& _val, const CliOptionMap* _cliOptionMap, const
 
     // Copy input string.
     char optionStr[128];
-    cmft_strncpy(optionStr, _optionStr, min(_optionStrLen, size_t(127)));
+    cmft_strscpy(optionStr, _optionStr, min(_optionStrSize, size_t(128)));
 
     // Transform it to lower case for easy searching.
     strtolower(optionStr);
@@ -341,7 +341,7 @@ struct InputParameters
 
 void inputParametersFromCommandLine(InputParameters& _inputParameters, const bx::CommandLine& _cmdLine)
 {
-#define CMFT_COPY(_dst, _src) cmft_strncpy((_dst), (_src), CMFT_COUNTOF(_dst)-1)
+#define CMFT_COPY(_dst, _src) cmft_strscpy((_dst), (_src), sizeof(_dst))
 
     // Input.
     CMFT_COPY(_inputParameters.m_inputFilePath, _cmdLine.findOption("input"));
@@ -473,7 +473,7 @@ void inputParametersFromCommandLine(InputParameters& _inputParameters, const bx:
             if (NULL != outputParams)
             {
                 char buf[256];
-                cmft_strncpy(buf, outputParams, 255);
+                cmft_strscpy(buf, outputParams, 256);
 
                 const char* fileTypeStr      = strtok(buf,",");
                 const char* textureFormatStr = strtok(NULL,",");
@@ -490,7 +490,7 @@ void inputParametersFromCommandLine(InputParameters& _inputParameters, const bx:
                 else if (!valueFromOptionMap(fileType, s_validFileTypes, fileTypeStr))
                 {
                     char requestedFileType[128];
-                    cmft_strncpy(requestedFileType, outputParams, 127);
+                    cmft_strscpy(requestedFileType, outputParams, 128);
                     WARN("Output(%u) - File type %s is invalid or not supported by cmft.", outputId, requestedFileType);
                 }
 
@@ -505,7 +505,7 @@ void inputParametersFromCommandLine(InputParameters& _inputParameters, const bx:
                 else if(!valueFromOptionMap(textureFormat, s_validTextureFormats, textureFormatStr))
                 {
                     char requestedTextureFormat[128];
-                    cmft_strncpy(requestedTextureFormat, textureFormatStr, 127);
+                    cmft_strscpy(requestedTextureFormat, textureFormatStr, 128);
 
                     WARN("Output(%u) - Requested texture format %s is invalid or not supported by cmft.", outputId, requestedTextureFormat);
 
@@ -546,7 +546,7 @@ void inputParametersFromCommandLine(InputParameters& _inputParameters, const bx:
                     if(!valueFromOptionMap(outputType, validOutputTypes, outputTypeStr))
                     {
                         char requestedOutputType[128];
-                        cmft_strncpy(requestedOutputType, outputTypeStr, 128);
+                        cmft_strscpy(requestedOutputType, outputTypeStr, 128);
 
                         char validOutputTypes[128];
                         getValidOutputTypesStr(validOutputTypes, ft);
@@ -643,7 +643,7 @@ void outputShCoeffs(const char* _fileName, double _shCoeffs[SH_COEFF_NUM][3])
 {
     // Get base name.
     char baseName[128];
-    if (!getFileName(baseName, 127, _fileName))
+    if (!getFileName(baseName, 128, _fileName))
     {
         strcpy(baseName, "cmft");
     }

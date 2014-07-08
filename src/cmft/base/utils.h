@@ -129,19 +129,19 @@ namespace cmft
         *_str = '\0';
     }
 
-    static inline void cmft_strncpy(char* _dst, const char* _src, size_t _srcLen)
+    static inline void cmft_strscpy(char* _dst, const char* _src, size_t _dstSize)
     {
         if (NULL != _src)
         {
             _dst[0] = '\0';
-            strncat(_dst, _src, _srcLen);
+            strncat(_dst, _src, _dstSize-1);
         }
     }
 
     /// Gets file name without extension from file path. Examples:
     ///     /tmp/foo.c -> foo
     ///     C:\\tmp\\foo.c -> foo
-    static inline bool getFileName(char* _fileName, size_t _maxLenght, const char* _filePath)
+    static inline bool getFileName(char* _out, size_t _outSize, const char* _filePath)
     {
        const char *begin;
        const char *end;
@@ -156,8 +156,8 @@ namespace cmft
 
        if (NULL != begin && NULL != end)
        {
-           const size_t len = min(size_t(end-begin), _maxLenght);
-           cmft_strncpy(_fileName, begin, len);
+           const size_t size = min(size_t(end-begin)+1, _outSize);
+           cmft_strscpy(_out, begin, size);
            return true;
        }
 

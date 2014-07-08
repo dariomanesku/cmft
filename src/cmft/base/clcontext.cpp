@@ -7,7 +7,7 @@
 #define BX_CL_IMPLEMENTATION
 #include <bx/cl.h>
 
-#include "base/utils.h" //strtolower, cmft_strncpy
+#include "base/utils.h" //strtolower, cmft_strscpy
 
 #include "clcontext.h"
 #include "messages.h"
@@ -138,8 +138,8 @@ namespace cmft
         }
 
         // Fill structure.
-        cmft_strncpy(m_deviceVendor, deviceVendor, 127);
-        cmft_strncpy(m_deviceName, deviceName, 127);
+        cmft_strscpy(m_deviceVendor, deviceVendor, 128);
+        cmft_strscpy(m_deviceName, deviceName, 128);
         m_device = chosenDevice;
         m_context = context;
         m_commandQueue = commandQueue;
@@ -212,19 +212,19 @@ namespace cmft
             char platformOutputStr[32];
             if (NULL != bx::strnstr(vendor, "advanced micro devices", 256))
             {
-                cmft_strncpy(platformOutputStr, "amd", 31);
+                cmft_strscpy(platformOutputStr, "amd", 32);
             }
             else if (NULL != bx::strnstr(vendor, "intel", 256))
             {
-                cmft_strncpy(platformOutputStr, "intel", 31);
+                cmft_strscpy(platformOutputStr, "intel", 32);
             }
             else if (NULL != bx::strnstr(vendor, "nvidia", 256))
             {
-                cmft_strncpy(platformOutputStr, "nvidia", 31);
+                cmft_strscpy(platformOutputStr, "nvidia", 32);
             }
             else
             {
-                cmft_strncpy(platformOutputStr, trimWhitespace(vendor), 31);
+                cmft_strscpy(platformOutputStr, trimWhitespace(vendor), 32);
             }
 
             // Enumerate current platform devices.
@@ -247,19 +247,19 @@ namespace cmft
                     char deviceTypeOutputStr[16];
                     if (CL_DEVICE_TYPE_GPU == deviceType)
                     {
-                        cmft_strncpy(deviceTypeOutputStr, "gpu", 15);
+                        cmft_strscpy(deviceTypeOutputStr, "gpu", 16);
                     }
                     else if (CL_DEVICE_TYPE_CPU == deviceType)
                     {
-                        cmft_strncpy(deviceTypeOutputStr, "cpu", 15);
+                        cmft_strscpy(deviceTypeOutputStr, "cpu", 16);
                     }
                     else if (CL_DEVICE_TYPE_ACCELERATOR == deviceType)
                     {
-                        cmft_strncpy(deviceTypeOutputStr, "accelerator", 15);
+                        cmft_strscpy(deviceTypeOutputStr, "accelerator", 16);
                     }
                     else //if (CL_DEVICE_TYPE_DEFAULT == deviceType)
                     {
-                        cmft_strncpy(deviceTypeOutputStr, "default", 15);
+                        cmft_strscpy(deviceTypeOutputStr, "default", 16);
                     }
 
                     // Print device info.
