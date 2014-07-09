@@ -13,13 +13,13 @@
 
 #include <cmft/image.h>
 #include <cmft/cubemapfilter.h>
+#include <cmft/clcontext.h>
 
-#include <base/clcontext.h>
-#include <base/config.h>
+#include <base/config.h> //INFO, WARN
+#include <base/printcallback.h> //_INFO, _WARN, g_printInfo, g_printWarnings
 #include <base/macros.h> //countof
 #include <base/utils.h> //strncpy
 
-#include <cmft/messages.h> //INFO, WARN, g_printInfo, g_printWarnings
 
 using namespace cmft;
 
@@ -102,22 +102,22 @@ static const CliOptionMap s_lightingModel[] =
 
 static const CliOptionMap s_clVendors[] =
 {
-    { "NONE_FROM_THE_LIST", (uint32_t)CL_VENDOR_OTHER   },
-    { "intel",              (uint32_t)CL_VENDOR_INTEL   },
-    { "amd",                (uint32_t)CL_VENDOR_AMD     },
-    { "ati",                (uint32_t)CL_VENDOR_AMD     },
-    { "nvidia",             (uint32_t)CL_VENDOR_NVIDIA  },
-    { "anyGpuVendor",       (uint32_t)CL_VENDOR_ANY_GPU },
-    { "anyCpuVendor",       (uint32_t)CL_VENDOR_ANY_CPU },
+    { "NONE_FROM_THE_LIST", (uint32_t)CMFT_CL_VENDOR_OTHER   },
+    { "intel",              (uint32_t)CMFT_CL_VENDOR_INTEL   },
+    { "amd",                (uint32_t)CMFT_CL_VENDOR_AMD     },
+    { "ati",                (uint32_t)CMFT_CL_VENDOR_AMD     },
+    { "nvidia",             (uint32_t)CMFT_CL_VENDOR_NVIDIA  },
+    { "anyGpuVendor",       (uint32_t)CMFT_CL_VENDOR_ANY_GPU },
+    { "anyCpuVendor",       (uint32_t)CMFT_CL_VENDOR_ANY_CPU },
     CLI_OPTION_MAP_TERMINATOR,
 };
 
 static const CliOptionMap s_deviceType[] =
 {
-    { "gpu",         (uint32_t)CL_DEVICE_TYPE_GPU         },
-    { "cpu",         (uint32_t)CL_DEVICE_TYPE_CPU         },
-    { "accelerator", (uint32_t)CL_DEVICE_TYPE_ACCELERATOR },
-    { "default",     (uint32_t)CL_DEVICE_TYPE_DEFAULT     },
+    { "gpu",         (uint32_t)CMFT_CL_DEVICE_TYPE_GPU         },
+    { "cpu",         (uint32_t)CMFT_CL_DEVICE_TYPE_CPU         },
+    { "accelerator", (uint32_t)CMFT_CL_DEVICE_TYPE_ACCELERATOR },
+    { "default",     (uint32_t)CMFT_CL_DEVICE_TYPE_DEFAULT     },
     CLI_OPTION_MAP_TERMINATOR,
 };
 
@@ -433,7 +433,7 @@ void inputParametersFromCommandLine(InputParameters& _inputParameters, const bx:
     _cmdLine.hasArg(_inputParameters.m_useOpenCL, '\0', "useOpenCL");
 
     // Cl vendor.
-    uint32_t clVendor = (uint32_t)CL_VENDOR_ANY_GPU;
+    uint32_t clVendor = (uint32_t)CMFT_CL_VENDOR_ANY_GPU;
     const char* clVendorOption = _cmdLine.findOption("clVendor");
     if(!valueFromOptionMap(clVendor, s_clVendors, clVendorOption))
     {
@@ -634,9 +634,9 @@ void inputParametersDefault(InputParameters& _inputParameters)
     _inputParameters.m_numCpuProcessingThreads = UINT32_MAX;
     _inputParameters.m_useOpenCL = true;
     _inputParameters.m_deviceIndex = 0;
-    _inputParameters.m_clVendor = CL_VENDOR_ANY_GPU;
+    _inputParameters.m_clVendor = CMFT_CL_VENDOR_ANY_GPU;
     strcpy(_inputParameters.m_vendorStrPart, "");
-    _inputParameters.m_deviceType = CL_DEVICE_TYPE_GPU;
+    _inputParameters.m_deviceType = CMFT_CL_DEVICE_TYPE_GPU;
 
     // Misc.
     _inputParameters.m_silent = false;

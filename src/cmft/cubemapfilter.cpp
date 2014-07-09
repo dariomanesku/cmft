@@ -4,13 +4,14 @@
  */
 
 #include "cmft/cubemapfilter.h"
+#include "cmft/clcontext.h"
 
 #include "base/config.h"
+#include "base/printcallback.h"
+#include "base/macros.h"
 #include "base/utils.h"
-#include "base/clcontext.h"
 #include "cubemaputils.h"
 #include "radiance.h"
-#include "messages.h"
 
 #include <stdlib.h> //malloc
 #include <string.h> //memset

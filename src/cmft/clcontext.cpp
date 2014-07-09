@@ -4,13 +4,15 @@
  */
 
 #include <stdint.h>
+
+#include <bx/string.h>
 #define BX_CL_IMPLEMENTATION
 #include <bx/cl.h>
 
+#include "cmft/clcontext.h"
+#include "base/config.h" //INFO, WARN
+#include "base/printcallback.h" //_INFO, _WARN
 #include "base/utils.h" //strtolower, cmft_strscpy
-
-#include "clcontext.h"
-#include "messages.h"
 
 namespace cmft
 {
@@ -32,7 +34,7 @@ namespace cmft
         if (NULL != _vendorStrPart)
         {
             // If specific vendor is requested, transform input to lowercase.
-            if (_vendor&CL_VENDOR_OTHER)
+            if (_vendor&CMFT_CL_VENDOR_OTHER)
             {
                 strtolower(_vendorStrPart);
             }
@@ -46,7 +48,7 @@ namespace cmft
                 // Transform it to lower case for easier searching.
                 strtolower(buffer);
 
-                if (_vendor&CL_VENDOR_OTHER)
+                if (_vendor&CMFT_CL_VENDOR_OTHER)
                 {
                     // If specific vendor is requested, check for it.
                     const char* searchSpecific = bx::strnstr(buffer, _vendorStrPart, 256);
@@ -61,19 +63,19 @@ namespace cmft
                     bool found = false;
 
                     // Check for predefined vendors.
-                    if (_vendor&CL_VENDOR_AMD)
+                    if (_vendor&CMFT_CL_VENDOR_AMD)
                     {
                         const char* searchAmd = bx::strnstr(buffer, "advanced micro devices", 256);
                         found |= (NULL != searchAmd);
                     }
 
-                    if (_vendor&CL_VENDOR_INTEL)
+                    if (_vendor&CMFT_CL_VENDOR_INTEL)
                     {
                         const char* searchIntel  = bx::strnstr(buffer, "intel", 256);
                         found |= (NULL != searchIntel);
                     }
 
-                    if (_vendor&CL_VENDOR_NVIDIA)
+                    if (_vendor&CMFT_CL_VENDOR_NVIDIA)
                     {
                         const char* searchNvidia = bx::strnstr(buffer, "nvidia", 256);
                         found |= (NULL != searchNvidia);
@@ -245,19 +247,19 @@ namespace cmft
 
                     // Get device type str.
                     char deviceTypeOutputStr[16];
-                    if (CL_DEVICE_TYPE_GPU == deviceType)
+                    if (CMFT_CL_DEVICE_TYPE_GPU == deviceType)
                     {
                         cmft_strscpy(deviceTypeOutputStr, "gpu", 16);
                     }
-                    else if (CL_DEVICE_TYPE_CPU == deviceType)
+                    else if (CMFT_CL_DEVICE_TYPE_CPU == deviceType)
                     {
                         cmft_strscpy(deviceTypeOutputStr, "cpu", 16);
                     }
-                    else if (CL_DEVICE_TYPE_ACCELERATOR == deviceType)
+                    else if (CMFT_CL_DEVICE_TYPE_ACCELERATOR == deviceType)
                     {
                         cmft_strscpy(deviceTypeOutputStr, "accelerator", 16);
                     }
-                    else //if (CL_DEVICE_TYPE_DEFAULT == deviceType)
+                    else //if (CMFT_CL_DEVICE_TYPE_DEFAULT == deviceType)
                     {
                         cmft_strscpy(deviceTypeOutputStr, "default", 16);
                     }

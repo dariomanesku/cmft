@@ -6,10 +6,10 @@
 #include "cmft/image.h"
 
 #include "base/config.h"
+#include "base/printcallback.h"
 #include "base/utils.h"
 #include "base/macros.h"
 #include "cubemaputils.h"
-#include "messages.h"
 
 #include <bx/uint32_t.h>
 

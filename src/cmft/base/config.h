@@ -6,7 +6,6 @@
 #ifndef CMFT_CONFIG_H_HEADER_GUARD
 #define CMFT_CONFIG_H_HEADER_GUARD
 
-#include "macros.h"
 #include <stdlib.h> //abort()
 
 #ifndef CMFT_CONFIG_DEBUG
@@ -110,6 +109,39 @@ do                                                                              
         abort();                                                                            \
     }                                                                                       \
 } while(0)
+
+// CL check.
+#ifndef CMFT_ENABLE_CL_CHECK
+    #define CMFT_ENABLE_CL_CHECK 0
+#endif
+
+#if CMFT_ENABLE_CL_CHECK
+    #define CL_CHECK            _CL_CHECK
+    #define CL_CHECK_ERR        _CL_CHECK_ERR
+#else
+    #define CL_CHECK(_expr)     _expr
+    #define CL_CHECK_ERR(_expr) _expr
+#endif
+
+#define _CL_CHECK(_expr)                                                             \
+do                                                                                   \
+{                                                                                    \
+    cl_int err = _expr;                                                              \
+    if (CL_SUCCESS != err)                                                           \
+    {                                                                                \
+        fprintf(stderr, "CMFT OpenCL Error: '%s' returned %d!\n", #_expr, (int)err); \
+        abort();                                                                     \
+    }                                                                                \
+} while (0)
+
+/// Notice: 'cl_int err;' should be defined earlier and _expr should be called with 'err' parameter for the error field.
+#define _CL_CHECK_ERR(_expr)                                                      \
+_expr;                                                                            \
+if (CL_SUCCESS != err)                                                            \
+{                                                                                 \
+    fprintf(stderr, "CMFT OpenCL Error: '%s' returned %d!\n", #_expr, (int)err);  \
+    abort();                                                                      \
+}
 
 #endif //CMFT_CONFIG_H_HEADER_GUARD
 
