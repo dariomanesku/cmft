@@ -965,7 +965,7 @@ namespace cmft
 
         bool hasValidDeviceContext() const
         {
-            return (NULL != m_clContext->m_context);
+            return (NULL != m_clContext && NULL != m_clContext->m_context);
         }
 
         bool isValid() const
@@ -1361,7 +1361,8 @@ namespace cmft
         }
 
         // Don't use the same CPU device for OpenCL and CPU processing!
-        if (_clContext->m_deviceType&CL_DEVICE_TYPE_CPU
+        if (NULL != _clContext
+        &&  _clContext->m_deviceType&CL_DEVICE_TYPE_CPU
         &&  maxActiveCpuThreads != 0)
         {
             WARN(" !! Choosing CPU device as OpenCL device and running CPU processing"
