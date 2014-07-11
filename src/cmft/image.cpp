@@ -2738,7 +2738,7 @@ namespace cmft
         }
     }
 
-    bool imageHStripFromCubemap(Image& _dst, const Image& _src)
+    bool imageStripFromCubemap(Image& _dst, const Image& _src, bool _vertical)
     {
         // Input check.
         if(!imageIsCubemap(_src))
@@ -2749,8 +2749,8 @@ namespace cmft
         // Calculate destination offsets and alloc data.
         uint32_t dstDataSize = 0;
         uint32_t dstMipOffsets[MAX_MIP_NUM];
-        const uint32_t dstWidth = _src.m_width*6;
-        const uint32_t dstHeight = _src.m_width;
+        const uint32_t dstWidth  = _vertical ? _src.m_width   : _src.m_width*6;
+        const uint32_t dstHeight = _vertical ? _src.m_width*6 : _src.m_width  ;
         const uint32_t bytesPerPixel = getImageDataInfo(_src.m_format).m_bytesPerPixel;
         for (uint8_t mip = 0; mip < _src.m_numMips; ++mip)
         {
@@ -2777,19 +2777,48 @@ namespace cmft
                 // Get dst ptr for current mip level.
                 uint8_t* dstMipData = (uint8_t*)dstData + dstMipOffsets[mip];
 
-                // Advance by (srcPitch * faceIdx) to get to the desired face in the strip.
-                const uint32_t srcMipSize = max(UINT32_C(1), _src.m_width >> mip);
-                const uint32_t srcMipPitch = srcMipSize * bytesPerPixel;
-                uint8_t* dstFaceData = (uint8_t*)dstMipData + srcMipPitch*face;
+                const uint32_t mipFaceSize = max(UINT32_C(1), _src.m_width >> mip);
+                const uint32_t mipFacePitch = mipFaceSize * bytesPerPixel;
+                //
+                //   Horizontal strip.
+                //
+                //   .__................   ___  -> FacePitch
+                //   .  .  .  .  .  .  .
+                //   ...................
+                //
+                //
+                //
+                //   Vertical strip.
+                //       ___
+                //      |   |
+                //      |___|    ___
+                //      .   .   |   | -> FaceDataSize
+                //      .....   |___|
+                //      .   .
+                //      .....
+                //      .   .
+                //      .....
+                //      .   .
+                //      .....
+                //      .   .
+                //      .....
+                //
+                // To get to the desired face in the strip, advance by:
+                // - (mipFacePitch * faceIdx)    for hstrip
+                // - (mipFaceDataSize * faceIdx) for vstrip
+                // Note: mipFaceDataSize == mipFacePitch * mipFaceSize.
+                const uint32_t advance = _vertical ? mipFacePitch * mipFaceSize : mipFacePitch;
+                uint8_t* dstFaceData = (uint8_t*)dstMipData + advance*face;
 
-                const uint32_t dstMipPitch = srcMipPitch*6;
+                const uint32_t dstMipSize = max(UINT32_C(1), dstWidth >> mip);
+                const uint32_t dstMipPitch = dstMipSize*bytesPerPixel;
 
-                for (uint32_t yy = 0; yy < srcMipSize; ++yy)
+                for (uint32_t yy = 0; yy < mipFaceSize; ++yy)
                 {
-                    const uint8_t* srcRowData = (const uint8_t*)srcFaceData + yy*srcMipPitch;
+                    const uint8_t* srcRowData = (const uint8_t*)srcFaceData + yy*mipFacePitch;
                     uint8_t* dstRowData = (uint8_t*)dstFaceData + yy*dstMipPitch;
 
-                    memcpy(dstRowData, srcRowData, srcMipPitch);
+                    memcpy(dstRowData, srcRowData, mipFacePitch);
                 }
             }
         }
@@ -2810,92 +2839,10 @@ namespace cmft
         return true;
     }
 
-    bool imageVStripFromCubemap(Image& _dst, const Image& _src)
-    {
-        // Input check.
-        if(!imageIsCubemap(_src))
-        {
-            return false;
-        }
-
-        // Calculate destination offsets and alloc data.
-        uint32_t dstDataSize = 0;
-        uint32_t dstMipOffsets[MAX_MIP_NUM];
-        const uint32_t dstWidth = _src.m_width;
-        const uint32_t dstHeight = _src.m_width*6;
-        const uint32_t bytesPerPixel = getImageDataInfo(_src.m_format).m_bytesPerPixel;
-        for (uint8_t mip = 0; mip < _src.m_numMips; ++mip)
-        {
-            dstMipOffsets[mip] = dstDataSize;
-            const uint32_t mipWidth  = max(UINT32_C(1), dstWidth  >> mip);
-            const uint32_t mipHeight = max(UINT32_C(1), dstHeight >> mip);
-
-            dstDataSize += mipWidth * mipHeight * bytesPerPixel;
-        }
-        void* dstData = malloc(dstDataSize);
-        MALLOC_CHECK(dstData);
-
-        // Get source image offsets.
-        uint32_t srcOffsets[CUBE_FACE_NUM][MAX_MIP_NUM];
-        imageGetMipOffsets(srcOffsets, _src);
-
-        for (uint8_t face = 0; face < 6; ++face)
-        {
-            for (uint8_t mip = 0; mip < _src.m_numMips; ++mip)
-            {
-                // Get src data ptr for current mip and face.
-                const uint8_t* srcFaceData = (const uint8_t*)_src.m_data + srcOffsets[face][mip];
-
-                // Get dst ptr for current mip level.
-                uint8_t* dstMipData = (uint8_t*)dstData + dstMipOffsets[mip];
-
-                // Advance by (srcPitch * srcPitch * faceIdx) to get to the desired face in the strip.
-                const uint32_t srcMipSize = max(UINT32_C(1), _src.m_width >> mip);
-                const uint32_t srcMipPitch = srcMipSize * bytesPerPixel;
-                const uint32_t facePitch = srcMipPitch * srcMipSize;
-                uint8_t* dstFaceData = (uint8_t*)dstMipData + facePitch*face;
-
-                const uint32_t dstMipPitch = srcMipPitch;
-
-                for (uint32_t yy = 0; yy < srcMipSize; ++yy)
-                {
-                    const uint8_t* srcRowData = (const uint8_t*)srcFaceData + yy*srcMipPitch;
-                    uint8_t* dstRowData = (uint8_t*)dstFaceData + yy*dstMipPitch;
-
-                    memcpy(dstRowData, srcRowData, srcMipPitch);
-                }
-            }
-        }
-
-        // Fill image structure.
-        Image result;
-        result.m_width = dstWidth;
-        result.m_height = dstHeight;
-        result.m_dataSize = dstDataSize;
-        result.m_format = _src.m_format;
-        result.m_numMips = _src.m_numMips;
-        result.m_numFaces = 1;
-        result.m_data = dstData;
-
-        // Output.
-        imageMove(_dst, result);
-
-        return true;
-    }
-
-    void imageHStripFromCubemap(Image& _cubemap)
+    void imageStripFromCubemap(Image& _cubemap, bool _vertical)
     {
         Image tmp;
-        if (imageHStripFromCubemap(tmp, _cubemap))
-        {
-            imageMove(_cubemap, tmp);
-        }
-    }
-
-    void imageVStripFromCubemap(Image& _cubemap)
-    {
-        Image tmp;
-        if (imageVStripFromCubemap(tmp, _cubemap))
+        if (imageStripFromCubemap(tmp, _cubemap, _vertical))
         {
             imageMove(_cubemap, tmp);
         }
@@ -4591,21 +4538,21 @@ namespace cmft
             {
                 imageLatLongFromCubemap(outputImage, _image);
             }
-            else if (OutputType::VCross == _ot)
-            {
-                imageCrossFromCubemap(outputImage, _image, true);
-            }
             else if (OutputType::HCross == _ot)
             {
                 imageCrossFromCubemap(outputImage, _image, false);
             }
+            else if (OutputType::VCross == _ot)
+            {
+                imageCrossFromCubemap(outputImage, _image, true);
+            }
             else if (OutputType::HStrip == _ot)
             {
-                imageHStripFromCubemap(outputImage, _image);
+                imageStripFromCubemap(outputImage, _image, false);
             }
             else if (OutputType::VStrip == _ot)
             {
-                imageVStripFromCubemap(outputImage, _image);
+                imageStripFromCubemap(outputImage, _image, true);
             }
             else
             {

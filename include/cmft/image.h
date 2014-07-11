@@ -276,22 +276,16 @@ namespace cmft
     void imageLatLongFromCubemap(Image& _cubemap, bool _useBilinearInterpolation = true);
 
     ///
-    bool imageHStripFromCubemap(Image& _dst, const Image& _src);
+    bool imageStripFromCubemap(Image& _dst, const Image& _src, bool _vertical = false);
 
     ///
-    void imageHStripFromCubemap(Image& _image);
+    void imageStripFromCubemap(Image& _image, bool _vertical = false);
 
     ///
     bool imageCubemapFromStrip(Image& _dst, const Image& _src);
 
     ///
     void imageCubemapFromStrip(Image& _image);
-
-    ///
-    bool imageVStripFromCubemap(Image& _dst, const Image& _src);
-
-    ///
-    void imageVStripFromCubemap(Image& _image);
 
     ///
     bool imageFaceListFromCubemap(Image _faceList[6], const Image& _cubemap);
