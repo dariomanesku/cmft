@@ -34,7 +34,6 @@ namespace cmft
         "RGBA16",    //RGBA16
         "RGBA16F",   //RGBA16F
         "RGBA32F",   //RGBA32F
-        "<unknown>", //Unknown
     };
 
     const char* getTextureFormatStr(TextureFormat::Enum _format)
@@ -249,7 +248,6 @@ namespace cmft
         {  8, 4, 1, PixelDataType::UINT16      }, //RGBA16
         {  8, 4, 1, PixelDataType::HALF_FLOAT  }, //RGBA16F
         { 16, 4, 1, PixelDataType::FLOAT       }, //RGBA32F
-        {  0, 0, 0, 0 }, //Unknown
     };
 
     const ImageDataInfo& getImageDataInfo(TextureFormat::Enum _format)
@@ -596,7 +594,6 @@ namespace cmft
         { GL_RGBA16UI, GL_RGBA }, //RGBA16
         { GL_RGBA16F,  GL_RGBA }, //RGBA16F
         { GL_RGBA32F,  GL_RGBA }, //RGBA32F
-        { 0, 0 }, //Unknown
     };
 
     static const GlSizedInternalFormat& getGlSizedInternalFormat(TextureFormat::Enum _format)
@@ -3446,7 +3443,7 @@ namespace cmft
         }
 
         // Get format.
-        TextureFormat::Enum format = TextureFormat::Unknown;
+        TextureFormat::Enum format = TextureFormat::Null;
         if (hasDdsDxt10)
         {
             for (uint8_t ii = 0, end = CMFT_COUNTOF(s_translateDdsDxgiFormat); ii < end; ++ii)
@@ -3485,7 +3482,7 @@ namespace cmft
             }
         }
 
-        if (TextureFormat::Unknown == format)
+        if (TextureFormat::Null == format)
         {
             const uint8_t bytesPerPixel = uint8_t(ddsHeader.m_pixelFormat.m_rgbBitCount/8);
             for (uint8_t ii = 0, end = CMFT_COUNTOF(s_ddsValidFormats); ii < end; ++ii)
@@ -3498,7 +3495,7 @@ namespace cmft
 
             WARN("DDS data format unknown. Guessing... Got %s.", getTextureFormatStr(format));
 
-            if (TextureFormat::Unknown == format)
+            if (TextureFormat::Null == format)
             {
                 WARN("DDS data format not supported!");
                 return false;
@@ -3601,7 +3598,7 @@ namespace cmft
         }
 
         // Get format.
-        TextureFormat::Enum format = TextureFormat::Unknown;
+        TextureFormat::Enum format = TextureFormat::Null;
         for (uint8_t ii = 0, end = CMFT_COUNTOF(s_translateKtxFormat); ii < end; ++ii)
         {
             if (s_translateKtxFormat[ii].m_glInternalFormat == ktxHeader.m_glInternalFormat)
@@ -3611,7 +3608,7 @@ namespace cmft
             }
         }
 
-        if (TextureFormat::Unknown == format)
+        if (TextureFormat::Null == format)
         {
             WARN("Ktx file internal format unknown.");
             return false;
@@ -4133,7 +4130,7 @@ namespace cmft
         }
 
         // Convert if necessary.
-        if (TextureFormat::Unknown != _convertTo
+        if (TextureFormat::Null != _convertTo
         &&  _image.m_format != _convertTo)
         {
             imageConvert(_image, _convertTo);
@@ -4527,7 +4524,7 @@ namespace cmft
         // Get image in desired format.
         Image image;
         bool imageIsRef;
-        if (TextureFormat::Unknown != _convertTo)
+        if (TextureFormat::Null != _convertTo)
         {
             imageIsRef = imageRefOrConvert(image, _convertTo, _image);
         }

@@ -85,8 +85,6 @@ namespace cmft
             RGBA16F,
             RGBA32F,
 
-            Unknown,
-
             Count,
             Null = -1,
         };
@@ -106,7 +104,7 @@ namespace cmft
             : m_width(0)
             , m_height(0)
             , m_dataSize(0)
-            , m_format(TextureFormat::Unknown)
+            , m_format(TextureFormat::Null)
             , m_numMips(0)
             , m_numFaces(0)
             , m_data(NULL)
@@ -314,16 +312,16 @@ namespace cmft
     void imageCrossFromCubemap(Image& _image, bool _vertical = true);
 
     ///
-    bool imageLoad(Image& _image, const char* _filePath, TextureFormat::Enum _convertTo = TextureFormat::Unknown);
+    bool imageLoad(Image& _image, const char* _filePath, TextureFormat::Enum _convertTo = TextureFormat::Null);
 
     ///
     bool imageIsValid(const Image& _image);
 
     ///
-    bool imageSave(const Image& _image, const char* _fileName, ImageFileType::Enum _ft, TextureFormat::Enum _convertTo = TextureFormat::Unknown);
+    bool imageSave(const Image& _image, const char* _fileName, ImageFileType::Enum _ft, TextureFormat::Enum _convertTo = TextureFormat::Null);
 
     ///
-    bool imageSave(const Image& _image, const char* _fileName, ImageFileType::Enum _ft, OutputType::Enum _ot, TextureFormat::Enum _tf = TextureFormat::Unknown, bool _printOutput = false);
+    bool imageSave(const Image& _image, const char* _fileName, ImageFileType::Enum _ft, OutputType::Enum _ot, TextureFormat::Enum _tf = TextureFormat::Null, bool _printOutput = false);
 
 } // namespace cmft
 
