@@ -1015,7 +1015,7 @@ int cmftMain(int _argc, char const* const* _argv)
 
     if (!imageIsCubemap(image))
     {
-        INFO("Exiting...");
+        INFO("Conversion failed. Exiting...");
         return EXIT_FAILURE;
     }
 
