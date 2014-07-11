@@ -1132,119 +1132,13 @@ int cmftMain(int _argc, char const* const* _argv)
     // Save output images.
     for (uint32_t outputIdx = 0; outputIdx < inputParameters.m_outputFilesNum; ++outputIdx)
     {
-        const OutputType::Enum    ot = (OutputType::Enum)inputParameters.m_outputFiles[outputIdx].m_outputType;
-        const TextureFormat::Enum tf = (TextureFormat::Enum)inputParameters.m_outputFiles[outputIdx].m_textureFormat;
-        const ImageFileType::Enum ft = (ImageFileType::Enum)inputParameters.m_outputFiles[outputIdx].m_fileType;
-        const char* outputFileName = inputParameters.m_outputFiles[outputIdx].m_fileName;
+        const OutputFile& output = inputParameters.m_outputFiles[outputIdx];
 
-        // Face list is a special case because it is saving 6 images.
-        if (OutputType::FaceList == ot)
-        {
-            Image outputFaceList[6];
+        const OutputType::Enum    ot = (   OutputType::Enum)output.m_outputType;
+        const TextureFormat::Enum tf = (TextureFormat::Enum)output.m_textureFormat;
+        const ImageFileType::Enum ft = (ImageFileType::Enum)output.m_fileType;
 
-            imageFaceListFromCubemap(outputFaceList, image);
-
-            for (uint8_t face = 0; face < 6; ++face)
-            {
-                char faceFileName[2048];
-                sprintf(faceFileName, "%s_%s", outputFileName, s_cubemapFaceIdNames[face]);
-
-                INFO("Output(%u) - Saving %s [%s %ux%u %s %s %u-faces %d-mips]."
-                    , outputIdx
-                    , faceFileName
-                    , getFileTypeStr(ft)
-                    , outputFaceList[face].m_width
-                    , outputFaceList[face].m_height
-                    , getTextureFormatStr(outputFaceList[face].m_format)
-                    , getOutputTypeStr(ot)
-                    , outputFaceList[face].m_numFaces
-                    , outputFaceList[face].m_numMips
-                    );
-
-                const bool saved = imageSave(outputFaceList[face], faceFileName, ft, tf);
-                if (!saved)
-                {
-                    WARN("Saving failed!");
-                }
-            }
-
-            for (uint8_t face = 0; face < 6; ++face)
-            {
-                imageUnload(outputFaceList[face]);
-            }
-
-        }
-        // Cubemap is a special case becase no transformation is required.
-        else if (OutputType::Cubemap == ot)
-        {
-            INFO("Output(%u) - Saving %s [%s %ux%u %s %s %u-faces %d-mips]."
-                , outputIdx
-                , outputFileName
-                , getFileTypeStr(ft)
-                , image.m_width
-                , image.m_height
-                , getTextureFormatStr(tf)
-                , getOutputTypeStr(ot)
-                , image.m_numFaces
-                , image.m_numMips
-                );
-
-            const bool saved = imageSave(image, outputFileName, ft, tf);
-            if (!saved)
-            {
-                WARN("Saving failed!");
-            }
-        }
-        else
-        {
-            Image outputImage;
-
-            if (OutputType::LatLong == ot)
-            {
-                imageLatLongFromCubemap(outputImage, image);
-            }
-            else if (OutputType::VCross == ot)
-            {
-                imageCrossFromCubemap(outputImage, image, true);
-            }
-            else if (OutputType::HCross == ot)
-            {
-                imageCrossFromCubemap(outputImage, image, false);
-            }
-            else if (OutputType::HStrip == ot)
-            {
-                imageHStripFromCubemap(outputImage, image);
-            }
-            else if (OutputType::VStrip == ot)
-            {
-                imageVStripFromCubemap(outputImage, image);
-            }
-            else
-            {
-                WARN("Output(%u) - Invalid output type.", outputIdx);
-                continue;
-            }
-
-            INFO("Output(%u) - Saving %s [%s %ux%u %s %s %u-faces %d-mips]."
-                , outputIdx
-                , outputFileName
-                , getFileTypeStr(ft)
-                , outputImage.m_width
-                , outputImage.m_height
-                , getTextureFormatStr(tf)
-                , getOutputTypeStr(ot)
-                , outputImage.m_numFaces
-                , outputImage.m_numMips
-                );
-
-            const bool saved = imageSave(outputImage, outputFileName, ft, tf);
-            if (!saved)
-            {
-                WARN("Saving failed!");
-            }
-
-            imageUnload(outputImage);
-        }
+        imageSave(image, output.m_fileName, ft, ot, tf, true);
     }
 
     // Cleanup.

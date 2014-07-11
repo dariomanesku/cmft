@@ -322,6 +322,9 @@ namespace cmft
     ///
     bool imageSave(const Image& _image, const char* _fileName, ImageFileType::Enum _ft, TextureFormat::Enum _convertTo = TextureFormat::Unknown);
 
+    ///
+    bool imageSave(const Image& _image, const char* _fileName, ImageFileType::Enum _ft, OutputType::Enum _ot, TextureFormat::Enum _tf = TextureFormat::Unknown, bool _printOutput = false);
+
 } // namespace cmft
 
 #endif //CMFT_IMAGE_H_HEADER_GUARD

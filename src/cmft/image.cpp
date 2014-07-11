@@ -4586,6 +4586,141 @@ namespace cmft
         return result;
     }
 
+    bool imageSave(const Image& _image, const char* _fileName, ImageFileType::Enum _ft, OutputType::Enum _ot, TextureFormat::Enum _tf, bool _printOutput)
+    {
+        bool result = false;
+
+        // Face list is a special case because it is saving 6 images.
+        if (OutputType::FaceList == _ot)
+        {
+            Image outputFaceList[6];
+            imageFaceListFromCubemap(outputFaceList, _image);
+
+            static const char* s_cubemapFaceIdNames[6] =
+            {
+                "posx",
+                "negx",
+                "posy",
+                "negy",
+                "posz",
+                "negz",
+            };
+
+            result = true;
+
+            for (uint8_t face = 0; face < 6; ++face)
+            {
+                char faceFileName[2048];
+                sprintf(faceFileName, "%s_%s", _fileName, s_cubemapFaceIdNames[face]);
+
+                if (_printOutput)
+                {
+                    INFO("Saving %s [%s %ux%u %s %s %u-faces %d-mips]."
+                        , faceFileName
+                        , getFileTypeStr(_ft)
+                        , outputFaceList[face].m_width
+                        , outputFaceList[face].m_height
+                        , getTextureFormatStr(outputFaceList[face].m_format)
+                        , getOutputTypeStr(_ot)
+                        , outputFaceList[face].m_numFaces
+                        , outputFaceList[face].m_numMips
+                        );
+                }
+
+                const bool saved = imageSave(outputFaceList[face], faceFileName, _ft, _tf);
+                if (!saved)
+                {
+                    WARN("Saving failed!");
+                }
+
+                result &= saved;
+            }
+
+            for (uint8_t face = 0; face < 6; ++face)
+            {
+                imageUnload(outputFaceList[face]);
+            }
+
+        }
+        // Cubemap is a special case becase no transformation is required.
+        else if (OutputType::Cubemap == _ot)
+        {
+            if (_printOutput)
+            {
+                INFO("Saving %s [%s %ux%u %s %s %u-faces %d-mips]."
+                    , _fileName
+                    , getFileTypeStr(_ft)
+                    , _image.m_width
+                    , _image.m_height
+                    , getTextureFormatStr(_tf)
+                    , getOutputTypeStr(_ot)
+                    , _image.m_numFaces
+                    , _image.m_numMips
+                    );
+            }
+
+            result = imageSave(_image, _fileName, _ft, _tf);
+            if (!result)
+            {
+                WARN("Saving failed!");
+            }
+        }
+        else
+        {
+            Image outputImage;
+
+            if (OutputType::LatLong == _ot)
+            {
+                imageLatLongFromCubemap(outputImage, _image);
+            }
+            else if (OutputType::VCross == _ot)
+            {
+                imageCrossFromCubemap(outputImage, _image, true);
+            }
+            else if (OutputType::HCross == _ot)
+            {
+                imageCrossFromCubemap(outputImage, _image, false);
+            }
+            else if (OutputType::HStrip == _ot)
+            {
+                imageHStripFromCubemap(outputImage, _image);
+            }
+            else if (OutputType::VStrip == _ot)
+            {
+                imageVStripFromCubemap(outputImage, _image);
+            }
+            else
+            {
+                WARN("Invalid output type.");
+                return false;
+            }
+
+            if (_printOutput)
+            {
+                INFO("Saving %s [%s %ux%u %s %s %u-faces %d-mips]."
+                    , _fileName
+                    , getFileTypeStr(_ft)
+                    , outputImage.m_width
+                    , outputImage.m_height
+                    , getTextureFormatStr(_tf)
+                    , getOutputTypeStr(_ot)
+                    , outputImage.m_numFaces
+                    , outputImage.m_numMips
+                    );
+            }
+
+            result = imageSave(outputImage, _fileName, _ft, _tf);
+            if (!result)
+            {
+                WARN("Saving failed!");
+            }
+
+            imageUnload(outputImage);
+        }
+
+        return result;
+    }
+
 } // namespace cmft
 
 /* vim: set sw=4 ts=4 expandtab: */
