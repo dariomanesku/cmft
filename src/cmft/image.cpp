@@ -2320,7 +2320,7 @@ namespace cmft
         // Checking image aspect.
         const float aspect = (float)(int32_t)_src.m_width/(float)(int32_t)_src.m_height;
         const bool isVertical   = (aspect - 3.0f/4.0f) < 0.0001f;
-        const bool isHorizontal = (aspect - 3.0f/4.0f) < 0.0001f;
+        const bool isHorizontal = (aspect - 4.0f/3.0f) < 0.0001f;
 
         if (!isVertical && !isHorizontal)
         {
