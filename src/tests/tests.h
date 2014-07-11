@@ -9,7 +9,7 @@
 #include "../cmft_cli/cmft_cli.h"
 #include "tokenize.h"
 
-static const char s_test0[] =
+static const char s_radianceTest[] =
 {
     "--input \"okretnica.tga\"           "
     "--filter radiance                   "
@@ -35,6 +35,27 @@ static const char s_test0[] =
     "--output0params dds,bgra8,cubemap   "
 };
 
+static const char s_outputTest[] =
+{
+    "--input \"okretnica.tga\"          "
+    "--filter none                      "
+    "--outputNum 7                      "
+    "--output0 \"okretnica_cubemap\"    "
+    "--output0params dds,bgra8,cubemap  "
+    "--output1 \"okretnica_latlong\"    "
+    "--output1params dds,bgra8,latlong  "
+    "--output2 \"okretnica_hcross\"     "
+    "--output2params dds,bgra8,hcross   "
+    "--output3 \"okretnica_vcross\"     "
+    "--output3params dds,bgra8,vcross   "
+    "--output4 \"okretnica_hstrip\"     "
+    "--output4params dds,bgra8,hstrip   "
+    "--output5 \"okretnica_vstrip\"     "
+    "--output5params dds,bgra8,vstrip   "
+    "--output6 \"okretnica_facelist\"   "
+    "--output6params dds,bgra8,facelist "
+};
+
 int test(const char* _cmd)
 {
     char data[2048];
@@ -50,7 +71,8 @@ int testsMain(int _argc, char const* const* _argv)
     BX_UNUSED(_argc);
     BX_UNUSED(_argv);
 
-    test(s_test0);
+    test(s_radianceTest);
+    test(s_outputTest);
 
     return 0;
 }
