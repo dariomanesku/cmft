@@ -72,6 +72,7 @@ namespace cmft
             Unknown,
 
             Count,
+            Null = -1,
         };
     };
 

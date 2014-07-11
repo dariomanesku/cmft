@@ -80,8 +80,6 @@ namespace cmft
     // Valid formats.
     //-----
 
-#define TEXTURE_FORMAT_NULL TextureFormat::Enum(-1)
-
     static const TextureFormat::Enum s_ddsValidFormats[] =
     {
         TextureFormat::BGR8,
@@ -89,7 +87,7 @@ namespace cmft
         TextureFormat::RGBA16,
         TextureFormat::RGBA16F,
         TextureFormat::RGBA32F,
-        TEXTURE_FORMAT_NULL
+        TextureFormat::Null,
     };
 
     static const TextureFormat::Enum s_ktxValidFormats[] =
@@ -102,20 +100,20 @@ namespace cmft
         TextureFormat::RGBA16,
         TextureFormat::RGBA16F,
         TextureFormat::RGBA32F,
-        TEXTURE_FORMAT_NULL
+        TextureFormat::Null,
     };
 
     static const TextureFormat::Enum s_tgaValidFormats[] =
     {
         TextureFormat::BGR8,
         TextureFormat::BGRA8,
-        TEXTURE_FORMAT_NULL
+        TextureFormat::Null,
     };
 
     static const TextureFormat::Enum s_hdrValidFormats[] =
     {
         TextureFormat::RGBE,
-        TEXTURE_FORMAT_NULL
+        TextureFormat::Null,
     };
 
     const TextureFormat::Enum* getValidTextureFormats(ImageFileType::Enum _fileType)
@@ -153,11 +151,11 @@ namespace cmft
 
         uint8_t ii = 0;
         TextureFormat::Enum curr;
-        if (TEXTURE_FORMAT_NULL != (curr = validFormatsList[ii++]))
+        if (TextureFormat::Null != (curr = validFormatsList[ii++]))
         {
             strcpy(_str, getTextureFormatStr(curr));
         }
-        while (TEXTURE_FORMAT_NULL != (curr = validFormatsList[ii++]))
+        while (TextureFormat::Null != (curr = validFormatsList[ii++]))
         {
             strcat(_str, " ");
             strcat(_str, getTextureFormatStr(curr));
@@ -168,7 +166,7 @@ namespace cmft
     {
         TextureFormat::Enum curr;
         uint8_t ii = 0;
-        while (TEXTURE_FORMAT_NULL != (curr = _formatList[ii++]))
+        while (TextureFormat::Null != (curr = _formatList[ii++]))
         {
             if (curr == _format)
             {
