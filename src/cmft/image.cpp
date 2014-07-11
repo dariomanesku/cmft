@@ -77,6 +77,26 @@ namespace cmft
         return s_imageFileTypeName[uint8_t(_ft)];
     }
 
+    // Image output type name.
+    //-----
+
+    static const char* s_outputTypeStr[OutputType::Count] =
+    {
+        "LatLong",
+        "Cubemap",
+        "HCross",
+        "Vcross",
+        "HStrip",
+        "VStrip",
+        "FaceList",
+    };
+
+    const char* getOutputTypeStr(OutputType::Enum _outputType)
+    {
+        DEBUG_CHECK(_outputType < OutputType::Count, "Reading array out of bounds!");
+        return s_outputTypeStr[uint8_t(_outputType)];
+    }
+
     // Valid formats.
     //-----
 

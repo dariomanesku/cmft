@@ -34,37 +34,6 @@ struct FilterType
     };
 };
 
-struct OutputType
-{
-    enum Enum
-    {
-        LatLong,
-        Cubemap,
-        CubeCross,
-        HStrip,
-        VStrip,
-        FaceList,
-
-        Count,
-    };
-};
-
-static const char* s_outputTypeStr[OutputType::Count] =
-{
-    "LatLong",
-    "Cubemap",
-    "CubeCross",
-    "HStrip",
-    "VStrip",
-    "FaceList",
-};
-
-static const char* getOutputTypeStr(OutputType::Enum _outputType)
-{
-    DEBUG_CHECK(_outputType < OutputType::Count, "Reading array out of bounds!");
-    return s_outputTypeStr[uint8_t(_outputType)];
-}
-
 static const char* s_cubemapFaceIdNames[6] =
 {
     "posx",
@@ -148,41 +117,47 @@ static const CliOptionMap s_validTextureFormats[] =
 
 static const CliOptionMap s_validDdsOutputTypes[] =
 {
-    { "latlong",   OutputType::LatLong   },
-    { "cubemap",   OutputType::Cubemap   },
-    { "cubecross", OutputType::CubeCross },
-    { "hstrip",    OutputType::HStrip    },
-    { "facelist",  OutputType::FaceList  },
+    { "latlong",  OutputType::LatLong  },
+    { "cubemap",  OutputType::Cubemap  },
+    { "hcross",   OutputType::HCross   },
+    { "vcross",   OutputType::VCross   },
+    { "hstrip",   OutputType::HStrip   },
+    { "vstrip",   OutputType::VStrip   },
+    { "facelist", OutputType::FaceList },
     CLI_OPTION_MAP_TERMINATOR,
 };
 
 static const CliOptionMap s_validKtxOutputTypes[] =
 {
-    { "latlong",   OutputType::LatLong   },
-    { "cubemap",   OutputType::Cubemap   },
-    { "cubecross", OutputType::CubeCross },
-    { "hstrip",    OutputType::HStrip    },
-    { "facelist",  OutputType::FaceList  },
+    { "latlong",  OutputType::LatLong  },
+    { "cubemap",  OutputType::Cubemap  },
+    { "hcross",   OutputType::HCross   },
+    { "vcross",   OutputType::VCross   },
+    { "hstrip",   OutputType::HStrip   },
+    { "vstrip",   OutputType::VStrip   },
+    { "facelist", OutputType::FaceList },
     CLI_OPTION_MAP_TERMINATOR,
 };
 
 static const CliOptionMap s_validTgaOutputTypes[] =
 {
-    { "latlong",   OutputType::LatLong   },
-    { "cubecross", OutputType::CubeCross },
-    { "hstrip",    OutputType::HStrip    },
-    { "vstrip",    OutputType::VStrip    },
-    { "facelist",  OutputType::FaceList  },
+    { "latlong",  OutputType::LatLong  },
+    { "hcross",   OutputType::HCross   },
+    { "vcross",   OutputType::VCross   },
+    { "hstrip",   OutputType::HStrip   },
+    { "vstrip",   OutputType::VStrip   },
+    { "facelist", OutputType::FaceList },
     CLI_OPTION_MAP_TERMINATOR,
 };
 
 static const CliOptionMap s_validHdrOutputTypes[] =
 {
-    { "latlong",   OutputType::LatLong   },
-    { "cubecross", OutputType::CubeCross },
-    { "hstrip",    OutputType::HStrip    },
-    { "vstrip",    OutputType::VStrip    },
-    { "facelist",  OutputType::FaceList  },
+    { "latlong",  OutputType::LatLong  },
+    { "hcross",   OutputType::HCross   },
+    { "vcross",   OutputType::VCross   },
+    { "hstrip",   OutputType::HStrip   },
+    { "vstrip",   OutputType::VStrip   },
+    { "facelist", OutputType::FaceList },
     CLI_OPTION_MAP_TERMINATOR,
 };
 
@@ -833,7 +808,7 @@ void printHelp()
             "All options listed:\n"
             "    --help                             Prints this message\n"
             "    --printCLDevices                   Prints OpenCL devices that can be used for processing. Although application allows CPU-type devices to be picked, GPU-type devices are meant to be used as OpenCL devices!\n"
-            "    --input <file path>                Input environment map for filtering. Can be *.dds, *.ktx, *.hdr, *.exr, *.tga and in form of: cubemap, latlong image, cube cross, horizontal or vertical strip.\n"
+            "    --input <file path>                Input environment map for filtering. Can be *.dds, *.ktx, *.hdr, *.exr, *.tga and in form of: cubemap, latlong image, horizontal or vertical cube cross or image strip.\n"
             "    --inputFacePosX <file path>        Input face +x in case --input is not specified.\n"
             "    --inputFaceNegX <file path>        Input face -x in case --input is not specified.\n"
             "    --inputFacePosY <file path>        Input face +y in case --input is not specified.\n"
@@ -916,11 +891,10 @@ void printHelp()
             "          <ktx_textureFormat> = [rgb8,rgb16,rgb16f,rgb32f,rgba8,rgba16,rgba16f,rgba32f]\n"
             "          <tga_textureFormat> = [bgr8,bgra8]\n"
             "          <hdr_textureFormat> = [rgbe]\n"
-            "          <dds_outputType> = [cubemap,latlong,cubecross,hstrip,facelist]\n"
-            "          <ktx_outputType> = [cubemap,latlong,cubecross,hstrip,facelist]\n"
-            "          <tga_outputType> = [latlong,cubecross,hstrip,facelist]\n"
-            "          <hdr_outputType> = [latlong,cubecross,hstrip,facelist]\n"
-            "          <cubecross_optional_param> = [vertical,horizontal]\n"
+            "          <dds_outputType> = [cubemap,latlong,hcross,vcross,hstrip,vstrip,facelist]\n"
+            "          <ktx_outputType> = [cubemap,latlong,hcross,vcross,hstrip,vstrip,facelist]\n"
+            "          <tga_outputType> = [latlong,hcross,vcross,hstrip,vstrip,facelist]\n"
+            "          <hdr_outputType> = [latlong,hcross,vcross,hstrip,vstrip,facelist]\n"
             "    --silent                           Do not print any output.\n"
 
             "\n"
@@ -1229,17 +1203,13 @@ int cmftMain(int _argc, char const* const* _argv)
             {
                 imageLatLongFromCubemap(outputImage, image);
             }
-            else if (OutputType::CubeCross == ot)
+            else if (OutputType::VCross == ot)
             {
-                bool vertical = true;
-                const char* param0 = inputParameters.m_outputFiles[outputIdx].m_optionalParam0;
-                if (NULL != param0
-                && (0 == bx::stricmp(param0, "horizontal") || 0 == bx::stricmp(param0, "0")))
-                {
-                    vertical = false;
-                }
-
-                imageCrossFromCubemap(outputImage, image, vertical);
+                imageCrossFromCubemap(outputImage, image, true);
+            }
+            else if (OutputType::HCross == ot)
+            {
+                imageCrossFromCubemap(outputImage, image, false);
             }
             else if (OutputType::HStrip == ot)
             {

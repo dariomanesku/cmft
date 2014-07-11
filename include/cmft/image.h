@@ -52,6 +52,22 @@ namespace cmft
         };
     };
 
+    struct OutputType
+    {
+        enum Enum
+        {
+            LatLong,
+            Cubemap,
+            HCross,
+            VCross,
+            HStrip,
+            VStrip,
+            FaceList,
+
+            Count,
+        };
+    };
+
     struct TextureFormat
     {
         enum Enum
@@ -108,6 +124,9 @@ namespace cmft
 
     ///
     const char* getFileTypeStr(ImageFileType::Enum _ft);
+
+    ///
+    const char* getOutputTypeStr(OutputType::Enum _ot);
 
     ///
     const char* getFilenameExtensionStr(ImageFileType::Enum _ft);
