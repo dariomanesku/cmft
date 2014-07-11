@@ -96,7 +96,139 @@ namespace cmft
         return s_outputTypeStr[uint8_t(_outputType)];
     }
 
-    // Valid formats.
+    // Valid output types.
+    //-----
+
+    static const OutputType::Enum s_ddsValidOutputTypes[] =
+    {
+        OutputType::LatLong,
+        OutputType::Cubemap,
+        OutputType::HCross,
+        OutputType::VCross,
+        OutputType::HStrip,
+        OutputType::VStrip,
+        OutputType::FaceList,
+        OutputType::Null,
+    };
+
+    static const OutputType::Enum s_ktxValidOutputTypes[] =
+    {
+        OutputType::LatLong,
+        OutputType::Cubemap,
+        OutputType::HCross,
+        OutputType::VCross,
+        OutputType::HStrip,
+        OutputType::VStrip,
+        OutputType::FaceList,
+        OutputType::Null,
+    };
+
+    static const OutputType::Enum s_tgaValidOutputTypes[] =
+    {
+        OutputType::LatLong,
+        OutputType::HCross,
+        OutputType::VCross,
+        OutputType::HStrip,
+        OutputType::VStrip,
+        OutputType::FaceList,
+        OutputType::Null,
+    };
+
+    static const OutputType::Enum s_hdrValidOutputTypes[] =
+    {
+        OutputType::LatLong,
+        OutputType::HCross,
+        OutputType::VCross,
+        OutputType::HStrip,
+        OutputType::VStrip,
+        OutputType::FaceList,
+        OutputType::Null,
+    };
+
+    const OutputType::Enum* getValidOutputTypes(ImageFileType::Enum _fileType)
+    {
+        if (ImageFileType::DDS == _fileType)
+        {
+            return s_ddsValidOutputTypes;
+        }
+        else if (ImageFileType::KTX == _fileType)
+        {
+            return s_ktxValidOutputTypes;
+        }
+        else if (ImageFileType::TGA == _fileType)
+        {
+            return s_tgaValidOutputTypes;
+        }
+        else if (ImageFileType::HDR == _fileType)
+        {
+            return s_hdrValidOutputTypes;
+        }
+        else
+        {
+            return NULL;
+        }
+    }
+
+    void getValidOutputTypesStr(char* _str, ImageFileType::Enum _fileType)
+    {
+        const OutputType::Enum* validOutputTypes = getValidOutputTypes(_fileType);
+        if (NULL == validOutputTypes)
+        {
+            _str[0] = '\0';
+            return;
+        }
+
+        uint8_t ii = 0;
+        OutputType::Enum curr;
+        if (OutputType::Null != (curr = validOutputTypes[ii++]))
+        {
+            strcpy(_str, getOutputTypeStr(curr));
+        }
+        while (OutputType::Null != (curr = validOutputTypes[ii++]))
+        {
+            strcat(_str, " ");
+            strcat(_str, getOutputTypeStr(curr));
+        }
+    }
+
+    static bool contains(OutputType::Enum _format, const OutputType::Enum* _formatList)
+    {
+        OutputType::Enum curr;
+        uint8_t ii = 0;
+        while (OutputType::Null != (curr = _formatList[ii++]))
+        {
+            if (curr == _format)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    };
+
+    bool checkValidOutputType(ImageFileType::Enum _fileType, OutputType::Enum _outputType)
+    {
+        if (ImageFileType::DDS == _fileType)
+        {
+            return contains(_outputType, s_ddsValidOutputTypes);
+        }
+        else if (ImageFileType::KTX == _fileType)
+        {
+            return contains(_outputType, s_ktxValidOutputTypes);
+        }
+        else if (ImageFileType::TGA == _fileType)
+        {
+            return contains(_outputType, s_tgaValidOutputTypes);
+        }
+        else if (ImageFileType::HDR == _fileType)
+        {
+            return contains(_outputType, s_hdrValidOutputTypes);
+        }
+
+        return false;
+    }
+
+    // Valid texture formats.
     //-----
 
     static const TextureFormat::Enum s_ddsValidFormats[] =
@@ -164,7 +296,7 @@ namespace cmft
         const TextureFormat::Enum* validFormatsList = getValidTextureFormats(_fileType);
         if (NULL == validFormatsList)
         {
-            _str = NULL;
+            _str[0] = '\0';
             return;
         }
 
@@ -196,23 +328,23 @@ namespace cmft
         return false;
     };
 
-    bool checkValidInternalFormat(ImageFileType::Enum _fileType, TextureFormat::Enum _internalFormat)
+    bool checkValidTextureFormat(ImageFileType::Enum _fileType, TextureFormat::Enum _textureFormat)
     {
         if (ImageFileType::DDS == _fileType)
         {
-            return contains(_internalFormat, s_ddsValidFormats);
+            return contains(_textureFormat, s_ddsValidFormats);
         }
         else if (ImageFileType::KTX == _fileType)
         {
-            return contains(_internalFormat, s_ktxValidFormats);
+            return contains(_textureFormat, s_ktxValidFormats);
         }
         else if (ImageFileType::TGA == _fileType)
         {
-            return contains(_internalFormat, s_tgaValidFormats);
+            return contains(_textureFormat, s_tgaValidFormats);
         }
         else if (ImageFileType::HDR == _fileType)
         {
-            return contains(_internalFormat, s_hdrValidFormats);
+            return contains(_textureFormat, s_hdrValidFormats);
         }
 
         return false;
@@ -459,7 +591,7 @@ namespace cmft
 
     static inline const DdsPixelFormat& getDdsPixelFormat(TextureFormat::Enum _format)
     {
-        DEBUG_CHECK(checkValidInternalFormat(ImageFileType::DDS, _format), "Not a valid DDS texture format!");
+        DEBUG_CHECK(checkValidTextureFormat(ImageFileType::DDS, _format), "Not a valid DDS texture format!");
         if      (TextureFormat::BGR8    == _format) { return s_ddsPixelFormat[0];  }
         else if (TextureFormat::BGRA8   == _format) { return s_ddsPixelFormat[1];  }
         else if (TextureFormat::RGBA16  == _format) { return s_ddsPixelFormat[2];  }
@@ -4409,7 +4541,7 @@ namespace cmft
 
         // Check for valid texture format and save.
         bool result = false;
-        if (checkValidInternalFormat(_ft, image.m_format))
+        if (checkValidTextureFormat(_ft, image.m_format))
         {
             if (ImageFileType::DDS == _ft)
             {
@@ -4453,6 +4585,33 @@ namespace cmft
 
     bool imageSave(const Image& _image, const char* _fileName, ImageFileType::Enum _ft, OutputType::Enum _ot, TextureFormat::Enum _tf, bool _printOutput)
     {
+        // Input check.
+        const bool validOutputType = checkValidOutputType(_ft, _ot);
+        if (!validOutputType)
+        {
+            char validOutputTypes[128];
+            getValidOutputTypesStr(validOutputTypes, _ft);
+            WARN("Invalid output type for requested file type. File type: %s. Output type: %s."
+                 " Valid output types for requested file type are: %s."
+                 , getFileTypeStr(_ft), getOutputTypeStr(_ot)
+                 , validOutputTypes
+                 );
+            return false;
+        }
+
+        const bool validTextureFormat = checkValidTextureFormat(_ft, _tf);
+        if (!validTextureFormat)
+        {
+            char validTextureFormats[128];
+            getValidTextureFormatsStr(validTextureFormats, _ft);
+            WARN("Invalid texture format for requested file type. File type: %s. Output type: %s."
+                 " Valid texture formats for requested file type are: %s."
+                 , getFileTypeStr(_ft), getTextureFormatStr(_tf)
+                 , validTextureFormats
+                 );
+            return false;
+        }
+
         bool result = false;
 
         // Face list is a special case because it is saving 6 images.

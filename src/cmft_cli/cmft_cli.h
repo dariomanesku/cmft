@@ -115,97 +115,6 @@ static const CliOptionMap s_validTextureFormats[] =
     CLI_OPTION_MAP_TERMINATOR,
 };
 
-static const CliOptionMap s_validDdsOutputTypes[] =
-{
-    { "latlong",  OutputType::LatLong  },
-    { "cubemap",  OutputType::Cubemap  },
-    { "hcross",   OutputType::HCross   },
-    { "vcross",   OutputType::VCross   },
-    { "hstrip",   OutputType::HStrip   },
-    { "vstrip",   OutputType::VStrip   },
-    { "facelist", OutputType::FaceList },
-    CLI_OPTION_MAP_TERMINATOR,
-};
-
-static const CliOptionMap s_validKtxOutputTypes[] =
-{
-    { "latlong",  OutputType::LatLong  },
-    { "cubemap",  OutputType::Cubemap  },
-    { "hcross",   OutputType::HCross   },
-    { "vcross",   OutputType::VCross   },
-    { "hstrip",   OutputType::HStrip   },
-    { "vstrip",   OutputType::VStrip   },
-    { "facelist", OutputType::FaceList },
-    CLI_OPTION_MAP_TERMINATOR,
-};
-
-static const CliOptionMap s_validTgaOutputTypes[] =
-{
-    { "latlong",  OutputType::LatLong  },
-    { "hcross",   OutputType::HCross   },
-    { "vcross",   OutputType::VCross   },
-    { "hstrip",   OutputType::HStrip   },
-    { "vstrip",   OutputType::VStrip   },
-    { "facelist", OutputType::FaceList },
-    CLI_OPTION_MAP_TERMINATOR,
-};
-
-static const CliOptionMap s_validHdrOutputTypes[] =
-{
-    { "latlong",  OutputType::LatLong  },
-    { "hcross",   OutputType::HCross   },
-    { "vcross",   OutputType::VCross   },
-    { "hstrip",   OutputType::HStrip   },
-    { "vstrip",   OutputType::VStrip   },
-    { "facelist", OutputType::FaceList },
-    CLI_OPTION_MAP_TERMINATOR,
-};
-
-const CliOptionMap* getValidOutputTypes(ImageFileType::Enum _fileType)
-{
-    if (ImageFileType::DDS == _fileType)
-    {
-        return s_validDdsOutputTypes;
-    }
-    else if (ImageFileType::KTX == _fileType)
-    {
-        return s_validKtxOutputTypes;
-    }
-    else if (ImageFileType::TGA == _fileType)
-    {
-        return s_validTgaOutputTypes;
-    }
-    else if (ImageFileType::HDR == _fileType)
-    {
-        return s_validHdrOutputTypes;
-    }
-    else
-    {
-        return NULL;
-    }
-}
-
-void getValidOutputTypesStr(char* _str, ImageFileType::Enum _fileType)
-{
-    const CliOptionMap* validOutputTypes = getValidOutputTypes(_fileType);
-    if (NULL == validOutputTypes)
-    {
-        _str[0] = '\0';
-        return;
-    }
-
-    const CliOptionMap* iter;
-    if (iter = validOutputTypes++, iter->m_str[0] != '\0')
-    {
-        strcpy(_str, iter->m_str);
-    }
-    while (iter = validOutputTypes++, iter->m_str[0] != '\0')
-    {
-        strcat(_str, " ");
-        strcat(_str, iter->m_str);
-    }
-}
-
 bool valueFromOptionMap(uint32_t& _val, const CliOptionMap* _cliOptionMap, const char* _optionStr, size_t _optionStrSize = UINT32_MAX)
 {
     // Check for valid cliOptionMap.
@@ -492,7 +401,7 @@ void inputParametersFromCommandLine(InputParameters& _inputParameters, const bx:
                     continue;
                 }
                 // Check if valid.
-                else if(!checkValidInternalFormat((ImageFileType::Enum)fileType, (TextureFormat::Enum)textureFormat))
+                else if(!checkValidTextureFormat((ImageFileType::Enum)fileType, (TextureFormat::Enum)textureFormat))
                 {
                     const ImageFileType::Enum ft = (ImageFileType::Enum)fileType;
                     const TextureFormat::Enum tf = (TextureFormat::Enum)textureFormat;
@@ -520,9 +429,10 @@ void inputParametersFromCommandLine(InputParameters& _inputParameters, const bx:
                 else
                 {
                     const ImageFileType::Enum ft = (ImageFileType::Enum)fileType;
+                    const OutputType::Enum ot = (OutputType::Enum)outputType;
 
-                    const CliOptionMap* validOutputTypes = getValidOutputTypes(ft);
-                    if(!valueFromOptionMap(outputType, validOutputTypes, outputTypeStr))
+                    const bool validOutputType = checkValidOutputType(ft, ot);
+                    if (!validOutputType)
                     {
                         char requestedOutputType[128];
                         cmft_strscpy(requestedOutputType, outputTypeStr, 128);

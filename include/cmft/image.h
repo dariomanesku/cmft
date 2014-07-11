@@ -65,6 +65,7 @@ namespace cmft
             FaceList,
 
             Count,
+            Null = -1,
         };
     };
 
@@ -132,14 +133,23 @@ namespace cmft
     ///
     const char* getTextureFormatStr(TextureFormat::Enum _format);
 
+    /// Returns a OutputType::Null terminating array of valid output types for requested file type.
+    const OutputType::Enum* getValidOutputTypes(ImageFileType::Enum _fileType);
+
     ///
+    void getValidOutputTypesStr(char* _str, ImageFileType::Enum _fileType);
+
+    ///
+    bool checkValidOutputType(ImageFileType::Enum _fileType, OutputType::Enum _outputType);
+
+    /// Returns a TextureFormat::Null terminating array of valid texture formats for requested file type.
     const TextureFormat::Enum* getValidTextureFormats(ImageFileType::Enum _fileType);
 
     ///
     void getValidTextureFormatsStr(char* _str, ImageFileType::Enum _fileType);
 
     ///
-    bool checkValidInternalFormat(ImageFileType::Enum _fileType, TextureFormat::Enum _internalFormat);
+    bool checkValidTextureFormat(ImageFileType::Enum _fileType, TextureFormat::Enum _textureFormat);
 
     ///
     const ImageDataInfo& getImageDataInfo(TextureFormat::Enum _format);
