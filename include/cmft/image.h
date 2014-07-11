@@ -282,22 +282,16 @@ namespace cmft
     void imageHStripFromCubemap(Image& _image);
 
     ///
-    bool imageCubemapFromHStrip(Image& _dst, const Image& _src);
+    bool imageCubemapFromStrip(Image& _dst, const Image& _src);
 
     ///
-    void imageCubemapFromHStrip(Image& _image);
+    void imageCubemapFromStrip(Image& _image);
 
     ///
     bool imageVStripFromCubemap(Image& _dst, const Image& _src);
 
     ///
     void imageVStripFromCubemap(Image& _image);
-
-    ///
-    bool imageCubemapFromVStrip(Image& _dst, const Image& _src);
-
-    ///
-    void imageCubemapFromVStrip(Image& _image);
 
     ///
     bool imageFaceListFromCubemap(Image _faceList[6], const Image& _cubemap);

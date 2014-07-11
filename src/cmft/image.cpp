@@ -2901,10 +2901,12 @@ namespace cmft
         }
     }
 
-    bool imageCubemapFromHStrip(Image& _dst, const Image& _src)
+    bool imageCubemapFromStrip(Image& _dst, const Image& _src)
     {
         // Input check.
-        if(!imageIsHStrip(_src))
+        const bool isVertical   = imageIsVStrip(_src);
+        const bool isHorizontal = imageIsHStrip(_src);
+        if(!isVertical && !isHorizontal)
         {
             return false;
         }
@@ -2912,7 +2914,7 @@ namespace cmft
         // Calculate destination offsets and alloc data.
         uint32_t dstDataSize = 0;
         uint32_t dstOffsets[CUBE_FACE_NUM][MAX_MIP_NUM];
-        const uint32_t dstSize = _src.m_height;
+        const uint32_t dstSize = isHorizontal ? _src.m_height : _src.m_width;
         const uint32_t bytesPerPixel = getImageDataInfo(_src.m_format).m_bytesPerPixel;
         for (uint8_t face = 0; face < 6; ++face)
         {
@@ -2973,91 +2975,10 @@ namespace cmft
         return true;
     }
 
-    bool imageCubemapFromVStrip(Image& _dst, const Image& _src)
-    {
-        // Input check.
-        if(!imageIsVStrip(_src))
-        {
-            return false;
-        }
-
-        // Calculate destination offsets and alloc data.
-        uint32_t dstDataSize = 0;
-        uint32_t dstOffsets[CUBE_FACE_NUM][MAX_MIP_NUM];
-        const uint32_t dstSize = _src.m_height;
-        const uint32_t bytesPerPixel = getImageDataInfo(_src.m_format).m_bytesPerPixel;
-        for (uint8_t face = 0; face < 6; ++face)
-        {
-            for (uint8_t mip = 0; mip < _src.m_numMips; ++mip)
-            {
-                dstOffsets[face][mip] = dstDataSize;
-                const uint32_t mipSize = max(UINT32_C(1), dstSize >> mip);
-
-                dstDataSize += mipSize * mipSize * bytesPerPixel;
-            }
-        }
-        void* dstData = malloc(dstDataSize);
-        MALLOC_CHECK(dstData);
-
-        uint32_t srcOffsets[CUBE_FACE_NUM][MAX_MIP_NUM];
-        imageGetMipOffsets(srcOffsets, _src);
-
-        for (uint8_t face = 0; face < 6; ++face)
-        {
-            for (uint8_t mip = 0; mip < _src.m_numMips; ++mip)
-            {
-                // Get dst data ptr for current mip and face.
-                uint8_t* dstFaceData = (uint8_t*)dstData + dstOffsets[face][mip];
-
-                // Get src ptr for current mip level.
-                const uint8_t* srcMipData = (const uint8_t*)_src.m_data + srcOffsets[0][mip];
-
-                // Advance by (dstPitch * faceIdx) to get to the desired face in the strip.
-                const uint32_t dstMipSize = max(UINT32_C(1), dstSize >> mip);
-                const uint32_t dstMipPitch = dstMipSize * bytesPerPixel;
-                const uint8_t* srcFaceData = (const uint8_t*)srcMipData + dstMipPitch*face*_src.m_height;
-
-                const uint32_t srcMipPitch = dstMipPitch*6;
-
-                for (uint32_t yy = 0; yy < dstMipSize; ++yy)
-                {
-                    const uint8_t* srcRowData = (const uint8_t*)srcFaceData + srcMipPitch;
-                    uint8_t* dstRowData = (uint8_t*)dstFaceData + yy*dstMipPitch;
-
-                    memcpy(dstRowData, srcRowData, dstMipPitch);
-                }
-            }
-        }
-
-        // Fill image structure.
-        Image result;
-        result.m_width = dstSize;
-        result.m_height = dstSize;
-        result.m_dataSize = dstDataSize;
-        result.m_format = _src.m_format;
-        result.m_numMips = _src.m_numMips;
-        result.m_numFaces = 6;
-        result.m_data = dstData;
-
-        // Output.
-        imageMove(_dst, result);
-
-        return true;
-    }
-
-    void imageCubemapFromHStrip(Image& _image)
+    void imageCubemapFromStrip(Image& _image)
     {
         Image tmp;
-        if (imageCubemapFromHStrip(tmp, _image))
-        {
-            imageMove(_image, tmp);
-        }
-    }
-
-    void imageCubemapFromVStrip(Image& _image)
-    {
-        Image tmp;
-        if (imageCubemapFromVStrip(tmp, _image))
+        if (imageCubemapFromStrip(tmp, _image))
         {
             imageMove(_image, tmp);
         }

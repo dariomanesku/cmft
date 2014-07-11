@@ -1000,12 +1000,12 @@ int cmftMain(int _argc, char const* const* _argv)
         else if (imageIsHStrip(image))
         {
             INFO("Converting hstrip image to cubemap.");
-            imageCubemapFromHStrip(image);
+            imageCubemapFromStrip(image);
         }
         else if (imageIsVStrip(image))
         {
             INFO("Converting vstrip image to cubemap.");
-            imageCubemapFromVStrip(image);
+            imageCubemapFromStrip(image);
         }
         else
         {
