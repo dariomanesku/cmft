@@ -4639,8 +4639,9 @@ namespace cmft
 
                 if (_printOutput)
                 {
-                    INFO("Saving %s [%s %ux%u %s %s %u-faces %d-mips]."
+                    INFO("Saving %s%s [%s %ux%u %s %s %u-faces %d-mips]."
                         , faceFileName
+                        , getFilenameExtensionStr(_ft)
                         , getFileTypeStr(_ft)
                         , outputFaceList[face].m_width
                         , outputFaceList[face].m_height
@@ -4671,8 +4672,9 @@ namespace cmft
         {
             if (_printOutput)
             {
-                INFO("Saving %s [%s %ux%u %s %s %u-faces %d-mips]."
+                INFO("Saving %s%s [%s %ux%u %s %s %u-faces %d-mips]."
                     , _fileName
+                    , getFilenameExtensionStr(_ft)
                     , getFileTypeStr(_ft)
                     , _image.m_width
                     , _image.m_height
@@ -4721,8 +4723,9 @@ namespace cmft
 
             if (_printOutput)
             {
-                INFO("Saving %s [%s %ux%u %s %s %u-faces %d-mips]."
+                INFO("Saving %s%s [%s %ux%u %s %s %u-faces %d-mips]."
                     , _fileName
+                    , getFilenameExtensionStr(_ft)
                     , getFileTypeStr(_ft)
                     , outputImage.m_width
                     , outputImage.m_height
