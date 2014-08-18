@@ -155,6 +155,9 @@ namespace cmft
     const ImageDataInfo& getImageDataInfo(TextureFormat::Enum _format);
 
     ///
+    void imageCreate(Image& _image, uint32_t _width, uint32_t _height, uint32_t _rgba = 0x303030ff, uint8_t _numMips = 1, uint8_t _numFaces = 1, TextureFormat::Enum _format = TextureFormat::RGBA32F);
+
+    ///
     void imageUnload(Image& _image);
 
     ///

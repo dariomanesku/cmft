@@ -12,6 +12,7 @@
 #include "cubemaputils.h"
 
 #include <bx/uint32_t.h>
+#include <bx/endian.h>
 
 #include <string.h>
 #include <stdarg.h>
@@ -1002,6 +1003,62 @@ namespace cmft
     // Image.
     //-----
 
+    void imageCreate(Image& _image, uint32_t _width, uint32_t _height, uint32_t _rgba, uint8_t _numMips, uint8_t _numFaces, TextureFormat::Enum _format)
+    {
+        const uint8_t numFaces = _numFaces > 0 ? _numFaces : 1;
+        const uint8_t numMips = _numMips > 0 ? _numMips : 1;
+
+        // Alloc data.
+        const uint32_t bytesPerPixel = 4 /*numChannels*/ * 4 /*bytesPerChannel*/;
+        uint32_t dstDataSize = 0;
+        for (uint8_t mip = 0; mip < numMips; ++mip)
+        {
+            const uint32_t mipWidth  = max(UINT32_C(1), _width  >> mip);
+            const uint32_t mipHeight = max(UINT32_C(1), _height >> mip);
+            dstDataSize += mipWidth * mipHeight * bytesPerPixel;
+        }
+        dstDataSize *= numFaces;
+        void* dstData = malloc(dstDataSize);
+        MALLOC_CHECK(dstData);
+
+        // Get color in rgba32f format.
+        float color[4];
+        const uint32_t abgr = bx::endianSwap(_rgba);
+        toRgba32f(color, TextureFormat::RGBA8, &abgr);
+
+        // Fill data with specified color.
+        float* dstPtr = (float*)dstData;
+        const float* end = (float*)((uint8_t*)dstData + dstDataSize);
+        for (;dstPtr < end; dstPtr+=4)
+        {
+            dstPtr[0] = color[0];
+            dstPtr[1] = color[1];
+            dstPtr[2] = color[2];
+            dstPtr[3] = color[3];
+        }
+
+        // Fill image structure.
+        Image result;
+        result.m_data = dstData;
+        result.m_width = _width;
+        result.m_height = _height;
+        result.m_dataSize = dstDataSize;
+        result.m_format = TextureFormat::RGBA32F;
+        result.m_numMips = numMips;
+        result.m_numFaces = numFaces;
+
+        // Convert result to source format.
+        if (TextureFormat::RGBA8 == _format)
+        {
+            imageMove(_image, result);
+        }
+        else
+        {
+            imageConvert(_image, _format, result);
+            imageUnload(result);
+        }
+    }
+
     void imageUnload(Image& _image)
     {
         if (_image.m_data)
@@ -1046,7 +1103,8 @@ namespace cmft
 
     uint32_t imageGetNumPixels(const Image& _image)
     {
-        DEBUG_CHECK(0 != _image.m_numMips, "Mips count cannot be 0.");
+        DEBUG_CHECK(0 != _image.m_numMips,  "Mips count cannot be 0.");
+        DEBUG_CHECK(0 != _image.m_numFaces, "Face count cannot be 0.");
 
         uint32_t count = 0;
         for (uint8_t mip = 0; mip < _image.m_numMips; ++mip)
@@ -2726,8 +2784,8 @@ namespace cmft
         {
             dstMipOffsets[mip] = dstDataSize;
             const uint32_t dstMipWidth  = max(UINT32_C(1), dstWidth  >> mip);
-            const uint32_t mipHeight = max(UINT32_C(1), dstHeight >> mip);
-            dstDataSize += dstMipWidth * mipHeight * bytesPerPixel;
+            const uint32_t dstMipHeight = max(UINT32_C(1), dstHeight >> mip);
+            dstDataSize += dstMipWidth * dstMipHeight * bytesPerPixel;
         }
         void* dstData = malloc(dstDataSize);
         MALLOC_CHECK(dstData);
