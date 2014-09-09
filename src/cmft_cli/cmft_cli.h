@@ -115,6 +115,18 @@ static const CliOptionMap s_validTextureFormats[] =
     CLI_OPTION_MAP_TERMINATOR,
 };
 
+static const CliOptionMap s_validOutputTypes[] =
+{
+    { "latlong",  OutputType::LatLong  },
+    { "cubemap",  OutputType::Cubemap  },
+    { "hcross",   OutputType::HCross   },
+    { "vcross",   OutputType::VCross   },
+    { "hstrip",   OutputType::HStrip   },
+    { "vstrip",   OutputType::VStrip   },
+    { "facelist", OutputType::FaceList },
+    CLI_OPTION_MAP_TERMINATOR,
+};
+
 bool valueFromOptionMap(uint32_t& _val, const CliOptionMap* _cliOptionMap, const char* _optionStr, size_t _optionStrSize = UINT32_MAX)
 {
     // Check for valid cliOptionMap.
@@ -425,31 +437,37 @@ void inputParametersFromCommandLine(InputParameters& _inputParameters, const bx:
                 {
                     WARN("Output(%u) - Texture format not specified. Defaulting to latlong.", outputId);
                 }
-                // Check if supported and valid.
-                else
+                // Check if supported.
+                else if(!valueFromOptionMap(outputType, s_validOutputTypes, outputTypeStr))
+                {
+                    char requestedOutputType[128];
+                    cmft_strscpy(requestedOutputType, outputTypeStr, 128);
+
+                    WARN("Output(%u) - Requested output type %s is invalid or not supported by cmft.", outputId, requestedOutputType);
+
+                    // Skip this output.
+                    continue;
+                }
+                // Check if valid.
+                else if (!checkValidOutputType((ImageFileType::Enum)fileType, (OutputType::Enum)outputType))
                 {
                     const ImageFileType::Enum ft = (ImageFileType::Enum)fileType;
-                    const OutputType::Enum ot = (OutputType::Enum)outputType;
 
-                    const bool validOutputType = checkValidOutputType(ft, ot);
-                    if (!validOutputType)
-                    {
-                        char requestedOutputType[128];
-                        cmft_strscpy(requestedOutputType, outputTypeStr, 128);
+                    char requestedOutputType[128];
+                    cmft_strscpy(requestedOutputType, outputTypeStr, 128);
 
-                        char validOutputTypes[128];
-                        getValidOutputTypesStr(validOutputTypes, ft);
+                    char validOutputTypes[128];
+                    getValidOutputTypesStr(validOutputTypes, ft);
 
-                        WARN("Output(%u) - File type %s does not support %s output type."
-                            " Valid output types for %s are: %s."
-                            " Choose one of the valid output types or a different file type.\n"
-                            , outputId, getFileTypeStr(ft), requestedOutputType
-                            , getFileTypeStr(ft), validOutputTypes
-                            );
+                    WARN("Output(%u) - File type %s does not support %s output type."
+                         " Valid output types for %s are: %s."
+                         " Choose one of the valid output types or a different file type.\n"
+                         , outputId, getFileTypeStr(ft), requestedOutputType
+                         , getFileTypeStr(ft), validOutputTypes
+                         );
 
-                        // Skip this output.
-                        continue;
-                    }
+                    // Skip this output.
+                    continue;
                 }
 
                 // Copy optional parameters if present.
