@@ -12,23 +12,23 @@ namespace cmft
 {
 
     extern bool g_printWarnings;
-    #define _WARN(_format, ...)                                                             \
-    do                                                                                      \
-    {                                                                                       \
-        if (g_printWarnings)                                                                \
-        {                                                                                   \
+    #define _WARN(_format, ...)                                                         \
+    do                                                                                  \
+    {                                                                                   \
+        if (g_printWarnings)                                                            \
+        {                                                                               \
             printWarning("CMFT WARNING" _FILE_LINE_ ": "  _format "\n", ##__VA_ARGS__); \
-        }                                                                                   \
+        }                                                                               \
     } while(0)
 
     extern bool g_printInfo;
-    #define _INFO(_format, ...)                                         \
-    do                                                                  \
-    {                                                                   \
-        if (g_printInfo)                                                \
-        {                                                               \
-            printInfo("CMFT info: " _format "\n", ##__VA_ARGS__);   \
-        }                                                               \
+    #define _INFO(_format, ...)                                   \
+    do                                                            \
+    {                                                             \
+        if (g_printInfo)                                          \
+        {                                                         \
+            printInfo("CMFT info: " _format "\n", ##__VA_ARGS__); \
+        }                                                         \
     } while(0)
 
 
