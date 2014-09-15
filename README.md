@@ -13,10 +13,10 @@ Utilizes both host CPU and OpenCL GPU at the same time for fast processing! (che
 - Supported input/output types: cubemap, cube cross, latlong, face list, horizontal strip.
 
 
-See it in action - [here](https://github.com/dariomanesku/cmftViewer)
+See it in action - [here](https://github.com/dariomanesku/cmftStudio)
 ----------------
 Shading with a prefiltered cubemap:
-![cmftViewer8](https://github.com/dariomanesku/cmftViewer/raw/master/screenshots/cmftViewer8.jpg)
+![cmftViewer8](https://github.com/dariomanesku/cmftStudio/raw/master/screenshots/cmftViewer8.jpg)
 
 
 Download
@@ -77,9 +77,10 @@ Using
 Project status
 --------------
 
-- There are still issues to be fixed. Before using cmft in production, wait until [cmftViewer](https://github.com/dariomanesku/cmftViewer) gets released. Throughout [cmftViewer](https://github.com/dariomanesku/cmftViewer) development, all cmft major problems should be discovered and fixed. [cmftViewer](https://github.com/dariomanesku/cmftViewer) will also be a good showcase of what exactly you can get and expect from cmft, so stay tuned.
+- There are still issues to be fixed. Before using cmft in production, wait until [cmftStudio](https://github.com/dariomanesku/cmftStudio) gets released. Throughout [cmftStudio](https://github.com/dariomanesku/cmftStudio) development, all cmft major problems should be discovered and fixed. [cmftStudio](https://github.com/dariomanesku/cmftStudio) will also be a good showcase of what exactly you can get and expect from cmft, so stay tuned.
 
 ### Known issues
+- OpenCL kernels take a long time to run and may freeze the screen and/or crash the driver if running from the same GPU that is connected to the display. This is a limitation of the platform and the only solution is to use small OpenCL kernels that execute fast. Until this issue gets fixed, it's possible to use this workaround on Windows: http://msdn.microsoft.com/en-us/library/windows/hardware/ff569918%28v=vs.85%29.aspx - either increase the TdrDelay or modify the TdrLevel. Screen will still freeze during execution (as OpenCL kernel execution consumes ALL gpu resources) but driver will not crash so it can be used like that. More details on this issue here: https://github.com/dariomanesku/cmft/issues/1
 - Linux GCC build works but processing on CPU is noticeably slower comparing to Windows build (haven't yet figured out why). OpenCL runs fine.
 - PVRTexTool is not properly opening mipmapped \*.ktx files from cmft. This appears to be the problem with the current version of PVRTexTool. Has to be further investigated.
 
@@ -160,7 +161,7 @@ Contributors
 More to come
 ------------
 
-- [cmftViewer](https://github.com/dariomanesku/cmftViewer) for viewing filtered cubemaps in action. [cmftViewer](https://github.com/dariomanesku/cmftViewer) will be as well cross-platform and open-source implemented using [bgfx rendering library](https://github.com/bkaradzic/bgfx/).
+- [cmftStudio](https://github.com/dariomanesku/cmftStudio) for viewing filtered cubemaps in action. [cmftStudio](https://github.com/dariomanesku/cmftStudio) will be as well cross-platform and open-source implemented using [bgfx rendering library](https://github.com/bkaradzic/bgfx/).
 - Tutorial and details on theory and implementation.
 
 Get involved
