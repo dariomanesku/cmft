@@ -161,7 +161,7 @@ Contributors
 More to come
 ------------
 
-- [cmftStudio](https://github.com/dariomanesku/cmftStudio) for viewing filtered cubemaps in action. [cmftStudio](https://github.com/dariomanesku/cmftStudio) will be as well cross-platform and open-source implemented using [bgfx rendering library](https://github.com/bkaradzic/bgfx/).
+- [cmftStudio](https://github.com/dariomanesku/cmftStudio) for viewing filtered cubemaps in action. [cmftStudio](https://github.com/dariomanesku/cmftStudio) will be cross-platform and open-source as well, implemented using [bgfx rendering library](https://github.com/bkaradzic/bgfx/).
 - Tutorial and details on theory and implementation.
 
 Get involved
