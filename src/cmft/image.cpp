@@ -85,7 +85,7 @@ namespace cmft
         "LatLong",
         "Cubemap",
         "HCross",
-        "Vcross",
+        "VCross",
         "HStrip",
         "VStrip",
         "FaceList",
