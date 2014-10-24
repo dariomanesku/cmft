@@ -2638,8 +2638,8 @@ namespace cmft
         MALLOC_CHECK(dstData);
 
         // Get source parameters.
-        const float srcWidthf  = float(int32_t(imageRgba32f.m_width));
-        const float srcHeightf = float(int32_t(imageRgba32f.m_height));
+        const float srcWidthMinusOne  = float(int32_t(imageRgba32f.m_width-1));
+        const float srcHeightMinusOne = float(int32_t(imageRgba32f.m_height-1));
         const uint32_t srcPitch = imageRgba32f.m_width * bytesPerPixel;
         const float invDstFaceSizef = 1.0f/float(dstFaceSize);
 
@@ -2668,8 +2668,8 @@ namespace cmft
                     latLongFromVec(xSrc, ySrc, vec);
 
                     // Convert from [0..1] to [0..(size-1)] range.
-                    xSrc *= srcWidthf-1.0f;
-                    ySrc *= srcHeightf-1.0f;
+                    xSrc *= srcWidthMinusOne;
+                    ySrc *= srcHeightMinusOne;
 
                     // Sample from latlong (u,v).
                     if (_useBilinearInterpolation)
@@ -2806,8 +2806,8 @@ namespace cmft
             const uint32_t srcMipWidth  = max(UINT32_C(1), imageRgba32f.m_width  >> mip);
             const uint32_t srcMipHeight = max(UINT32_C(1), imageRgba32f.m_height >> mip);
             const uint32_t srcPitch = srcMipWidth * bytesPerPixel;
-            const float srcWidthf  = float(int32_t(srcMipWidth));
-            const float srcHeightf = float(int32_t(srcMipHeight));
+            const float srcWidthMinusOne  = float(int32_t(srcMipWidth-1));
+            const float srcHeightMinusOne = float(int32_t(srcMipHeight-1));
 
             uint8_t* dstMipData = (uint8_t*)dstData + dstMipOffsets[mip];
             for (uint32_t yy = 0; yy < dstMipHeight; ++yy)
@@ -2831,9 +2831,9 @@ namespace cmft
                     uint8_t faceIdx;
                     vecToTexelCoord(xSrc, ySrc, faceIdx, vec);
 
-                    // Convert from [0-1] to [0-size] range.
-                    xSrc *= srcWidthf;
-                    ySrc *= srcHeightf;
+                    // Convert from [0..1] to [0..(size-1)] range.
+                    xSrc *= srcWidthMinusOne;
+                    ySrc *= srcHeightMinusOne;
 
                     // Sample from cubemap (u,v, faceIdx).
                     if (_useBilinearInterpolation)
