@@ -316,6 +316,12 @@ namespace cmft
     bool imageCrossFromCubemap(Image& _image, bool _vertical = true);
 
     ///
+    bool imageToCubemap(Image& _dst, const Image& _src);
+
+    ///
+    bool imageToCubemap(Image& _image);
+
+    ///
     bool imageLoad(Image& _image, const char* _filePath, TextureFormat::Enum _convertTo = TextureFormat::Null);
 
     ///

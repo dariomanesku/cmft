@@ -3438,6 +3438,44 @@ namespace cmft
         return false;
     }
 
+    bool imageToCubemap(Image& _dst, const Image& _src)
+    {
+        if (imageIsCubemap(_src))
+        {
+            imageCopy(_dst, _src);
+            return true;
+        }
+        else if (imageCubemapFromCross(_dst, _src)
+             ||  imageCubemapFromLatLong(_dst, _src)
+             ||  imageCubemapFromStrip(_dst, _src))
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    bool imageToCubemap(Image& _image)
+    {
+        if (!imageIsCubemap(_image))
+        {
+            if (imageIsCubeCross(_image, true))
+            {
+                imageCubemapFromCross(_image);
+            }
+            else if (imageIsLatLong(_image))
+            {
+                imageCubemapFromLatLong(_image);
+            }
+            else if (imageIsHStrip(_image) || imageIsVStrip(_image))
+            {
+                imageCubemapFromStrip(_image);
+            }
+        }
+
+        return imageIsValid(_image) && imageIsCubemap(_image);
+    }
+
     // Image loading.
     //-----
 
