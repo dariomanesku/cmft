@@ -109,6 +109,7 @@ namespace cmft
             , m_numMips(0)
             , m_numFaces(0)
             , m_data(NULL)
+            , m_isRef(false)
         {
         }
 
@@ -119,6 +120,7 @@ namespace cmft
         uint8_t m_numMips;
         uint8_t m_numFaces;
         void* m_data;
+        bool m_isRef;
     };
 
     ///
@@ -162,6 +164,9 @@ namespace cmft
 
     ///
     void imageRef(Image& _dst, const Image& _src);
+
+    ///
+    bool imageIsRef(const Image& _image);
 
     ///
     void imageMove(Image& _dst, Image& _src);

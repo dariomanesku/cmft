@@ -1061,7 +1061,7 @@ namespace cmft
 
     void imageUnload(Image& _image)
     {
-        if (_image.m_data)
+        if (!_image.m_isRef && _image.m_data)
         {
             free(_image.m_data);
             _image.m_data = NULL;
@@ -1077,6 +1077,12 @@ namespace cmft
         _dst.m_format   = _src.m_format;
         _dst.m_numMips  = _src.m_numMips;
         _dst.m_numFaces = _src.m_numFaces;
+        _dst.m_isRef    = true;
+    }
+
+    bool imageIsRef(const Image& _image)
+    {
+        return _image.m_isRef;
     }
 
     void imageMove(Image& _dst, Image& _src)
@@ -1817,7 +1823,7 @@ namespace cmft
     {
         // Operation is done in rgba32f format.
         Image imageRgba32f;
-        const bool imageIsRef = imageRefOrConvert(imageRgba32f, TextureFormat::RGBA32F, _src);
+        imageRefOrConvert(imageRgba32f, TextureFormat::RGBA32F, _src);
 
         // Alloc dst data.
         const uint32_t bytesPerPixel = 4 /*numChannels*/ * 4 /*bytesPerChannel*/;
@@ -1902,10 +1908,7 @@ namespace cmft
         }
 
         // Cleanup.
-        if (!imageIsRef)
-        {
-            imageUnload(imageRgba32f);
-        }
+        imageUnload(imageRgba32f);
     }
 
     void imageResize(Image& _image, uint32_t _width, uint32_t _height)
@@ -2097,7 +2100,7 @@ namespace cmft
     {
         // Processing is done in rgba32f format.
         Image imageRgba32f;
-        const bool imageIsRef = imageRefOrConvert(imageRgba32f, TextureFormat::RGBA32F, _image);
+        imageRefOrConvert(imageRgba32f, TextureFormat::RGBA32F, _image);
 
         // Calculate dataSize and offsets for the entire mip map chain.
         uint32_t dstOffsets[CUBE_FACE_NUM][MAX_MIP_NUM];
@@ -2211,10 +2214,7 @@ namespace cmft
         }
 
         // Cleanup.
-        if (!imageIsRef)
-        {
-            imageUnload(imageRgba32f);
-        }
+        imageUnload(imageRgba32f);
     }
 
     void imageApplyGamma(Image& _image, float _gammaPow)
@@ -2644,7 +2644,7 @@ namespace cmft
 
         // Conversion is done in rgba32f format.
         Image imageRgba32f;
-        const bool imageIsRef = imageRefOrConvert(imageRgba32f, TextureFormat::RGBA32F, _src);
+        imageRefOrConvert(imageRgba32f, TextureFormat::RGBA32F, _src);
 
         // Alloc data.
         const uint32_t bytesPerPixel = 4 /*numChannels*/ * 4 /*bytesPerChannel*/;
@@ -2763,10 +2763,7 @@ namespace cmft
         }
 
         // Cleanup.
-        if (!imageIsRef)
-        {
-            imageUnload(imageRgba32f);
-        }
+        imageUnload(imageRgba32f);
 
         return true;
     }
@@ -2793,7 +2790,7 @@ namespace cmft
 
         // Conversion is done in rgba32f format.
         Image imageRgba32f;
-        const bool imageIsRef = imageRefOrConvert(imageRgba32f, TextureFormat::RGBA32F, _src);
+        imageRefOrConvert(imageRgba32f, TextureFormat::RGBA32F, _src);
 
         // Alloc data.
         const uint32_t bytesPerPixel = 4 /*numChannels*/ * 4 /*bytesPerChannel*/;
@@ -2932,10 +2929,7 @@ namespace cmft
         }
 
         // Cleanup.
-        if (!imageIsRef)
-        {
-            imageUnload(imageRgba32f);
-        }
+        imageUnload(imageRgba32f);
 
         return true;
     }
@@ -4466,7 +4460,7 @@ namespace cmft
     {
         // Hdr file type assumes rgbe image format.
         Image imageRgbe;
-        const bool imageIsRef = imageRefOrConvert(imageRgbe, TextureFormat::RGBE, _image);
+        imageRefOrConvert(imageRgbe, TextureFormat::RGBE, _image);
 
         // Open file.
         FILE* fp = fopen(_fileName, "wb");
@@ -4558,10 +4552,7 @@ namespace cmft
         }
 
         // Cleanup.
-        if (!imageIsRef)
-        {
-            imageUnload(imageRgbe);
-        }
+        imageUnload(imageRgbe);
 
         return true;
     }
@@ -4652,15 +4643,13 @@ namespace cmft
     {
         // Get image in desired format.
         Image image;
-        bool imageIsRef;
         if (TextureFormat::Null != _convertTo)
         {
-            imageIsRef = imageRefOrConvert(image, _convertTo, _image);
+            imageRefOrConvert(image, _convertTo, _image);
         }
         else
         {
             imageRef(image, _image);
-            imageIsRef = true;
         }
 
         // Append appropriate extension to file name.
@@ -4704,10 +4693,7 @@ namespace cmft
         }
 
         // Cleanup.
-        if (!imageIsRef)
-        {
-            imageUnload(image);
-        }
+        imageUnload(image);
 
         return result;
     }
