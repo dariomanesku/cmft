@@ -2608,13 +2608,16 @@ namespace cmft
         return true;
     }
 
-    void imageCubemapFromCross(Image& _image)
+    bool imageCubemapFromCross(Image& _image)
     {
         Image tmp;
         if (imageCubemapFromCross(tmp, _image))
         {
             imageMove(_image, tmp);
+            return true;
         }
+
+        return false;
     }
 
     bool imageCubemapFromLatLong(Image& _dst, const Image& _src, bool _useBilinearInterpolation)
@@ -2753,13 +2756,16 @@ namespace cmft
         return true;
     }
 
-    void imageCubemapFromLatLong(Image& _image, bool _useBilinearInterpolation)
+    bool imageCubemapFromLatLong(Image& _image, bool _useBilinearInterpolation)
     {
         Image tmp;
         if (imageCubemapFromLatLong(tmp, _image, _useBilinearInterpolation))
         {
             imageMove(_image, tmp);
+            return true;
         }
+
+        return false;
     }
 
     bool imageLatLongFromCubemap(Image& _dst, const Image& _src, bool _useBilinearInterpolation)
@@ -2919,13 +2925,16 @@ namespace cmft
         return true;
     }
 
-    void imageLatLongFromCubemap(Image& _cubemap, bool _useBilinearInterpolation)
+    bool imageLatLongFromCubemap(Image& _cubemap, bool _useBilinearInterpolation)
     {
         Image tmp;
         if (imageLatLongFromCubemap(tmp, _cubemap, _useBilinearInterpolation))
         {
             imageMove(_cubemap, tmp);
+            return true;
         }
+
+        return false;
     }
 
     bool imageStripFromCubemap(Image& _dst, const Image& _src, bool _vertical)
@@ -3029,13 +3038,16 @@ namespace cmft
         return true;
     }
 
-    void imageStripFromCubemap(Image& _cubemap, bool _vertical)
+    bool imageStripFromCubemap(Image& _cubemap, bool _vertical)
     {
         Image tmp;
         if (imageStripFromCubemap(tmp, _cubemap, _vertical))
         {
             imageMove(_cubemap, tmp);
+            return true;
         }
+
+        return false;
     }
 
     bool imageCubemapFromStrip(Image& _dst, const Image& _src)
@@ -3112,13 +3124,16 @@ namespace cmft
         return true;
     }
 
-    void imageCubemapFromStrip(Image& _image)
+    bool imageCubemapFromStrip(Image& _image)
     {
         Image tmp;
         if (imageCubemapFromStrip(tmp, _image))
         {
             imageMove(_image, tmp);
+            return true;
         }
+
+        return false;
     }
 
     bool imageFaceListFromCubemap(Image _faceList[6], const Image& _cubemap)
@@ -3396,13 +3411,16 @@ namespace cmft
         return true;
     }
 
-    void imageCrossFromCubemap(Image& _image, bool _vertical)
+    bool imageCrossFromCubemap(Image& _image, bool _vertical)
     {
         Image tmp;
         if (imageCrossFromCubemap(tmp, _image, _vertical))
         {
             imageMove(_image, tmp);
+            return true;
         }
+
+        return false;
     }
 
     // Image loading.

@@ -274,31 +274,31 @@ namespace cmft
     bool imageCubemapFromCross(Image& _dst, const Image& _src);
 
     ///
-    void imageCubemapFromCross(Image& _image);
+    bool imageCubemapFromCross(Image& _image);
 
     ///
     bool imageCubemapFromLatLong(Image& _dst, const Image& _src, bool _useBilinearInterpolation = true);
 
     ///
-    void imageCubemapFromLatLong(Image& _image, bool _useBilinearInterpolation = true);
+    bool imageCubemapFromLatLong(Image& _image, bool _useBilinearInterpolation = true);
 
     ///
     bool imageLatLongFromCubemap(Image& _dst, const Image& _src, bool _useBilinearInterpolation = true);
 
     ///
-    void imageLatLongFromCubemap(Image& _cubemap, bool _useBilinearInterpolation = true);
+    bool imageLatLongFromCubemap(Image& _cubemap, bool _useBilinearInterpolation = true);
 
     ///
     bool imageStripFromCubemap(Image& _dst, const Image& _src, bool _vertical = false);
 
     ///
-    void imageStripFromCubemap(Image& _image, bool _vertical = false);
+    bool imageStripFromCubemap(Image& _image, bool _vertical = false);
 
     ///
     bool imageCubemapFromStrip(Image& _dst, const Image& _src);
 
     ///
-    void imageCubemapFromStrip(Image& _image);
+    bool imageCubemapFromStrip(Image& _image);
 
     ///
     bool imageFaceListFromCubemap(Image _faceList[6], const Image& _cubemap);
@@ -310,7 +310,7 @@ namespace cmft
     bool imageCrossFromCubemap(Image& _dst, const Image& _src, bool _vertical = true);
 
     ///
-    void imageCrossFromCubemap(Image& _image, bool _vertical = true);
+    bool imageCrossFromCubemap(Image& _image, bool _vertical = true);
 
     ///
     bool imageLoad(Image& _image, const char* _filePath, TextureFormat::Enum _convertTo = TextureFormat::Null);
