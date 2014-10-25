@@ -2334,7 +2334,7 @@ namespace cmft
         return true;
     }
 
-    bool imageIsCubeCross(Image& _image)
+    bool imageIsCubeCross(Image& _image, bool _fastCheck)
     {
         // Check face count.
         if (1 != _image.m_numFaces)
@@ -2350,6 +2350,12 @@ namespace cmft
         if (!isVertical && !isHorizontal)
         {
             return false;
+        }
+
+        // Aspect ratio is valid.
+        if (_fastCheck)
+        {
+            return true;
         }
 
         // Define key points.
@@ -2505,13 +2511,13 @@ namespace cmft
         return result;
     }
 
-    bool imageIsEnvironmentMap(Image& _image)
+    bool imageIsEnvironmentMap(Image& _image, bool _fastCheck)
     {
         return imageIsCubemap(_image)
             || imageIsLatLong(_image)
             || imageIsHStrip(_image)
             || imageIsVStrip(_image)
-            || imageIsCubeCross(_image);
+            || imageIsCubeCross(_image, _fastCheck);
     }
 
     bool imageCubemapFromCross(Image& _dst, const Image& _src)

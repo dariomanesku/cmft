@@ -268,10 +268,10 @@ namespace cmft
     bool imageValidCubemapFaceList(const Image _faceList[6]);
 
     ///
-    bool imageIsCubeCross(Image& _image);
+    bool imageIsCubeCross(Image& _image, bool _fastCheck = false);
 
     ///
-    bool imageIsEnvironmentMap(Image& _image);
+    bool imageIsEnvironmentMap(Image& _image, bool _fastCheck = false);
 
     ///
     bool imageCubemapFromCross(Image& _dst, const Image& _src);
