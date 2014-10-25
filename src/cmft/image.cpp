@@ -2505,6 +2505,15 @@ namespace cmft
         return result;
     }
 
+    bool imageIsEnvironmentMap(Image& _image)
+    {
+        return imageIsCubemap(_image)
+            || imageIsLatLong(_image)
+            || imageIsHStrip(_image)
+            || imageIsVStrip(_image)
+            || imageIsCubeCross(_image);
+    }
+
     bool imageCubemapFromCross(Image& _dst, const Image& _src)
     {
         // Checking image aspect.

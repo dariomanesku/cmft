@@ -271,6 +271,9 @@ namespace cmft
     bool imageIsCubeCross(Image& _image);
 
     ///
+    bool imageIsEnvironmentMap(Image& _image);
+
+    ///
     bool imageCubemapFromCross(Image& _dst, const Image& _src);
 
     ///
