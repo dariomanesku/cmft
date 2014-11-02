@@ -1794,66 +1794,84 @@ namespace cmft
     void imageResize(Image& _dst, uint32_t _width, uint32_t _height, const Image& _src)
     {
         // Operation is done in rgba32f format.
-        Image imageRgba32f;
+        ImageSoftRef imageRgba32f;
         imageRefOrConvert(imageRgba32f, TextureFormat::RGBA32F, _src);
 
         // Alloc dst data.
         const uint32_t bytesPerPixel = 4 /*numChannels*/ * 4 /*bytesPerChannel*/;
-        const uint32_t dstPitch = _width * bytesPerPixel;
-        const uint32_t dstFaceDataSize = dstPitch * _height;
-        const uint32_t dstDataSize = dstFaceDataSize * imageRgba32f.m_numFaces;
+        uint32_t dstDataSize = 0;
+        uint32_t dstOffsets[CUBE_FACE_NUM][MAX_MIP_NUM];
+        for (uint8_t face = 0; face < imageRgba32f.m_numFaces; ++face)
+        {
+            for (uint8_t mip = 0; mip < imageRgba32f.m_numMips; ++mip)
+            {
+                dstOffsets[face][mip] = dstDataSize;
+                const uint32_t dstMipWidth  = max(UINT32_C(1), _width  >> mip);
+                const uint32_t dstMipHeight = max(UINT32_C(1), _height >> mip);
+                dstDataSize += dstMipWidth * dstMipHeight * bytesPerPixel;
+            }
+        }
         void* dstData = malloc(dstDataSize);
         MALLOC_CHECK(dstData);
 
         // Get source offsets.
-        uint32_t srcFaceOffsets[6];
-        imageGetFaceOffsets(srcFaceOffsets, imageRgba32f);
-        const uint32_t srcPitch = imageRgba32f.m_width * bytesPerPixel;
+        uint32_t srcOffsets[CUBE_FACE_NUM][MAX_MIP_NUM];
+        imageGetMipOffsets(srcOffsets, imageRgba32f);
 
-        // Get required parameters for processing.
-        const float dstToSrcRatioX = float(int32_t(imageRgba32f.m_width))  / float(int32_t(_width));
-        const float dstToSrcRatioY = float(int32_t(imageRgba32f.m_height)) / float(int32_t(_height));
-
-        // Resize base image.
+        // Resample.
         for (uint8_t face = 0; face < imageRgba32f.m_numFaces; ++face)
         {
-            uint8_t* dstFaceData = (uint8_t*)dstData + face*dstFaceDataSize;
-            const uint8_t* srcFaceData = (const uint8_t*)imageRgba32f.m_data + srcFaceOffsets[face];
-
-            for (uint32_t yDst = 0; yDst < _height; ++yDst)
+            for (uint8_t mip = 0; mip < imageRgba32f.m_numMips; ++mip)
             {
-                uint8_t* dstFaceRow = (uint8_t*)dstFaceData + yDst*dstPitch;
+                const uint32_t srcMipWidth  = max(UINT32_C(1), imageRgba32f.m_width  >> mip);
+                const uint32_t srcMipHeight = max(UINT32_C(1), imageRgba32f.m_height >> mip);
+                const uint32_t srcMipPitch  = srcMipWidth * bytesPerPixel;
 
-                for (uint32_t xDst = 0; xDst < _width; ++xDst)
+                const uint32_t dstMipWidth  = max(UINT32_C(1), _width  >> mip);
+                const uint32_t dstMipHeight = max(UINT32_C(1), _height >> mip);
+                const uint32_t dstMipPitch  = dstMipWidth * bytesPerPixel;
+
+                const float dstToSrcRatioX = float(int32_t(srcMipWidth)) /float(int32_t(dstMipWidth));
+                const float dstToSrcRatioY = float(int32_t(srcMipHeight))/float(int32_t(dstMipHeight));
+
+                uint8_t* dstMipData = (uint8_t*)dstData + dstOffsets[face][mip];
+                const uint8_t* srcMipData = (const uint8_t*)imageRgba32f.m_data + srcOffsets[face][mip];
+
+                for (uint32_t yDst = 0; yDst < dstMipHeight; ++yDst)
                 {
-                    float* dstFaceColumn = (float*)((uint8_t*)dstFaceRow + xDst*bytesPerPixel);
+                    uint8_t* dstFaceRow = (uint8_t*)dstMipData + yDst*dstMipPitch;
 
-                    float color[3] = { 0.0f, 0.0f, 0.0f };
-                    uint32_t weight = 0;
-
-                    uint32_t ySrc = uint32_t(float(yDst)*dstToSrcRatioY);
-                    uint32_t ySrcEnd = ySrc + max(uint32_t(1), uint32_t(dstToSrcRatioY));
-                    for (; ySrc < ySrcEnd; ++ySrc)
+                    for (uint32_t xDst = 0; xDst < dstMipWidth; ++xDst)
                     {
-                        const uint8_t* srcRowData = (const uint8_t*)srcFaceData + ySrc*srcPitch;
+                        float* dstFaceColumn = (float*)((uint8_t*)dstFaceRow + xDst*bytesPerPixel);
 
-                        uint32_t xSrc = uint32_t(float(xDst)*dstToSrcRatioX);
-                        uint32_t xSrcEnd = xSrc + max(uint32_t(1), uint32_t(dstToSrcRatioX));
-                        for (; xSrc < xSrcEnd; ++xSrc)
+                        float color[3] = { 0.0f, 0.0f, 0.0f };
+                        uint32_t weight = 0;
+
+                        uint32_t ySrc = uint32_t(float(yDst)*dstToSrcRatioY);
+                        uint32_t ySrcEnd = ySrc + max(uint32_t(1), uint32_t(dstToSrcRatioY));
+                        for (; ySrc < ySrcEnd; ++ySrc)
                         {
-                            const float* srcColumnData = (const float*)((const uint8_t*)srcRowData + xSrc*bytesPerPixel);
-                            color[0] += srcColumnData[0];
-                            color[1] += srcColumnData[1];
-                            color[2] += srcColumnData[2];
-                            weight++;
-                        }
-                    }
+                            const uint8_t* srcRowData = (const uint8_t*)srcMipData + ySrc*srcMipPitch;
 
-                    const float invWeight = 1.0f/float(max(weight, UINT32_C(1)));
-                    dstFaceColumn[0] = color[0] * invWeight;
-                    dstFaceColumn[1] = color[1] * invWeight;
-                    dstFaceColumn[2] = color[2] * invWeight;
-                    dstFaceColumn[3] = 1.0f;
+                            uint32_t xSrc = uint32_t(float(xDst)*dstToSrcRatioX);
+                            uint32_t xSrcEnd = xSrc + max(uint32_t(1), uint32_t(dstToSrcRatioX));
+                            for (; xSrc < xSrcEnd; ++xSrc)
+                            {
+                                const float* srcColumnData = (const float*)((const uint8_t*)srcRowData + xSrc*bytesPerPixel);
+                                color[0] += srcColumnData[0];
+                                color[1] += srcColumnData[1];
+                                color[2] += srcColumnData[2];
+                                weight++;
+                            }
+                        }
+
+                        const float invWeight = 1.0f/float(max(weight, UINT32_C(1)));
+                        dstFaceColumn[0] = color[0] * invWeight;
+                        dstFaceColumn[1] = color[1] * invWeight;
+                        dstFaceColumn[2] = color[2] * invWeight;
+                        dstFaceColumn[3] = 1.0f;
+                    }
                 }
             }
         }
@@ -1864,7 +1882,7 @@ namespace cmft
         result.m_height = _height;
         result.m_dataSize = dstDataSize;
         result.m_format = TextureFormat::RGBA32F;
-        result.m_numMips = 1;
+        result.m_numMips = imageRgba32f.m_numMips;
         result.m_numFaces = imageRgba32f.m_numFaces;
         result.m_data = dstData;
 

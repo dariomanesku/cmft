@@ -202,10 +202,10 @@ namespace cmft
     ///
     void imageGetPixel(void* _out, TextureFormat::Enum _format, uint32_t _x, uint32_t _y, uint8_t _mip, uint8_t _face, const Image& _image);
 
-    /// Notice: only base image gets resized. Mipmaps are lost.
+    ///
     void imageResize(Image& _dst, uint32_t _width, uint32_t _height, const Image& _src);
 
-    /// Notice: only base image gets resized. Mipmaps are lost.
+    ///
     void imageResize(Image& _image, uint32_t _width, uint32_t _height);
 
     /// Notice: because all transformations are done on data in place,
