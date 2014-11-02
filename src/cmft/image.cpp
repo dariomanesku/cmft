@@ -1061,15 +1061,16 @@ namespace cmft
 
     void imageUnload(Image& _image)
     {
-        if (!_image.m_isRef && _image.m_data)
+        if (_image.m_data)
         {
             free(_image.m_data);
             _image.m_data = NULL;
         }
     }
 
-    void imageRef(Image& _dst, const Image& _src)
+    void imageMove(Image& _dst, Image& _src)
     {
+        imageUnload(_dst);
         _dst.m_data     = _src.m_data;
         _dst.m_width    = _src.m_width;
         _dst.m_height   = _src.m_height;
@@ -1077,19 +1078,8 @@ namespace cmft
         _dst.m_format   = _src.m_format;
         _dst.m_numMips  = _src.m_numMips;
         _dst.m_numFaces = _src.m_numFaces;
-        _dst.m_isRef    = true;
-    }
 
-    bool imageIsRef(const Image& _image)
-    {
-        return _image.m_isRef;
-    }
-
-    void imageMove(Image& _dst, Image& _src)
-    {
-        imageUnload(_dst);
-        imageRef(_dst, _src);
-        _src.m_data = NULL;
+        _src.m_data     = NULL;
     }
 
     void imageCopy(Image& _dst, const Image& _src)
@@ -1719,7 +1709,7 @@ namespace cmft
     void imageConvert(Image& _dst, TextureFormat::Enum _dstFormat, const Image& _src)
     {
         // Image _src to rgba32f.
-        Image imageRgba32f;
+        ImageSoftRef imageRgba32f;
         if (TextureFormat::RGBA32F == _src.m_format)
         {
             imageRef(imageRgba32f, _src);
@@ -1741,11 +1731,8 @@ namespace cmft
             imageFromRgba32f(_dst, _dstFormat, imageRgba32f);
         }
 
-        // Unload imageRgba32f if its a copy and NOT a reference of _src.
-        if (_src.m_data != imageRgba32f.m_data)
-        {
-            imageUnload(imageRgba32f);
-        }
+        // Cleanup.
+        imageUnload(imageRgba32f);
     }
 
     void imageConvert(Image& _image, TextureFormat::Enum _format)
@@ -1755,21 +1742,6 @@ namespace cmft
             Image tmp;
             imageConvert(tmp, _format, _image);
             imageMove(_image, tmp);
-        }
-    }
-
-    bool imageRefOrConvert(Image& _dst, TextureFormat::Enum _format, const Image& _src)
-    {
-        if (_format == _src.m_format)
-        {
-            imageRef(_dst, _src);
-            return true;
-        }
-        else
-        {
-            imageUnload(_dst);
-            imageConvert(_dst, _format, _src);
-            return false;
         }
     }
 
@@ -2099,7 +2071,7 @@ namespace cmft
     void imageGenerateMipMapChain(Image& _image, uint8_t _numMips)
     {
         // Processing is done in rgba32f format.
-        Image imageRgba32f;
+        ImageHardRef imageRgba32f;
         imageRefOrConvert(imageRgba32f, TextureFormat::RGBA32F, _image);
 
         // Calculate dataSize and offsets for the entire mip map chain.
@@ -2226,14 +2198,14 @@ namespace cmft
         }
 
         // Operation is done in rgba32f format.
-        Image imageRgba32f;
+        ImageHardRef imageRgba32f;
         imageRefOrConvert(imageRgba32f, TextureFormat::RGBA32F, _image);
 
         // Iterate through image channels and apply gamma function.
         float* channel = (float*)imageRgba32f.m_data;
         const float* end = (const float*)((const uint8_t*)imageRgba32f.m_data + imageRgba32f.m_dataSize);
 
-        for(;channel < end; channel+=4)
+        for (;channel < end; channel+=4)
         {
             channel[0] = powf(channel[0], _gammaPow);
             channel[1] = powf(channel[1], _gammaPow);
@@ -2241,8 +2213,14 @@ namespace cmft
             //channel[3] = leave alpha channel as is.
         }
 
-        // If image was converted, convert back to original format. Otherwise, a reference to self is passed.
-        imageRefOrConvert(_image, (TextureFormat::Enum)_image.m_format, imageRgba32f);
+        // If image was converted, convert back to original format.
+        if (imageRgba32f.isCopy())
+        {
+            imageConvert(_image, (TextureFormat::Enum)_image.m_format, imageRgba32f);
+        }
+
+        // Cleanup.
+        imageUnload(imageRgba32f);
     }
 
     void imageClamp(Image& _dst, const Image& _src)
@@ -2255,7 +2233,7 @@ namespace cmft
         float* channel = (float*)imageRgba32f.m_data;
         const float* end = (const float*)((const uint8_t*)imageRgba32f.m_data + imageRgba32f.m_dataSize);
 
-        for(;channel < end; channel+=4)
+        for (;channel < end; channel+=4)
         {
             channel[0] = clamp(channel[0], 0.0f, 1.0f);
             channel[1] = clamp(channel[1], 0.0f, 1.0f);
@@ -2278,14 +2256,14 @@ namespace cmft
     void imageClamp(Image& _image)
     {
         // Operation is done in rgba32f format.
-        Image imageRgba32f;
+        ImageHardRef imageRgba32f;
         imageRefOrConvert(imageRgba32f, TextureFormat::RGBA32F, _image);
 
         // Iterate through image channels and clamp to [0.0-1.0] range.
         float* channel = (float*)imageRgba32f.m_data;
         const float* end = (const float*)((const uint8_t*)imageRgba32f.m_data + imageRgba32f.m_dataSize);
 
-        for(;channel < end; channel+=4)
+        for (;channel < end; channel+=4)
         {
             channel[0] = clamp(channel[0], 0.0f, 1.0f);
             channel[1] = clamp(channel[1], 0.0f, 1.0f);
@@ -2293,8 +2271,14 @@ namespace cmft
             channel[3] = clamp(channel[3], 0.0f, 1.0f);
         }
 
-        // If image was converted, convert back to original format. Otherwise, a reference to self is passed.
-        imageRefOrConvert(_image, (TextureFormat::Enum)_image.m_format, imageRgba32f);
+        // If image was converted, convert back to original format.
+        if (imageRgba32f.isCopy())
+        {
+            imageConvert(_image, (TextureFormat::Enum)_image.m_format, imageRgba32f);
+        }
+
+        // Cleanup.
+        imageUnload(imageRgba32f);
     }
 
     bool imageIsCubemap(const Image& _image)
@@ -2334,7 +2318,7 @@ namespace cmft
         return true;
     }
 
-    bool imageIsCubeCross(Image& _image, bool _fastCheck)
+    bool imageIsCubeCross(const Image& _image, bool _fastCheck)
     {
         // Check face count.
         if (1 != _image.m_numFaces)
@@ -2511,7 +2495,7 @@ namespace cmft
         return result;
     }
 
-    bool imageIsEnvironmentMap(Image& _image, bool _fastCheck)
+    bool imageIsEnvironmentMap(const Image& _image, bool _fastCheck)
     {
         return imageIsCubemap(_image)
             || imageIsLatLong(_image)
@@ -2643,7 +2627,7 @@ namespace cmft
         }
 
         // Conversion is done in rgba32f format.
-        Image imageRgba32f;
+        ImageSoftRef imageRgba32f;
         imageRefOrConvert(imageRgba32f, TextureFormat::RGBA32F, _src);
 
         // Alloc data.
@@ -2789,7 +2773,7 @@ namespace cmft
         }
 
         // Conversion is done in rgba32f format.
-        Image imageRgba32f;
+        ImageSoftRef imageRgba32f;
         imageRefOrConvert(imageRgba32f, TextureFormat::RGBA32F, _src);
 
         // Alloc data.
@@ -3869,7 +3853,7 @@ namespace cmft
 
         // Read header.
         bool formatDefined = false;
-        for(uint8_t ii = 0, stop = 20; ii < stop; ++ii)
+        for (uint8_t ii = 0, stop = 20; ii < stop; ++ii)
         {
             // Read next line.
             get = fgets(buf, sizeof(buf), _fp);
@@ -4459,7 +4443,7 @@ namespace cmft
     bool imageSaveHdr(const char* _fileName, const Image& _image)
     {
         // Hdr file type assumes rgbe image format.
-        Image imageRgbe;
+        ImageSoftRef imageRgbe;
         imageRefOrConvert(imageRgbe, TextureFormat::RGBE, _image);
 
         // Open file.
@@ -4642,7 +4626,7 @@ namespace cmft
     bool imageSave(const Image& _image, const char* _fileName, ImageFileType::Enum _ft, TextureFormat::Enum _convertTo)
     {
         // Get image in desired format.
-        Image image;
+        ImageSoftRef image;
         if (TextureFormat::Null != _convertTo)
         {
             imageRefOrConvert(image, _convertTo, _image);
@@ -4861,6 +4845,115 @@ namespace cmft
         }
 
         return result;
+    }
+
+    // ImageRef
+    //-----
+
+    void imageRefOrConvert(ImageHardRef& _dst, TextureFormat::Enum _format, Image& _src)
+    {
+        if (_format == _src.m_format)
+        {
+            imageRef(_dst, _src);
+        }
+        else
+        {
+            imageUnload(_dst);
+            imageConvert(_dst, _format, _src);
+        }
+    }
+
+    void imageRefOrConvert(ImageSoftRef& _dst, TextureFormat::Enum _format, const Image& _src)
+    {
+        if (_format == _src.m_format)
+        {
+            imageRef(_dst, _src);
+        }
+        else
+        {
+            imageUnload(_dst);
+            imageConvert(_dst, _format, _src);
+        }
+    }
+
+    void imageRef(ImageSoftRef& _dst, const Image& _src)
+    {
+        _dst.m_data        = _src.m_data;
+        _dst.m_width       = _src.m_width;
+        _dst.m_height      = _src.m_height;
+        _dst.m_dataSize    = _src.m_dataSize;
+        _dst.m_format      = _src.m_format;
+        _dst.m_numMips     = _src.m_numMips;
+        _dst.m_numFaces    = _src.m_numFaces;
+        _dst.m_isRef       = true;
+    }
+
+    void imageRef(ImageHardRef& _dst, Image& _src)
+    {
+        _dst.m_data        = _src.m_data;
+        _dst.m_width       = _src.m_width;
+        _dst.m_height      = _src.m_height;
+        _dst.m_dataSize    = _src.m_dataSize;
+        _dst.m_format      = _src.m_format;
+        _dst.m_numMips     = _src.m_numMips;
+        _dst.m_numFaces    = _src.m_numFaces;
+        _dst.m_origDataPtr = &_src.m_data;
+    }
+
+    void imageMove(Image& _dst, ImageSoftRef& _src)
+    {
+        if (_src.isRef())
+        {
+            DEBUG_CHECK(false, "Soft reference cannot be moved!");
+            abort();
+        }
+
+        imageUnload(_dst);
+        _dst.m_data     = _src.m_data;
+        _dst.m_width    = _src.m_width;
+        _dst.m_height   = _src.m_height;
+        _dst.m_dataSize = _src.m_dataSize;
+        _dst.m_format   = _src.m_format;
+        _dst.m_numMips  = _src.m_numMips;
+        _dst.m_numFaces = _src.m_numFaces;
+
+        _src.m_data     = NULL;
+    }
+
+    void imageMove(Image& _dst, ImageHardRef& _src)
+    {
+        imageUnload(_dst);
+        _dst.m_data         = _src.m_data;
+        _dst.m_width        = _src.m_width;
+        _dst.m_height       = _src.m_height;
+        _dst.m_dataSize     = _src.m_dataSize;
+        _dst.m_format       = _src.m_format;
+        _dst.m_numMips      = _src.m_numMips;
+        _dst.m_numFaces     = _src.m_numFaces;
+
+        _src.m_data = NULL;
+        if (_src.isRef())
+        {
+            *_src.m_origDataPtr = NULL;
+        }
+    }
+
+    void imageUnload(ImageSoftRef& _image)
+    {
+        if (_image.isCopy() && _image.m_data)
+        {
+            free(_image.m_data);
+            _image.m_data = NULL;
+        }
+    }
+
+    void imageUnload(ImageHardRef& _image)
+    {
+        if (_image.isCopy() && _image.m_data)
+        {
+            free(_image.m_data);
+            _image.m_data = NULL;
+        }
     }
 
 } // namespace cmft

@@ -186,7 +186,7 @@ namespace cmft
         }
 
         // Processing is done in Rgba32f format.
-        Image imageRgba32f;
+        ImageSoftRef imageRgba32f;
         imageRefOrConvert(imageRgba32f, TextureFormat::RGBA32F, _image);
 
         // Get face data offsets.
@@ -197,10 +197,7 @@ namespace cmft
         cubemapShCoeffs(_shCoeffs, imageRgba32f.m_data, imageRgba32f.m_width, faceOffsets);
 
         // Cleanup.
-        if (TextureFormat::RGBA32F != _image.m_format)
-        {
-            imageUnload(imageRgba32f);
-        }
+        imageUnload(imageRgba32f);
 
         return true;
     }
@@ -214,7 +211,7 @@ namespace cmft
         }
 
         // Processing is done in Rgba32f format.
-        Image imageRgba32f;
+        ImageSoftRef imageRgba32f;
         imageRefOrConvert(imageRgba32f, TextureFormat::RGBA32F, _src);
 
         // Get face data offsets.
@@ -336,6 +333,9 @@ namespace cmft
             imageConvert(_dst, (TextureFormat::Enum)_src.m_format, result);
             imageUnload(result);
         }
+
+        // Cleanup.
+        imageUnload(imageRgba32f);
 
         return true;
     }
@@ -1375,7 +1375,7 @@ namespace cmft
         }
 
         // Processing is done in Rgba32f format.
-        Image imageRgba32f;
+        ImageSoftRef imageRgba32f;
         imageRefOrConvert(imageRgba32f, TextureFormat::RGBA32F, _src);
 
         // Alloc dst data.
@@ -1648,6 +1648,9 @@ namespace cmft
             imageUnload(result);
         }
 
+        // Cleanup.
+        imageUnload(imageRgba32f);
+
         return true;
     }
 
@@ -1663,7 +1666,7 @@ namespace cmft
                            )
     {
         Image tmp;
-        if(imageRadianceFilter(tmp, _dstFaceSize, _lightingModel, _excludeBase, _mipCount, _glossScale, _glossBias, _image, _numCpuProcessingThreads, _clContext))
+        if (imageRadianceFilter(tmp, _dstFaceSize, _lightingModel, _excludeBase, _mipCount, _glossScale, _glossBias, _image, _numCpuProcessingThreads, _clContext))
         {
             imageMove(_image, tmp);
         }

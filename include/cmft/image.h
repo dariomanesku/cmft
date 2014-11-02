@@ -102,15 +102,14 @@ namespace cmft
     struct Image
     {
         Image()
-            : m_width(0)
-            , m_height(0)
-            , m_dataSize(0)
-            , m_format(TextureFormat::Null)
-            , m_numMips(0)
-            , m_numFaces(0)
-            , m_data(NULL)
-            , m_isRef(false)
         {
+            m_width    = 0;
+            m_height   = 0;
+            m_dataSize = 0;
+            m_format   = TextureFormat::Null;
+            m_numMips  = 0;
+            m_numFaces = 0;
+            m_data     = NULL;
         }
 
         uint32_t m_width;
@@ -120,7 +119,6 @@ namespace cmft
         uint8_t m_numMips;
         uint8_t m_numFaces;
         void* m_data;
-        bool m_isRef;
     };
 
     ///
@@ -163,12 +161,6 @@ namespace cmft
     void imageUnload(Image& _image);
 
     ///
-    void imageRef(Image& _dst, const Image& _src);
-
-    ///
-    bool imageIsRef(const Image& _image);
-
-    ///
     void imageMove(Image& _dst, Image& _src);
 
     ///
@@ -206,14 +198,6 @@ namespace cmft
 
     ///
     void imageConvert(Image& _image, TextureFormat::Enum _format);
-
-    ///
-    /// If requested format is the same as source, creates a reference to it (data ptr is the same, member variables are copied).
-    /// Otherwise creates a converted copy of the image.
-    /// If _dst is a reference to _src, function returns true.
-    /// If _dst is a physical copy of _src, function returns false (data should be released with imageUnload()).
-    ///
-    bool imageRefOrConvert(Image& _dst, TextureFormat::Enum _format, const Image& _src);
 
     ///
     void imageGetPixel(void* _out, TextureFormat::Enum _format, uint32_t _x, uint32_t _y, uint8_t _mip, uint8_t _face, const Image& _image);
@@ -273,10 +257,10 @@ namespace cmft
     bool imageValidCubemapFaceList(const Image _faceList[6]);
 
     ///
-    bool imageIsCubeCross(Image& _image, bool _fastCheck = false);
+    bool imageIsCubeCross(const Image& _image, bool _fastCheck = false);
 
     ///
-    bool imageIsEnvironmentMap(Image& _image, bool _fastCheck = false);
+    bool imageIsEnvironmentMap(const Image& _image, bool _fastCheck = false);
 
     ///
     bool imageCubemapFromCross(Image& _dst, const Image& _src);
@@ -337,6 +321,61 @@ namespace cmft
 
     ///
     bool imageSave(const Image& _image, const char* _fileName, ImageFileType::Enum _ft, OutputType::Enum _ot, TextureFormat::Enum _tf = TextureFormat::Null, bool _printOutput = false);
+
+    // ImageRef
+    //-----
+
+    struct ImageSoftRef : public Image
+    {
+        ImageSoftRef()
+        {
+            m_isRef = false;
+        }
+
+        inline bool isRef()  const { return m_isRef; }
+        inline bool isCopy() const { return !m_isRef; }
+
+        bool m_isRef;
+    };
+
+    struct ImageHardRef : public Image
+    {
+        ImageHardRef()
+        {
+            m_origDataPtr = NULL;
+        }
+
+        inline bool isRef()  const { return (NULL != m_origDataPtr); }
+        inline bool isCopy() const { return (NULL == m_origDataPtr); }
+
+        void** m_origDataPtr;
+    };
+
+    /// If requested format is the same as source, _dst becomes a reference to _src.
+    /// Otherwise, _dst is filled with a converted copy of the image.
+    /// Either way, imageUnload() should be called on _dst and it will free the data in case a copy was made.
+    void imageRefOrConvert(ImageHardRef& _dst, TextureFormat::Enum _format, Image& _src);
+
+    ///
+    void imageRefOrConvert(ImageSoftRef& _dst, TextureFormat::Enum _format, const Image& _src);
+
+    ///
+    void imageRef(ImageSoftRef& _dst, const Image& _src);
+
+    ///
+    void imageRef(ImageHardRef& _dst, Image& _src);
+
+    ///
+    void imageMove(Image& _dst, ImageSoftRef& _src);
+
+    ///
+    void imageMove(Image& _dst, ImageHardRef& _src);
+
+    ///
+    void imageUnload(ImageSoftRef& _image);
+
+    ///
+    void imageUnload(ImageHardRef& _image);
 
 } // namespace cmft
 
