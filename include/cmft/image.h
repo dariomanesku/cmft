@@ -8,6 +8,7 @@
 
 #include <stdio.h>
 #include <stdint.h>
+#include <stdarg.h>
 
 #ifndef UINT8_MAX // Fixing mingw bug.
 #define UINT8_MAX (255)
@@ -213,6 +214,9 @@ namespace cmft
     /// Flip operations work properly regardless of aspect ratio.
 #define imageTransform(_image, ...) imageTransformUseMacroInstead(&(_image), __VA_ARGS__, UINT32_MAX)
     void imageTransformUseMacroInstead(Image* _image, ...);
+
+    /// Notice: _argList should end with UINT32_MAX.
+    void imageTransformArg(Image& _image, va_list _argList);
 
     ///
     void imageGenerateMipMapChain(Image& _image, uint8_t _numMips=UINT8_MAX);

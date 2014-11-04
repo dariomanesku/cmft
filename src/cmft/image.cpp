@@ -15,7 +15,6 @@
 #include <bx/endian.h>
 
 #include <string.h>
-#include <stdarg.h>
 
 namespace cmft
 {
@@ -1912,31 +1911,36 @@ namespace cmft
     {
         va_list argList;
         va_start(argList, _image);
+        imageTransformArg(*_image, argList);
+        va_end(argList);
+    }
 
-        uint32_t op = va_arg(argList, uint32_t);
+    void imageTransformArg(Image& _image, va_list _argList)
+    {
+        uint32_t op = va_arg(_argList, uint32_t);
         if (UINT32_MAX != op)
         {
-            const uint32_t bytesPerPixel = getImageDataInfo(_image->m_format).m_bytesPerPixel;
+            const uint32_t bytesPerPixel = getImageDataInfo(_image.m_format).m_bytesPerPixel;
 
             uint32_t offsets[CUBE_FACE_NUM][MAX_MIP_NUM];
-            imageGetMipOffsets(offsets, *_image);
+            imageGetMipOffsets(offsets, _image);
 
-            for (uint8_t ii = 0; op != UINT32_MAX; ++ii, op = va_arg(argList, uint32_t))
+            for (uint8_t ii = 0; op != UINT32_MAX; ++ii, op = va_arg(_argList, uint32_t))
             {
                 const uint16_t imageOp = (op&IMAGE_OP_MASK);
                 const uint8_t imageFace = (op&IMAGE_FACE_MASK)>>IMAGE_FACE_SHIFT;
 
                 if (imageOp&IMAGE_OP_ROT_90)
                 {
-                    if (_image->m_width == _image->m_height)
+                    if (_image.m_width == _image.m_height)
                     {
-                        for (uint8_t mip = 0; mip < _image->m_numMips; ++mip)
+                        for (uint8_t mip = 0; mip < _image.m_numMips; ++mip)
                         {
-                            const uint32_t width  = max(UINT32_C(1), _image->m_width  >> mip);
-                            const uint32_t height = max(UINT32_C(1), _image->m_height >> mip);
+                            const uint32_t width  = max(UINT32_C(1), _image.m_width  >> mip);
+                            const uint32_t height = max(UINT32_C(1), _image.m_height >> mip);
                             const uint32_t pitch = width * bytesPerPixel;
 
-                            uint8_t* facePtr = (uint8_t*)_image->m_data + offsets[imageFace][mip];
+                            uint8_t* facePtr = (uint8_t*)_image.m_data + offsets[imageFace][mip];
                             for (uint32_t yy = 0, yyEnd = height-1; yy < height; ++yy, --yyEnd)
                             {
                                 uint8_t* rowPtr    = (uint8_t*)facePtr + yy*pitch;
@@ -1956,22 +1960,21 @@ namespace cmft
                     else
                     {
                         WARN("Because image data transformation is done in place, "
-                             "rotation operations work only when image width is equal to image height."
-                             );
+                             "rotation operations work only when image width is equal to image height.");
                     }
                 }
 
                 if (imageOp&IMAGE_OP_ROT_180)
                 {
-                    if (_image->m_width == _image->m_height)
+                    if (_image.m_width == _image.m_height)
                     {
-                        for (uint8_t mip = 0; mip < _image->m_numMips; ++mip)
+                        for (uint8_t mip = 0; mip < _image.m_numMips; ++mip)
                         {
-                            const uint32_t width  = max(UINT32_C(1), _image->m_width  >> mip);
-                            const uint32_t height = max(UINT32_C(1), _image->m_height >> mip);
+                            const uint32_t width  = max(UINT32_C(1), _image.m_width  >> mip);
+                            const uint32_t height = max(UINT32_C(1), _image.m_height >> mip);
                             const uint32_t pitch = width * bytesPerPixel;
 
-                            uint8_t* facePtr = (uint8_t*)_image->m_data + offsets[imageFace][mip];
+                            uint8_t* facePtr = (uint8_t*)_image.m_data + offsets[imageFace][mip];
                             uint32_t yy = 0, yyEnd = height-1;
                             for (; yy < yyEnd; ++yy, --yyEnd)
                             {
@@ -2008,15 +2011,15 @@ namespace cmft
 
                 if (imageOp&IMAGE_OP_ROT_270)
                 {
-                    if (_image->m_width == _image->m_height)
+                    if (_image.m_width == _image.m_height)
                     {
-                        for (uint8_t mip = 0; mip < _image->m_numMips; ++mip)
+                        for (uint8_t mip = 0; mip < _image.m_numMips; ++mip)
                         {
-                            const uint32_t width  = max(UINT32_C(1), _image->m_width  >> mip);
-                            const uint32_t height = max(UINT32_C(1), _image->m_height >> mip);
+                            const uint32_t width  = max(UINT32_C(1), _image.m_width  >> mip);
+                            const uint32_t height = max(UINT32_C(1), _image.m_height >> mip);
                             const uint32_t pitch = width * bytesPerPixel;
 
-                            uint8_t* facePtr = (uint8_t*)_image->m_data + offsets[imageFace][mip];
+                            uint8_t* facePtr = (uint8_t*)_image.m_data + offsets[imageFace][mip];
                             for (uint32_t yy = 0; yy < height; ++yy)
                             {
                                 uint8_t* rowPtr    = (uint8_t*)facePtr + yy*pitch;
@@ -2043,13 +2046,13 @@ namespace cmft
 
                 if (imageOp&IMAGE_OP_FLIP_X)
                 {
-                    for (uint8_t mip = 0; mip < _image->m_numMips; ++mip)
+                    for (uint8_t mip = 0; mip < _image.m_numMips; ++mip)
                     {
-                        const uint32_t width  = max(UINT32_C(1), _image->m_width  >> mip);
-                        const uint32_t height = max(UINT32_C(1), _image->m_height >> mip);
+                        const uint32_t width  = max(UINT32_C(1), _image.m_width  >> mip);
+                        const uint32_t height = max(UINT32_C(1), _image.m_height >> mip);
                         const uint32_t pitch = width * bytesPerPixel;
 
-                        uint8_t* facePtr = (uint8_t*)_image->m_data + offsets[imageFace][mip];
+                        uint8_t* facePtr = (uint8_t*)_image.m_data + offsets[imageFace][mip];
                         for (uint32_t yy = 0, yyEnd = height-1; yy < yyEnd; ++yy, --yyEnd)
                         {
                             uint8_t* rowPtr    = (uint8_t*)facePtr + pitch*yy;
@@ -2061,13 +2064,13 @@ namespace cmft
 
                 if (imageOp&IMAGE_OP_FLIP_Y)
                 {
-                    for (uint8_t mip = 0; mip < _image->m_numMips; ++mip)
+                    for (uint8_t mip = 0; mip < _image.m_numMips; ++mip)
                     {
-                        const uint32_t width  = max(UINT32_C(1), _image->m_width  >> mip);
-                        const uint32_t height = max(UINT32_C(1), _image->m_height >> mip);
+                        const uint32_t width  = max(UINT32_C(1), _image.m_width  >> mip);
+                        const uint32_t height = max(UINT32_C(1), _image.m_height >> mip);
                         const uint32_t pitch = width * bytesPerPixel;
 
-                        uint8_t* facePtr = (uint8_t*)_image->m_data + offsets[imageFace][mip];
+                        uint8_t* facePtr = (uint8_t*)_image.m_data + offsets[imageFace][mip];
                         for (uint32_t yy = 0; yy < height; ++yy)
                         {
                             uint8_t* rowPtr = (uint8_t*)facePtr + pitch*yy;
@@ -2082,8 +2085,6 @@ namespace cmft
                 }
             }
         }
-
-        va_end(argList);
     }
 
     void imageGenerateMipMapChain(Image& _image, uint8_t _numMips)
