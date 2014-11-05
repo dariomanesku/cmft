@@ -209,6 +209,15 @@ namespace cmft
     ///
     void imageResize(Image& _image, uint32_t _width, uint32_t _height);
 
+    ///
+    void imageResize(Image& _dst, uint32_t _faceSize, const Image& _src);
+
+    ///
+    void imageResize(Image& _image, uint32_t _faceSize);
+
+    ///
+    uint32_t imageGetCubemapFaceSize(const Image& _image);
+
     /// Notice: because all transformations are done on data in place,
     /// rotations work properly only when image width == image height (which is true for cubemap images).
     /// Flip operations work properly regardless of aspect ratio.

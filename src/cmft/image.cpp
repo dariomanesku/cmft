@@ -1907,6 +1907,88 @@ namespace cmft
         imageMove(_image, tmp);
     }
 
+    static inline void faceSizeToWH(uint32_t& _width, uint32_t& _height, uint32_t _faceSize, const cmft::Image& _image)
+    {
+        if (cmft::imageIsLatLong(_image))
+        {
+            _width  = _faceSize*4;
+            _height = _faceSize*2;
+        }
+        else if (imageIsCubeCross(_image, true))
+        {
+            const float aspect = float(int32_t(_image.m_width))/float(int32_t(_image.m_height));
+            const bool isVertical = (aspect - 3.0f/4.0f) < 0.0001f;
+            if (isVertical)
+            {
+                _width  = _faceSize*3;
+                _height = _faceSize*4;
+            }
+            else // isHorizontal
+            {
+                _width  = _faceSize*4;
+                _height = _faceSize*3;
+            }
+        }
+        else if (imageIsHStrip(_image))
+        {
+            _width  = _faceSize*6;
+            _height = _faceSize;
+        }
+        else if (imageIsVStrip(_image))
+        {
+            _width  = _faceSize;
+            _height = _faceSize*6;
+        }
+        else // Cubemap.
+        {
+            _width  = _faceSize;
+            _height = _faceSize;
+        }
+    }
+
+    void imageResize(Image& _dst, uint32_t _faceSize, const Image& _src)
+    {
+        uint32_t width, height;
+        faceSizeToWH(width, height, _faceSize, _src);
+        imageResize(_dst, width, height, _src);
+    }
+
+    void imageResize(Image& _image, uint32_t _faceSize)
+    {
+        uint32_t width, height;
+        faceSizeToWH(width, height, _faceSize, _image);
+        imageResize(_image, width, height);
+    }
+
+    uint32_t imageGetCubemapFaceSize(const Image& _image)
+    {
+        if (cmft::imageIsLatLong(_image))
+        {
+            return _image.m_width>>2;
+        }
+        else if (imageIsHStrip(_image))
+        {
+            return _image.m_height;
+        }
+        else if (imageIsCubeCross(_image, true))
+        {
+            const float aspect = float(int32_t(_image.m_width))/float(int32_t(_image.m_height));
+            const bool isVertical = (aspect - 3.0f/4.0f) < 0.0001f;
+            if (isVertical)
+            {
+                return _image.m_height>>2;
+            }
+            else // isHorizontal.
+            {
+                return _image.m_width>>2;
+            }
+        }
+        else // Image is vstrip or cubemap.
+        {
+            return _image.m_width;
+        }
+    }
+
     void imageTransformUseMacroInstead(Image* _image, ...)
     {
         va_list argList;
