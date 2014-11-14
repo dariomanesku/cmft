@@ -140,17 +140,8 @@ namespace cmft
     };
 
     /// _u and _v should be center adressing and in [-1.0+invSize..1.0-invSize] range.
-    static inline void texelCoordToVec(float* _out3f, float _u, float _v, uint8_t _faceId, uint32_t _faceSize = 1)
+    static inline void texelCoordToVec(float* _out3f, float _u, float _v, uint8_t _faceId)
     {
-        if (_faceSize != 1)
-        {
-            // Edge fixup.
-            // Code from Nvtt : http://code.google.com/p/nvidia-texture-tools/source/browse/trunk/src/nvtt/CubeSurface.cpp
-            const float a = float(_faceSize*_faceSize) / powf(float(_faceSize - 1), 3.0f);
-            _u = a * powf(_u, 3.0f) + _u;
-            _v = a * powf(_v, 3.0f) + _v;
-        }
-
         // out = u * s_faceUv[0] + v * s_faceUv[1] + s_faceUv[2].
         _out3f[0] = s_faceUvVectors[_faceId][0][0] * _u + s_faceUvVectors[_faceId][1][0] * _v + s_faceUvVectors[_faceId][2][0];
         _out3f[1] = s_faceUvVectors[_faceId][0][1] * _u + s_faceUvVectors[_faceId][1][1] * _v + s_faceUvVectors[_faceId][2][1];
@@ -161,6 +152,21 @@ namespace cmft
         _out3f[0] *= invLen;
         _out3f[1] *= invLen;
         _out3f[2] *= invLen;
+    }
+
+    /// _u and _v should be center adressing and in [-1.0+invSize..1.0-invSize] range.
+    static inline void texelCoordToVec(float* _out3f, float _u, float _v, uint8_t _faceId, uint32_t _faceSize)
+    {
+        if (_faceSize != 1)
+        {
+            // Edge fixup.
+            // Code from Nvtt : http://code.google.com/p/nvidia-texture-tools/source/browse/trunk/src/nvtt/CubeSurface.cpp
+            const float a = float(_faceSize*_faceSize) / powf(float(_faceSize - 1), 3.0f);
+            _u = a * powf(_u, 3.0f) + _u;
+            _v = a * powf(_v, 3.0f) + _v;
+        }
+
+        texelCoordToVec(_out3f, _u, _v, _faceId);
     }
 
     /// _u and _v are in [0.0 .. 1.0] range.

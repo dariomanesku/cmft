@@ -2763,7 +2763,7 @@ namespace cmft
 
                     // Get cubemap vector (x,y,z) from (u,v,faceIdx).
                     float vec[3];
-                    texelCoordToVec(vec, uu, vv, face, dstFaceSize);
+                    texelCoordToVec(vec, uu, vv, face);
 
                     // Convert cubemap vector (x,y,z) to latlong (u,v).
                     float xSrc;
