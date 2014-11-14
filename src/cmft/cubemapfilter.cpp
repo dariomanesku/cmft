@@ -808,6 +808,11 @@ namespace cmft
             m_completedTasksGpu++;
         }
 
+        void reset()
+        {
+            m_threadId = 0;
+        }
+
         uint64_t m_startTime;
         uint16_t m_completedTasksGpu;
         uint16_t m_completedTasksCpu;
@@ -932,6 +937,8 @@ namespace cmft
             // Update task counter.
             s_globalState.incrCompletedTasksGpu();
         }
+
+        s_globalState.reset();
 
         return EXIT_SUCCESS;
     }
