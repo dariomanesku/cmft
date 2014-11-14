@@ -142,7 +142,7 @@ namespace cmft
     /// _u and _v should be center adressing and in [-1.0+invSize..1.0-invSize] range.
     static inline void texelCoordToVec(float* _out3f, float _u, float _v, uint8_t _faceId, uint32_t _faceSize = 1)
     {
-        if (1 != _faceSize)
+        if (_faceSize != 1)
         {
             // Edge fixup.
             // Code from Nvtt : http://code.google.com/p/nvidia-texture-tools/source/browse/trunk/src/nvtt/CubeSurface.cpp
@@ -151,15 +151,16 @@ namespace cmft
             _v = a * powf(_v, 3.0f) + _v;
         }
 
-        // This does: Dst = normalize(u * s_faceUv[0] + v * s_faceUv[1] + s_faceUv[2]).
-        float tmp0[3];
-        float tmp1[3];
-        float tmp2[3];
-        vec3Mul(tmp0, s_faceUvVectors[_faceId][0], _u);
-        vec3Mul(tmp1, s_faceUvVectors[_faceId][1], _v);
-        vec3Add(tmp2, tmp0, tmp1);
-        vec3Add(tmp0, tmp2, s_faceUvVectors[_faceId][2]);
-        vec3Norm(_out3f, tmp0);
+        // out = u * s_faceUv[0] + v * s_faceUv[1] + s_faceUv[2].
+        _out3f[0] = s_faceUvVectors[_faceId][0][0] * _u + s_faceUvVectors[_faceId][1][0] * _v + s_faceUvVectors[_faceId][2][0];
+        _out3f[1] = s_faceUvVectors[_faceId][0][1] * _u + s_faceUvVectors[_faceId][1][1] * _v + s_faceUvVectors[_faceId][2][1];
+        _out3f[2] = s_faceUvVectors[_faceId][0][2] * _u + s_faceUvVectors[_faceId][1][2] * _v + s_faceUvVectors[_faceId][2][2];
+
+        // Normalize.
+        const float invLen = 1.0f/sqrt(_out3f[0]*_out3f[0] + _out3f[1]*_out3f[1] + _out3f[2]*_out3f[2]);
+        _out3f[0] *= invLen;
+        _out3f[1] *= invLen;
+        _out3f[2] *= invLen;
     }
 
     /// _u and _v are in [0.0 .. 1.0] range.
