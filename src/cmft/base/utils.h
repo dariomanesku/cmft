@@ -6,10 +6,6 @@
 #ifndef CMFT_UTILS_H_HEADER_GUARD
 #define CMFT_UTILS_H_HEADER_GUARD
 
-#define NOMINMAX 1
-#undef min
-#undef max
-
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h> //memcpy
@@ -19,7 +15,15 @@
 #include <malloc.h> //alloca
 
 #ifndef M_PI
-#define M_PI 3.14159265358979323846
+    #define M_PI 3.14159265358979323846
+#endif
+
+#ifdef max
+    #undef max
+#endif
+
+#ifdef min
+    #undef min
 #endif
 
 namespace cmft
@@ -40,24 +44,23 @@ namespace cmft
     {
         return logf(_val)/logf(2.0f);
     }
-
 #endif //defined(_MSC_VER)
 
-    template <typename T>
-    static inline T max(T _a, T _b)
+    template <typename Ty>
+    static inline Ty max(Ty _a, Ty _b)
     {
         return (_a > _b) ? _a : _b;
     }
 
-    template <typename T>
-    static inline T min(T _a, T _b)
+    template <typename Ty>
+    static inline Ty min(Ty _a, Ty _b)
     {
         return (_a > _b) ? _b : _a;
     }
 
     /// Assumes _min < _max.
-    template <typename T>
-    static inline T clamp(T _val, T _min, T _max)
+    template <typename Ty>
+    static inline Ty clamp(Ty _val, Ty _min, Ty _max)
     {
         return ( _val > _max ? _max
                : _val < _min ? _min
@@ -208,10 +211,10 @@ namespace cmft
         void* m_ptr;
     };
 
-    template <typename T>
+    template <typename Ty>
     struct ScopeUnload : NoCopyNoAssign
     {
-        ScopeUnload(T& _ptr) : m_ptr(_ptr) { }
+        ScopeUnload(Ty& _ptr) : m_ptr(_ptr) { }
 
         ~ScopeUnload()
         {
@@ -219,7 +222,7 @@ namespace cmft
         }
 
     private:
-        T& m_ptr;
+        Ty& m_ptr;
     };
 
 } // namespace cmft
