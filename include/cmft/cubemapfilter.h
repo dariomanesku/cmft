@@ -39,6 +39,10 @@ namespace cmft
         };
     };
 
+    /// Helper functions.
+    float specularPowerFor(float _mip, float _mipCount, float _glossScale, float _glossBias);
+    float applyLightningModel(float _specularPower, LightingModel::Enum _lightingModel);
+
     struct ClContext;
 
     /// Creates radiance cubemap image.

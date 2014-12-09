@@ -1286,7 +1286,14 @@ namespace cmft
         return acosf(powf(treshold, 1.0f / _cosinePower));
     }
 
-    float applyLightningModel(float _specularPowerRef, LightingModel::Enum _lightingModel)
+    float specularPowerFor(float _mip, float _mipCount, float _glossScale, float _glossBias)
+    {
+        const float glossiness = max(0.0f, 1.0f - _mip/(_mipCount-1.0f+0.0000001f));
+        const float specularPower = powf(2.0f, _glossScale * glossiness + _glossBias);
+        return specularPower;
+    }
+
+    float applyLightningModel(float _specularPower, LightingModel::Enum _lightingModel)
     {
         /// http://seblagarde.wordpress.com/2012/06/10/amd-cubemapgen-for-physically-based-rendering/
         /// http://seblagarde.wordpress.com/2012/03/29/relationship-between-phong-and-blinn-lighting-model/
@@ -1294,33 +1301,32 @@ namespace cmft
         {
         case LightingModel::Phong:
             {
-                return _specularPowerRef;
+                return _specularPower;
             }
         break;
 
         case LightingModel::PhongBrdf:
             {
-                return _specularPowerRef + 1.0f;
+                return _specularPower + 1.0f;
             }
         break;
 
         case LightingModel::Blinn:
             {
-                return _specularPowerRef/4.0f;
+                return _specularPower/4.0f;
             }
         break;
 
         case LightingModel::BlinnBrdf:
             {
-                return _specularPowerRef/4.0f + 1.0f;
+                return _specularPower/4.0f + 1.0f;
             }
         break;
 
         default:
             {
                 DEBUG_CHECK(false, "ERROR! This should never happen!");
-                WARN("Lighting model error. Please check for invalid parameters!");
-                return _specularPowerRef;
+                return _specularPower;
             }
         break;
         };
@@ -1516,8 +1522,9 @@ namespace cmft
             const uint8_t mipStart = uint8_t(_excludeBase);
             RadianceFilterTaskList taskList(mipStart, mipCount);
 
+            const float mipCountf   = float(int32_t(mipCount));
             const float glossScalef = float(int32_t(_glossScale));
-            const float glossBiasf = float(int32_t(_glossBias));
+            const float glossBiasf  = float(int32_t(_glossBias));
 
             //Prepare processing tasks parameters.
             for (uint32_t mip = mipStart; mip < mipCount; ++mip)
@@ -1528,11 +1535,7 @@ namespace cmft
                 const float minAngle = atan2f(1.0f, mipFaceSizef);
                 const float maxAngle = float(M_PI)/2.0f;
                 const float toFilterSize = 1.0f/(minAngle*mipFaceSizef*2.0f);
-                const float glossiness = (mipCount == 1)
-                                       ? 1.0f
-                                       : max(0.0f, 1.0f - (float)(int32_t)mip/(float)(int32_t)(mipCount-1))
-                                       ;
-                const float specularPowerRef = powf(2.0f, glossScalef * glossiness + glossBiasf);
+                const float specularPowerRef = specularPowerFor(float(int32_t(mip)), mipCountf, glossScalef, glossBiasf);
                 const float specularPower = applyLightningModel(specularPowerRef, _lightingModel);
                 const float filterAngle = clamp(cosinePowerFilterAngle(specularPower), minAngle, maxAngle);
                 const float cosAngle = max(0.0f, cosf(filterAngle));
