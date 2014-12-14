@@ -1054,9 +1054,6 @@ int cmftMain(int _argc, char const* const* _argv)
     // Apply gamma on output image.
     imageApplyGamma(image, inputParameters.m_outputGammaPowNumerator / inputParameters.m_outputGammaPowDenominator);
 
-    // Clamp rgba32f image to [0.0-1.0] range.
-    imageClamp(image);
-
     // Save output images.
     for (uint32_t outputIdx = 0; outputIdx < inputParameters.m_outputFilesNum; ++outputIdx)
     {
