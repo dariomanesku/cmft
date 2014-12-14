@@ -3422,9 +3422,17 @@ namespace cmft
 
             const uint32_t mipWidth = max(UINT32_C(1), dstWidth >> mip);
             const uint32_t mipPitch = mipWidth * bytesPerPixel;
-            const uint32_t faceSize = mipWidth / (_vertical?3:4);
-            const uint32_t facePitch = faceSize * bytesPerPixel;
-            const uint32_t rowDataSize = mipPitch * faceSize;
+
+            const uint32_t denominator = (_vertical?3:4);
+            const uint32_t faceSize = mipWidth / denominator;
+
+            const uint32_t oneFacePitch   =   (mipPitch) / denominator;
+            const uint32_t twoFacePitch   = (2*mipPitch) / denominator;
+            const uint32_t threeFacePitch = (3*mipPitch) / denominator;
+
+            const uint32_t oneRowDataSize   =   (mipPitch*mipWidth) / denominator;
+            const uint32_t twoRowDataSize   = (2*mipPitch*mipWidth) / denominator;
+            const uint32_t threeRowDataSize = (3*mipPitch*mipWidth) / denominator;
 
             // Destination offsets.
             uint32_t faceOffsets[6];
@@ -3446,12 +3454,12 @@ namespace cmft
                 //      |Z- |
                 //      |___|
                 //
-                faceOffsets[0] = rowDataSize + 2*facePitch; //+x
-                faceOffsets[1] = rowDataSize;               //-x
-                faceOffsets[2] = facePitch;                 //+y
-                faceOffsets[3] = 2*rowDataSize + facePitch; //-y
-                faceOffsets[4] = rowDataSize + facePitch;   //+z
-                faceOffsets[5] = 3*rowDataSize + facePitch; //-z
+                faceOffsets[0] = oneRowDataSize   + twoFacePitch; //+x
+                faceOffsets[1] = oneRowDataSize;                  //-x
+                faceOffsets[2] = oneFacePitch;                    //+y
+                faceOffsets[3] = twoRowDataSize   + oneFacePitch; //-y
+                faceOffsets[4] = oneRowDataSize   + oneFacePitch; //+z
+                faceOffsets[5] = threeRowDataSize + oneFacePitch; //-z
             }
             else
             {
@@ -3463,12 +3471,12 @@ namespace cmft
                 //      |-Y |
                 //      |___|
                 //
-                faceOffsets[0] = rowDataSize + 2*facePitch; //+x
-                faceOffsets[1] = rowDataSize;               //-x
-                faceOffsets[2] = facePitch;                 //+y
-                faceOffsets[3] = 2*rowDataSize + facePitch; //-y
-                faceOffsets[4] = rowDataSize + facePitch;   //+z
-                faceOffsets[5] = rowDataSize + 3*facePitch; //-z
+                faceOffsets[0] = oneRowDataSize + twoFacePitch;   //+x
+                faceOffsets[1] = oneRowDataSize;                  //-x
+                faceOffsets[2] = oneFacePitch;                    //+y
+                faceOffsets[3] = twoRowDataSize + oneFacePitch;   //-y
+                faceOffsets[4] = oneRowDataSize + oneFacePitch;   //+z
+                faceOffsets[5] = oneRowDataSize + threeFacePitch; //-z
             }
 
             uint8_t* dstMipData = (uint8_t*)dstData + dstMipOffsets[mip];
@@ -3481,7 +3489,7 @@ namespace cmft
                     uint8_t* dstRowData = (uint8_t*)dstFaceData + yy*mipPitch;
                     const uint8_t* srcRowData = (const uint8_t*)srcFaceData + yy*srcPitch;
 
-                    memcpy(dstRowData, srcRowData, facePitch);
+                    memcpy(dstRowData, srcRowData, oneFacePitch);
                 }
             }
         }
