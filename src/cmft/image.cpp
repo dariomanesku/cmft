@@ -4634,15 +4634,9 @@ namespace cmft
 
         // Write data. //TODO: implement RLE option.
         DEBUG_CHECK(NULL != imageRgbe.m_data, "Image data is null.");
-        const uint32_t pitch = imageRgbe.m_width * getImageDataInfo(imageRgbe.m_format).m_bytesPerPixel;
-        const uint8_t* srcPtr = (uint8_t*)imageRgbe.m_data;
-        for (uint32_t yy = 0; yy < imageRgbe.m_height; ++yy)
-        {
-            write = fwrite(srcPtr, 1, pitch, fp);
-            DEBUG_CHECK(write == pitch, "Error writing Hdr data.");
-            FERROR_CHECK(fp);
-            srcPtr+=pitch;
-        }
+        write = fwrite(imageRgbe.m_data, imageRgbe.m_dataSize, 1, fp);
+        DEBUG_CHECK(write == 1, "Error writing Hdr data.");
+        FERROR_CHECK(fp);
 
         // Cleanup.
         imageUnload(imageRgbe);
