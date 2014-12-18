@@ -327,6 +327,9 @@ namespace cmft
     bool imageLoad(Image& _image, const char* _filePath, TextureFormat::Enum _convertTo = TextureFormat::Null);
 
     ///
+    bool imageLoad(Image& _image, const void* _data, uint32_t _dataSize, TextureFormat::Enum _convertTo = TextureFormat::Null);
+
+    ///
     bool imageIsValid(const Image& _image);
 
     ///

@@ -13,6 +13,8 @@
 
 #include <bx/uint32_t.h>
 #include <bx/endian.h>
+#include <bx/string.h> //streol, strnl
+#include <bx/readerwriter.h>
 
 #include <string.h>
 
@@ -3566,15 +3568,13 @@ namespace cmft
     // Image loading.
     //-----
 
-    bool imageLoadDds(Image& _image, FILE* _fp)
+    bool imageLoadDds(Image& _image, bx::ReaderSeekerI& _reader)
     {
         CMFT_UNUSED size_t read;
 
         // Read magic.
         uint32_t magic;
-        read = fread(&magic, sizeof(uint32_t), 1, _fp);
-        DEBUG_CHECK(read == 1, "Could not read from file.");
-        FERROR_CHECK(_fp);
+        bx::read(&_reader, magic);
 
         // Check magic.
         if (DDS_MAGIC != magic)
@@ -3586,29 +3586,28 @@ namespace cmft
         // Read header.
         DdsHeader ddsHeader;
         read = 0;
-        read += fread(&ddsHeader.m_size,                      1, sizeof(ddsHeader.m_size),                      _fp);
-        read += fread(&ddsHeader.m_flags,                     1, sizeof(ddsHeader.m_flags),                     _fp);
-        read += fread(&ddsHeader.m_height,                    1, sizeof(ddsHeader.m_height),                    _fp);
-        read += fread(&ddsHeader.m_width,                     1, sizeof(ddsHeader.m_width),                     _fp);
-        read += fread(&ddsHeader.m_pitchOrLinearSize,         1, sizeof(ddsHeader.m_pitchOrLinearSize),         _fp);
-        read += fread(&ddsHeader.m_depth,                     1, sizeof(ddsHeader.m_depth),                     _fp);
-        read += fread(&ddsHeader.m_mipMapCount,               1, sizeof(ddsHeader.m_mipMapCount),               _fp);
-        read += fread(&ddsHeader.m_reserved1,                 1, sizeof(ddsHeader.m_reserved1),                 _fp);
-        read += fread(&ddsHeader.m_pixelFormat.m_size,        1, sizeof(ddsHeader.m_pixelFormat.m_size),        _fp);
-        read += fread(&ddsHeader.m_pixelFormat.m_flags,       1, sizeof(ddsHeader.m_pixelFormat.m_flags),       _fp);
-        read += fread(&ddsHeader.m_pixelFormat.m_fourcc,      1, sizeof(ddsHeader.m_pixelFormat.m_fourcc),      _fp);
-        read += fread(&ddsHeader.m_pixelFormat.m_rgbBitCount, 1, sizeof(ddsHeader.m_pixelFormat.m_rgbBitCount), _fp);
-        read += fread(&ddsHeader.m_pixelFormat.m_rBitMask,    1, sizeof(ddsHeader.m_pixelFormat.m_rBitMask),    _fp);
-        read += fread(&ddsHeader.m_pixelFormat.m_gBitMask,    1, sizeof(ddsHeader.m_pixelFormat.m_gBitMask),    _fp);
-        read += fread(&ddsHeader.m_pixelFormat.m_bBitMask,    1, sizeof(ddsHeader.m_pixelFormat.m_bBitMask),    _fp);
-        read += fread(&ddsHeader.m_pixelFormat.m_aBitMask,    1, sizeof(ddsHeader.m_pixelFormat.m_aBitMask),    _fp);
-        read += fread(&ddsHeader.m_caps,                      1, sizeof(ddsHeader.m_caps),                      _fp);
-        read += fread(&ddsHeader.m_caps2,                     1, sizeof(ddsHeader.m_caps2),                     _fp);
-        read += fread(&ddsHeader.m_caps3,                     1, sizeof(ddsHeader.m_caps3),                     _fp);
-        read += fread(&ddsHeader.m_caps4,                     1, sizeof(ddsHeader.m_caps4),                     _fp);
-        read += fread(&ddsHeader.m_reserved2,                 1, sizeof(ddsHeader.m_reserved2),                 _fp);
+        read += bx::read(&_reader, ddsHeader.m_size);
+        read += bx::read(&_reader, ddsHeader.m_flags);
+        read += bx::read(&_reader, ddsHeader.m_height);
+        read += bx::read(&_reader, ddsHeader.m_width);
+        read += bx::read(&_reader, ddsHeader.m_pitchOrLinearSize);
+        read += bx::read(&_reader, ddsHeader.m_depth);
+        read += bx::read(&_reader, ddsHeader.m_mipMapCount);
+        read += bx::read(&_reader, ddsHeader.m_reserved1);
+        read += bx::read(&_reader, ddsHeader.m_pixelFormat.m_size);
+        read += bx::read(&_reader, ddsHeader.m_pixelFormat.m_flags);
+        read += bx::read(&_reader, ddsHeader.m_pixelFormat.m_fourcc);
+        read += bx::read(&_reader, ddsHeader.m_pixelFormat.m_rgbBitCount);
+        read += bx::read(&_reader, ddsHeader.m_pixelFormat.m_rBitMask);
+        read += bx::read(&_reader, ddsHeader.m_pixelFormat.m_gBitMask);
+        read += bx::read(&_reader, ddsHeader.m_pixelFormat.m_bBitMask);
+        read += bx::read(&_reader, ddsHeader.m_pixelFormat.m_aBitMask);
+        read += bx::read(&_reader, ddsHeader.m_caps);
+        read += bx::read(&_reader, ddsHeader.m_caps2);
+        read += bx::read(&_reader, ddsHeader.m_caps3);
+        read += bx::read(&_reader, ddsHeader.m_caps4);
+        read += bx::read(&_reader, ddsHeader.m_reserved2);
         DEBUG_CHECK(read == DDS_HEADER_SIZE, "Error reading file header.");
-        FERROR_CHECK(_fp);
 
         // Read DdsDxt10 header if present.
         DdsHeaderDxt10 ddsHeaderDxt10;
@@ -3617,13 +3616,12 @@ namespace cmft
         if (hasDdsDxt10)
         {
             read = 0;
-            read += fread(&ddsHeaderDxt10.m_dxgiFormat,        1, sizeof(ddsHeaderDxt10.m_dxgiFormat),        _fp);
-            read += fread(&ddsHeaderDxt10.m_resourceDimension, 1, sizeof(ddsHeaderDxt10.m_resourceDimension), _fp);
-            read += fread(&ddsHeaderDxt10.m_miscFlags,         1, sizeof(ddsHeaderDxt10.m_miscFlags),         _fp);
-            read += fread(&ddsHeaderDxt10.m_arraySize,         1, sizeof(ddsHeaderDxt10.m_arraySize),         _fp);
-            read += fread(&ddsHeaderDxt10.m_miscFlags2,        1, sizeof(ddsHeaderDxt10.m_miscFlags2),        _fp);
+            read += bx::read(&_reader, ddsHeaderDxt10.m_dxgiFormat);
+            read += bx::read(&_reader, ddsHeaderDxt10.m_resourceDimension);
+            read += bx::read(&_reader, ddsHeaderDxt10.m_miscFlags);
+            read += bx::read(&_reader, ddsHeaderDxt10.m_arraySize);
+            read += bx::read(&_reader, ddsHeaderDxt10.m_miscFlags2);
             DEBUG_CHECK(read == DDS_DX10_HEADER_SIZE, "Error reading Dds dx10 file header.");
-            FERROR_CHECK(_fp);
         }
 
         // Validate header.
@@ -3736,22 +3734,19 @@ namespace cmft
         // Flags claim there should be a ddsdxt10 header after dds header but in fact image data starts there.
         // Therefore, to handle those situations, image data size will be checked against remaining unread data size.
 
-        // Current position in file.
-        long int fpCurrentPos = ftell(_fp);
-
-        // Remaining unread data size.
-        fseek(_fp, 0L, SEEK_END);
-        long int fpRemaining = ftell(_fp) - fpCurrentPos;
+        // Seek to the end to get remaining data size.
+        const int64_t currentPos = bx::seek(&_reader, 0, bx::Whence::Current);
+        const int64_t endPos     = bx::seek(&_reader, 0, bx::Whence::End);
+        const int64_t remaining  = endPos - currentPos;
 
         // Seek back to currentPos or 20 before currentPos in case remaining unread data size does match image data size.
-        fseek(_fp, fpCurrentPos - DDS_DX10_HEADER_SIZE*(fpRemaining == (long int)dataSize-DDS_DX10_HEADER_SIZE), SEEK_SET);
+        bx::seek(&_reader, currentPos - DDS_DX10_HEADER_SIZE*(remaining == dataSize-DDS_DX10_HEADER_SIZE), bx::Whence::Begin);
 
         // Alloc and read data.
         void* data = malloc(dataSize);
         MALLOC_CHECK(data);
-        read = fread(data, 1, dataSize, _fp);
-        DEBUG_CHECK(read == dataSize, "Could not read from file.");
-        FERROR_CHECK(_fp);
+        read = bx::read(&_reader, data, dataSize);
+        DEBUG_CHECK(read == dataSize, "Could not read dds image data.");
 
         // Fill image structure.
         Image result;
@@ -3769,18 +3764,16 @@ namespace cmft
         return true;
     }
 
-    bool imageLoadKtx(Image& _image, FILE* _fp)
+    bool imageLoadKtx(Image& _image, bx::ReaderSeekerI& _reader)
     {
         CMFT_UNUSED size_t read;
-        CMFT_UNUSED int seek;
 
         KtxHeader ktxHeader;
 
         // Read magic.
         uint8_t magic[12];
-        read = fread(&magic, KTX_MAGIC_LEN, 1, _fp);
+        read = bx::read(&_reader, &magic, KTX_MAGIC_LEN);
         DEBUG_CHECK(read == 1, "Could not read from file.");
-        FERROR_CHECK(_fp);
 
         const uint8_t ktxMagic[12] = KTX_MAGIC;
         if (0 != memcmp(magic, ktxMagic, KTX_MAGIC_LEN))
@@ -3791,21 +3784,20 @@ namespace cmft
 
         // Read header.
         read = 0;
-        read += fread(&ktxHeader.m_endianness,           1, sizeof(ktxHeader.m_endianness),           _fp);
-        read += fread(&ktxHeader.m_glType,               1, sizeof(ktxHeader.m_glType),               _fp);
-        read += fread(&ktxHeader.m_glTypeSize,           1, sizeof(ktxHeader.m_glTypeSize),           _fp);
-        read += fread(&ktxHeader.m_glFormat,             1, sizeof(ktxHeader.m_glFormat),             _fp);
-        read += fread(&ktxHeader.m_glInternalFormat,     1, sizeof(ktxHeader.m_glInternalFormat),     _fp);
-        read += fread(&ktxHeader.m_glBaseInternalFormat, 1, sizeof(ktxHeader.m_glBaseInternalFormat), _fp);
-        read += fread(&ktxHeader.m_pixelWidth,           1, sizeof(ktxHeader.m_pixelWidth),           _fp);
-        read += fread(&ktxHeader.m_pixelHeight,          1, sizeof(ktxHeader.m_pixelHeight),          _fp);
-        read += fread(&ktxHeader.m_pixelDepth,           1, sizeof(ktxHeader.m_pixelDepth),           _fp);
-        read += fread(&ktxHeader.m_numArrayElements,     1, sizeof(ktxHeader.m_numArrayElements),     _fp);
-        read += fread(&ktxHeader.m_numFaces,             1, sizeof(ktxHeader.m_numFaces),             _fp);
-        read += fread(&ktxHeader.m_numMips,              1, sizeof(ktxHeader.m_numMips),              _fp);
-        read += fread(&ktxHeader.m_bytesKeyValue,        1, sizeof(ktxHeader.m_bytesKeyValue),        _fp);
+        read += bx::read(&_reader, ktxHeader.m_endianness);
+        read += bx::read(&_reader, ktxHeader.m_glType);
+        read += bx::read(&_reader, ktxHeader.m_glTypeSize);
+        read += bx::read(&_reader, ktxHeader.m_glFormat);
+        read += bx::read(&_reader, ktxHeader.m_glInternalFormat);
+        read += bx::read(&_reader, ktxHeader.m_glBaseInternalFormat);
+        read += bx::read(&_reader, ktxHeader.m_pixelWidth);
+        read += bx::read(&_reader, ktxHeader.m_pixelHeight);
+        read += bx::read(&_reader, ktxHeader.m_pixelDepth);
+        read += bx::read(&_reader, ktxHeader.m_numArrayElements);
+        read += bx::read(&_reader, ktxHeader.m_numFaces);
+        read += bx::read(&_reader, ktxHeader.m_numMips);
+        read += bx::read(&_reader, ktxHeader.m_bytesKeyValue);
         DEBUG_CHECK(read == KTX_HEADER_SIZE, "Error reading Ktx file header.");
-        FERROR_CHECK(_fp);
 
         if (0 == ktxHeader.m_numMips)
         {
@@ -3851,9 +3843,7 @@ namespace cmft
         MALLOC_CHECK(data);
 
         // Jump header key-value data.
-        seek = fseek(_fp, ktxHeader.m_bytesKeyValue, SEEK_CUR);
-        DEBUG_CHECK(0 == seek, "File seek error.");
-        FERROR_CHECK(_fp);
+        bx::seek(&_reader, ktxHeader.m_bytesKeyValue, bx::Whence::Current);
 
         // Read data.
         for (uint8_t mip = 0; mip < ktxHeader.m_numMips; ++mip)
@@ -3864,9 +3854,8 @@ namespace cmft
 
             // Read face size.
             uint32_t faceSize;
-            read = fread(&faceSize, sizeof(uint32_t), 1, _fp);
-            DEBUG_CHECK(read == 1, "Error reading Ktx data.");
-            FERROR_CHECK(_fp);
+            read = bx::read(&_reader, faceSize);
+            DEBUG_CHECK(read == 4, "Error reading Ktx data.");
 
             const uint32_t mipSize = faceSize * ktxHeader.m_numFaces;
             const uint32_t pitchRounding = (KTX_UNPACK_ALIGNMENT-1)-((pitch    + KTX_UNPACK_ALIGNMENT-1)&(KTX_UNPACK_ALIGNMENT-1));
@@ -3885,9 +3874,8 @@ namespace cmft
                 if (0 == pitchRounding)
                 {
                     // Read entire face at once.
-                    read = fread(faceData, 1, faceSize, _fp);
+                    read = bx::read(&_reader, faceData, faceSize);
                     DEBUG_CHECK(read == faceSize, "Error reading Ktx face data.");
-                    FERROR_CHECK(_fp);
                 }
                 else
                 {
@@ -3896,30 +3884,20 @@ namespace cmft
                     {
                         // Read row.
                         uint8_t* dst = (uint8_t*)faceData + yy*pitch;
-                        read = fread(dst, 1, pitch, _fp);
+                        read = bx::read(&_reader, dst, pitch);
                         DEBUG_CHECK(read == pitch, "Error reading Ktx row data.");
-                        FERROR_CHECK(_fp);
 
                         // Jump row rounding.
-                        int seek = fseek(_fp, pitchRounding, SEEK_CUR);
-                        BX_UNUSED(seek);
-                        DEBUG_CHECK(0 == seek, "File seek error.");
-                        FERROR_CHECK(_fp);
+                        bx::seek(&_reader, pitchRounding, bx::Whence::Current);
                     }
                 }
 
                 // Jump face rounding.
-                int seek = fseek(_fp, faceRounding, SEEK_CUR);
-                BX_UNUSED(seek);
-                DEBUG_CHECK(0 == seek, "File seek error.");
-                FERROR_CHECK(_fp);
+                bx::seek(&_reader, faceRounding, bx::Whence::Current);
             }
 
             // Jump mip rounding.
-            int seek = fseek(_fp, mipRounding, SEEK_CUR);
-            BX_UNUSED(seek);
-            DEBUG_CHECK(0 == seek, "File seek error.");
-            FERROR_CHECK(_fp);
+            bx::seek(&_reader, mipRounding, bx::Whence::Current);
         }
 
         // Fill image structure.
@@ -3938,18 +3916,35 @@ namespace cmft
         return true;
     }
 
-    bool imageLoadHdr(Image& _image, FILE* _fp)
+    static inline const char* readLine(char* _out, uint32_t _max, bx::ReaderSeekerI& _reader)
     {
-        CMFT_UNUSED char* get;
-        CMFT_UNUSED size_t read;
-        char buf[128];
+        bx::read(&_reader, _out, _max);
 
-        // Read first line.
-        get = fgets(buf, sizeof(buf), _fp);
-        DEBUG_CHECK(NULL != get, "Error reading first line of Hdr file.");
+        const char* eol = bx::streol(_out);
+        const char* nl  = bx::strnl(eol);
+
+        // Seek back right after newline character.
+        if (NULL != nl)
+        {
+            bx::seek(&_reader, nl-_out-_max, bx::Whence::Current);
+        }
+
+        return nl;
+    }
+
+    bool imageLoadHdr(Image& _image, bx::ReaderSeekerI& _reader)
+    {
+        CMFT_UNUSED size_t read;
+
+        // Read magic.
+        char magic[HDR_MAGIC_LEN];
+        bx::read(&_reader, magic, HDR_MAGIC_LEN);
+
+        // Skip nl char.
+        bx::seek(&_reader, 1, bx::Whence::Current);
 
         // Check magic.
-        if(0 != strncmp(buf, HDR_MAGIC_FULL, HDR_MAGIC_LEN))
+        if (0 != strncmp(magic, HDR_MAGIC_FULL, HDR_MAGIC_LEN))
         {
             WARN("HDR magic not valid.");
             return false;
@@ -3965,9 +3960,8 @@ namespace cmft
         for (uint8_t ii = 0, stop = 20; ii < stop; ++ii)
         {
             // Read next line.
-            get = fgets(buf, sizeof(buf), _fp);
-            DEBUG_CHECK(NULL != get, "Error reading Hdr file header.");
-            FERROR_CHECK(_fp);
+            char buf[64];
+            const char* nl = readLine(buf, sizeof(buf), _reader);
 
             if ((0 == buf[0])
             || ('\n' == buf[0]))
@@ -3975,15 +3969,17 @@ namespace cmft
                 // End of header.
                 break;
             }
-            else if (0 == strcmp(buf, "FORMAT=32-bit_rle_rgbe\n"))
+
+            const size_t len = (NULL != nl) ? nl-buf : sizeof(buf);
+            if (0 == strncmp(buf, "FORMAT=32-bit_rle_rgbe\n", len))
             {
                 formatDefined = true;
             }
-            else if (1 == sscanf(buf, "GAMMA=%g", &hdrHeader.m_gamma))
+            else if (1 == sscanf_s(buf, "GAMMA=%g", &hdrHeader.m_gamma, len))
             {
                 hdrHeader.m_valid |= HDR_VALID_GAMMA;
             }
-            else if (1 == sscanf(buf, "EXPOSURE=%g", &hdrHeader.m_exposure))
+            else if (1 == sscanf_s(buf, "EXPOSURE=%g", &hdrHeader.m_exposure, len))
             {
                 hdrHeader.m_valid |= HDR_VALID_EXPOSURE;
             }
@@ -3994,16 +3990,12 @@ namespace cmft
             WARN("Invalid Hdr header.");
         }
 
-        // Read empty line (end of header).
-        get = fgets(buf, sizeof(buf), _fp);
-        DEBUG_CHECK(NULL != get, "Error reading end of Hdr file header.");
-        FERROR_CHECK(_fp);
-
         // Read image size.
         int32_t width;
         int32_t height;
-        read = sscanf(buf, "-Y %d +X %d", &height, &width);
-        DEBUG_CHECK(2 == read, "Error reading Hdr image size.");
+        char buf[64];
+        readLine(buf, sizeof(buf), _reader);
+        sscanf_s(buf, "-Y %d +X %d", &height, &width, sizeof(buf));
 
         // Allocate data.
         const uint32_t dataSize = width * height * 4 /* bytesPerChannel */;
@@ -4012,9 +4004,7 @@ namespace cmft
 
         // Read first chunk.
         unsigned char rgbe[4];
-        read = fread(rgbe, 4*sizeof(unsigned char), 1, _fp);
-        DEBUG_CHECK(read == 1, "Could not read Hdr image data.");
-        FERROR_CHECK(_fp);
+        bx::read(&_reader, rgbe, sizeof(rgbe));
 
         uint8_t* dataPtr = (uint8_t*)data;
 
@@ -4034,10 +4024,9 @@ namespace cmft
             dataPtr += 4;
 
             // Read rest of the file.
-            const uint32_t remaningDataSize = dataSize - 4;
-            read = fread(dataPtr, remaningDataSize, 1, _fp);
-            DEBUG_CHECK(read == 1, "Error reading Hdr image data.");
-            FERROR_CHECK(_fp);
+            const uint32_t remainingDataSize = dataSize - 4;
+            read = bx::read(&_reader, dataPtr, remainingDataSize);
+            DEBUG_CHECK(read == remainingDataSize, "Error reading Hdr image data.");
         }
         else
         {
@@ -4060,9 +4049,7 @@ namespace cmft
                     while (ptr < ptrEnd)
                     {
                         unsigned char rle[2];
-                        read = fread(rle, sizeof(rle), 1, _fp);
-                        DEBUG_CHECK(read == 1, "Error reading Hdr image data.");
-                        FERROR_CHECK(_fp);
+                        bx::read(&_reader, rle, sizeof(rle));
 
                         if (rle[0] > 128)
                         {
@@ -4082,9 +4069,8 @@ namespace cmft
                             *ptr++ = rle[1];
                             if (--count > 0)
                             {
-                                read = fread(ptr, 1, count, _fp);
+                                read = bx::read(&_reader, ptr, count);
                                 DEBUG_CHECK(int32_t(read) == count, "Error reading Hdr image data.");
-                                FERROR_CHECK(_fp);
                                 ptr += count;
                             }
                         }
@@ -4108,9 +4094,7 @@ namespace cmft
                 }
 
                 // Read next scanline.
-                read = fread(rgbe, sizeof(rgbe), 1, _fp);
-                DEBUG_CHECK(read == 1, "Could not read Hdr image data.");
-                FERROR_CHECK(_fp);
+                bx::read(&_reader, rgbe, sizeof(rgbe));
             }
         }
 
@@ -4130,28 +4114,26 @@ namespace cmft
         return true;
     }
 
-    bool imageLoadTga(Image& _image, FILE* _fp)
+    bool imageLoadTga(Image& _image, bx::ReaderSeekerI& _reader)
     {
         CMFT_UNUSED size_t read;
-        CMFT_UNUSED int seek;
 
         // Load header.
         TgaHeader tgaHeader;
         read = 0;
-        read += fread(&tgaHeader.m_idLength,        1, sizeof(tgaHeader.m_idLength),        _fp);
-        read += fread(&tgaHeader.m_colorMapType,    1, sizeof(tgaHeader.m_colorMapType),    _fp);
-        read += fread(&tgaHeader.m_imageType,       1, sizeof(tgaHeader.m_imageType),       _fp);
-        read += fread(&tgaHeader.m_colorMapOrigin,  1, sizeof(tgaHeader.m_colorMapOrigin),  _fp);
-        read += fread(&tgaHeader.m_colorMapLength,  1, sizeof(tgaHeader.m_colorMapLength),  _fp);
-        read += fread(&tgaHeader.m_colorMapDepth,   1, sizeof(tgaHeader.m_colorMapDepth),   _fp);
-        read += fread(&tgaHeader.m_xOrigin,         1, sizeof(tgaHeader.m_xOrigin),         _fp);
-        read += fread(&tgaHeader.m_yOrigin,         1, sizeof(tgaHeader.m_yOrigin),         _fp);
-        read += fread(&tgaHeader.m_width,           1, sizeof(tgaHeader.m_width),           _fp);
-        read += fread(&tgaHeader.m_height,          1, sizeof(tgaHeader.m_height),          _fp);
-        read += fread(&tgaHeader.m_bitsPerPixel,    1, sizeof(tgaHeader.m_bitsPerPixel),    _fp);
-        read += fread(&tgaHeader.m_imageDescriptor, 1, sizeof(tgaHeader.m_imageDescriptor), _fp);
+        read += bx::read(&_reader, tgaHeader.m_idLength);
+        read += bx::read(&_reader, tgaHeader.m_colorMapType);
+        read += bx::read(&_reader, tgaHeader.m_imageType);
+        read += bx::read(&_reader, tgaHeader.m_colorMapOrigin);
+        read += bx::read(&_reader, tgaHeader.m_colorMapLength);
+        read += bx::read(&_reader, tgaHeader.m_colorMapDepth);
+        read += bx::read(&_reader, tgaHeader.m_xOrigin);
+        read += bx::read(&_reader, tgaHeader.m_yOrigin);
+        read += bx::read(&_reader, tgaHeader.m_width);
+        read += bx::read(&_reader, tgaHeader.m_height);
+        read += bx::read(&_reader, tgaHeader.m_bitsPerPixel);
+        read += bx::read(&_reader, tgaHeader.m_imageDescriptor);
         DEBUG_CHECK(read == TGA_HEADER_SIZE, "Error reading file header.");
-        FERROR_CHECK(_fp);
 
         // Check header.
         if(0 == (TGA_IT_RGB & tgaHeader.m_imageType))
@@ -4187,9 +4169,7 @@ namespace cmft
 
         // Skip to data.
         const uint32_t skip = tgaHeader.m_idLength + (tgaHeader.m_colorMapType&0x1)*tgaHeader.m_colorMapLength;
-        seek = fseek(_fp, skip, SEEK_CUR);
-        DEBUG_CHECK(0 == seek, "File seek error.");
-        FERROR_CHECK(_fp);
+        bx::seek(&_reader, skip, bx::Whence::Current);
 
         // Load data.
         const bool bCompressed = (0 != (tgaHeader.m_imageType&TGA_IT_RLE));
@@ -4200,9 +4180,8 @@ namespace cmft
             uint8_t* dataPtr = data;
             while (n < numPixels)
             {
-                read = fread(buf, numBytesPerPixel+1, 1, _fp);
-                DEBUG_CHECK(read == 1, "Could not read from file.");
-                FERROR_CHECK(_fp);
+                read = bx::read(&_reader, buf, 1+numBytesPerPixel);
+                DEBUG_CHECK(read == (1+numBytesPerPixel), "Could not read from file.");
 
                 const uint8_t count = buf[0] & 0x7f;
 
@@ -4225,9 +4204,8 @@ namespace cmft
                     // Normal chunk.
                     for (uint8_t ii = 0; ii < count; ++ii)
                     {
-                        read = fread(buf, numBytesPerPixel, 1, _fp);
-                        DEBUG_CHECK(read == 1, "Could not read from file.");
-                        FERROR_CHECK(_fp);
+                        read = bx::read(&_reader, buf, numBytesPerPixel);
+                        DEBUG_CHECK(read == +numBytesPerPixel, "Could not read from file.");
 
                         memcpy(dataPtr, buf, numBytesPerPixel);
                         dataPtr += numBytesPerPixel;
@@ -4238,9 +4216,8 @@ namespace cmft
         }
         else
         {
-            read = fread(data, dataSize, 1, _fp);
-            DEBUG_CHECK(read == 1, "Could not read from file.");
-            FERROR_CHECK(_fp);
+            read = bx::read(&_reader, data, dataSize);
+            DEBUG_CHECK(read == dataSize, "Could not read from file.");
         }
 
         // Fill image structure.
@@ -4291,52 +4268,36 @@ namespace cmft
         return false;
     }
 
-    bool imageLoad(Image& _image, const char* _filePath, TextureFormat::Enum _convertTo)
+    bool imageLoad(Image& _image, bx::ReaderSeekerI& _reader, TextureFormat::Enum _convertTo)
     {
-        CMFT_UNUSED size_t read;
-        CMFT_UNUSED int seek;
-
-        // Open file.
-        FILE* fp = fopen(_filePath, "rb");
-        if (NULL == fp)
-        {
-            WARN("Could not open file %s for reading.", _filePath);
-            return false;
-        }
-        ScopeFclose cleanup(fp);
-
         // Read magic.
         uint32_t magic;
-        read = fread(&magic, sizeof(uint32_t), 1, fp);
-        DEBUG_CHECK(read == 1, "Could not read from file.");
-        FERROR_CHECK(fp);
+        bx::read(&_reader, magic);
 
         // Seek to beginning.
-        seek = fseek(fp, 0L, SEEK_SET);
-        DEBUG_CHECK(0 == seek, "File seek error.");
-        FERROR_CHECK(fp);
+        bx::seek(&_reader, 0, bx::Whence::Begin);
 
         // Load image.
         bool loaded = false;
         if (DDS_MAGIC == magic)
         {
-            loaded = imageLoadDds(_image, fp);
+            loaded = imageLoadDds(_image, _reader);
         }
         else if (HDR_MAGIC == magic)
         {
-            loaded = imageLoadHdr(_image, fp);
+            loaded = imageLoadHdr(_image, _reader);
         }
         else if (KTX_MAGIC_SHORT == magic)
         {
-            loaded = imageLoadKtx(_image, fp);
+            loaded = imageLoadKtx(_image, _reader);
         }
         else if (isTga(magic))
         {
-            loaded = imageLoadTga(_image, fp);
+            loaded = imageLoadTga(_image, _reader);
         }
         else
         {
-            WARN("Could not load %s. Unknown file type.", _filePath);
+            WARN("Unknown file type.");
             return false;
         }
 
@@ -4353,6 +4314,26 @@ namespace cmft
         }
 
         return true;
+    }
+
+    bool imageLoad(Image& _image, const char* _filePath, TextureFormat::Enum _convertTo)
+    {
+        bx::CrtFileReader fileReader;
+        if (fileReader.open(_filePath))
+        {
+            WARN("Could not open file %s for reading.", _filePath);
+            return false;
+        }
+
+        const bool result = imageLoad(_image, fileReader, _convertTo);
+        fileReader.close();
+        return result;
+    }
+
+    bool imageLoad(Image& _image, const void* _data, uint32_t _dataSize, TextureFormat::Enum _convertTo)
+    {
+        bx::MemoryReader reader(_data, _dataSize);
+        return imageLoad(_image, reader, _convertTo);
     }
 
     bool imageIsValid(const Image& _image)
