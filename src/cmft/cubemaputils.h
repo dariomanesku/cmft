@@ -157,14 +157,21 @@ namespace cmft
     /// _u and _v should be center adressing and in [-1.0+invSize..1.0-invSize] range.
     static inline void texelCoordToVec(float* _out3f, float _u, float _v, uint8_t _faceId, uint32_t _faceSize)
     {
-        if (_faceSize != 1)
-        {
-            // Edge fixup.
-            // Code from Nvtt : http://code.google.com/p/nvidia-texture-tools/source/browse/trunk/src/nvtt/CubeSurface.cpp
-            const float a = float(_faceSize*_faceSize) / powf(float(_faceSize - 1), 3.0f);
-            _u = a * powf(_u, 3.0f) + _u;
-            _v = a * powf(_v, 3.0f) + _v;
-        }
+        // TODO:
+        // Edge fixup is commented out for now.
+        // DX10/DX11 and OGL with ARB_seamless_cube_map are fine without it.
+        // DX9 and OGL without ARB_seamless_cube_map need fixup + some shader code at
+        // runtime for good results. It will be expained/demonstrated in cmftStudio - https://github.com/dariomanesku/cmftStudio
+
+        //if (_faceSize != 1)
+        //{
+        //    // Edge fixup.
+        //    // Code from Nvtt : http://code.google.com/p/nvidia-texture-tools/source/browse/trunk/src/nvtt/CubeSurface.cpp
+        //    const float a = float(_faceSize*_faceSize) / powf(float(_faceSize - 1), 3.0f);
+        //    _u = a * powf(_u, 3.0f) + _u;
+        //    _v = a * powf(_v, 3.0f) + _v;
+        //}
+        (void)(true ? (void)0 : (void)_faceSize);
 
         texelCoordToVec(_out3f, _u, _v, _faceId);
     }
