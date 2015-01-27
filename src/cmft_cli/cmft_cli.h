@@ -768,7 +768,7 @@ void printHelp()
             "          phongbrdf\n"
             "          blinn\n"
             "          blinnbrdf\n"
-            "    --edgeFixup <fixup>                DirectX9 and OpenGL without ARB_seamless_cube_map cannot filter sample cubemap across face edges. In those cases, use warp edge fixup. Otherwise, choose 'none'. Cubemaps filtered with warp edge fixup also require some shader code to be executed at runtime. See 'cmft/include/cubemapfilter.h' for more details. [radiance filter param]\n"
+            "    --edgeFixup <fixup>                DirectX9 and OpenGL without ARB_seamless_cube_map cannot sample cubemap across face edges. In those cases, use 'warp' edge fixup. Otherwise, choose 'none'. Cubemaps filtered with warp edge fixup also require some shader code to be executed at runtime. See 'cmft/include/cubemapfilter.h' for more details. [radiance filter param]\n"
             "          none\n"
             "          warp\n"
             "    --numCpuProcessingThreads <uint>   Should not be bigger than the number of physical CPU cores/threads. [radiance filter param]\n"
