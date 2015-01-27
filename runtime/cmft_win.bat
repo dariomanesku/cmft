@@ -37,6 +37,7 @@ REM           --output0 "okretnica"
           --glossScale 10                   ^
           --glossBias 1                     ^
           --lightingModel phongbrdf         ^
+          --edgeFixup none                  ^
           --dstFaceSize 256                 ^
           ::Processing devices              ^
           --numCpuProcessingThreads 4       ^
@@ -117,6 +118,7 @@ REM           --mipCount 9                  ^
 REM           --glossScale 10               ^
 REM           --glossBias 1                 ^
 REM           --lightingModel phongbrdf     ^
+REM           --edgeFixup none              ^
 REM           --dstFaceSize 256             ^
 REM           ::Processing devices          ^
 REM           --numCpuProcessingThreads 4   ^
@@ -163,10 +165,10 @@ REM           --negZflipH                   ^
 REM           --negZflipV                   ^
 REM           ::Output                      ^
 REM           --outputNum 5                 ^
-REM           --output0 "cmft_cubemap"    --output0params dds,bgra8,cubemap                ^
-REM           --output1 "cmft_hstrip"     --output1params dds,bgra8,hstrip                 ^
-REM           --output2 "cmft_cubecross"  --output2params ktx,rgba32f,cubecross,horizontal ^
-REM           --output3 "cmft_facelist"   --output3params tga,bgra8,facelist               ^
-REM           --output4 "cmft_latlong"    --output4params hdr,rgbe,latlong                 ^
+REM           --output0 "cmft_cubemap"    --output0params dds,bgra8,cubemap  ^
+REM           --output1 "cmft_hstrip"     --output1params dds,bgra8,hstrip   ^
+REM           --output2 "cmft_cubecross"  --output2params ktx,rgba32f,hcross ^
+REM           --output3 "cmft_facelist"   --output3params tga,bgra8,facelist ^
+REM           --output4 "cmft_latlong"    --output4params hdr,rgbe,latlong   ^
 REM           ::Misc                        ^
 REM           --silent

@@ -39,6 +39,33 @@ namespace cmft
         };
     };
 
+    /// Warp edge fixup is used for DirectX 9 and OpenGL without ARB_seamless_cube_map where
+    /// there is no support for seamless filtering across cubemap faces. For cubemaps filtered
+    /// with Warp filter, this code needs to be called in the shader at runtime:
+    ///     vec3 fixCubeLookup(vec3 _v, float _lod, float _topLevelCubeSize)
+    ///     {
+    ///         float ax = abs(_v.x);
+    ///         float ay = abs(_v.y);
+    ///         float az = abs(_v.z);
+    ///         float vmax = max(max(ax, ay), az);
+    ///         float scale = 1.0 - exp2(_lod)/_topLevelCubeSize;
+    ///         if (ax != vmax) { _v.x *= scale; }
+    ///         if (ay != vmax) { _v.y *= scale; }
+    ///         if (az != vmax) { _v.z *= scale; }
+    ///         return _v;
+    ///     }
+    ///
+    /// For aditional details see: http://the-witness.net/news/2012/02/seamless-cube-map-filtering/
+    ///
+    struct EdgeFixup
+    {
+        enum Enum
+        {
+            None,
+            Warp,
+        };
+    };
+
     /// Helper functions.
     float specularPowerFor(float _mip, float _mipCount, float _glossScale, float _glossBias);
     float applyLightningModel(float _specularPower, LightingModel::Enum _lightingModel);
@@ -54,6 +81,7 @@ namespace cmft
                            , uint8_t _glossScale
                            , uint8_t _glossBias
                            , const Image& _src
+                           , EdgeFixup::Enum _edgeFixup = EdgeFixup::None
                            , int8_t _numCpuProcessingThreads = -1
                            , const ClContext* _clContext = NULL
                            );
@@ -66,6 +94,7 @@ namespace cmft
                            , uint8_t _mipCount
                            , uint8_t _glossScale
                            , uint8_t _glossBias
+                           , EdgeFixup::Enum _edgeFixup = EdgeFixup::None
                            , int8_t _numCpuProcessingThreads = -1
                            , const ClContext* _clContext = NULL
                            );

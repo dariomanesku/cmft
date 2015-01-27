@@ -11,7 +11,6 @@
 #include <string.h> //memcpy
 #include <ctype.h>  //tolower
 #include <math.h>   //log2
-
 #include <malloc.h> //alloca
 
 #ifndef M_PI
@@ -186,13 +185,16 @@ namespace cmft
             if (m_fp)
             {
                 fclose(m_fp);
-                m_fp = NULL;
             }
         }
 
     private:
         FILE* m_fp;
     };
+
+    #ifndef CMFT_FREE
+        #define CMFT_FREE(_ptr) ::free(_ptr)
+    #endif
 
     struct ScopeFree : NoCopyNoAssign
     {
@@ -202,8 +204,7 @@ namespace cmft
         {
             if (m_ptr)
             {
-                free(m_ptr);
-                m_ptr = NULL;
+                CMFT_FREE(m_ptr);
             }
         }
 

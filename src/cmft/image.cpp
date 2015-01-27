@@ -3,7 +3,8 @@
  * License: http://www.opensource.org/licenses/BSD-2-Clause
  */
 
-#include "cmft/image.h"
+#include <cmft/image.h>
+#include <cmft/allocator.h>
 
 #include "base/config.h"
 #include "base/printcallback.h"
@@ -25,17 +26,17 @@ namespace cmft
 
     static const char* s_textureFormatStr[TextureFormat::Count] =
     {
-        "BGR8",      //BGR8
-        "RGB8",      //RGB8
-        "RGB16",     //RGB16
-        "RGB16F",    //RGB16F
-        "RGB32F",    //RGB32F
-        "RGBE",      //RGBE
-        "BGRA8",     //BGRA8
-        "RGBA8",     //RGBA8
-        "RGBA16",    //RGBA16
-        "RGBA16F",   //RGBA16F
-        "RGBA32F",   //RGBA32F
+        "BGR8",    //BGR8
+        "RGB8",    //RGB8
+        "RGB16",   //RGB16
+        "RGB16F",  //RGB16F
+        "RGB32F",  //RGB32F
+        "RGBE",    //RGBE
+        "BGRA8",   //BGRA8
+        "RGBA8",   //RGBA8
+        "RGBA16",  //RGBA16
+        "RGBA16F", //RGBA16F
+        "RGBA32F", //RGBA32F
     };
 
     const char* getTextureFormatStr(TextureFormat::Enum _format)
@@ -388,6 +389,14 @@ namespace cmft
     {
         DEBUG_CHECK(_format < TextureFormat::Count, "Reading array out of bounds!");
         return s_imageDataInfo[_format];
+    }
+
+    uint8_t getNaturalAlignment(TextureFormat::Enum _format)
+    {
+        const uint8_t bytesPerPixel = getImageDataInfo(_format).m_bytesPerPixel;
+        const uint8_t numChannels   = getImageDataInfo(_format).m_numChanels;
+
+        return bytesPerPixel/numChannels;
     }
 
     // HDR format.
@@ -1019,7 +1028,7 @@ namespace cmft
             dstDataSize += mipWidth * mipHeight * bytesPerPixel;
         }
         dstDataSize *= numFaces;
-        void* dstData = malloc(dstDataSize);
+        void* dstData = CMFT_ALLOC(dstDataSize);
         MALLOC_CHECK(dstData);
 
         // Get color in rgba32f format.
@@ -1064,7 +1073,7 @@ namespace cmft
     {
         if (_image.m_data)
         {
-            free(_image.m_data);
+            CMFT_FREE(_image.m_data);
             _image.m_data = NULL;
         }
     }
@@ -1087,7 +1096,7 @@ namespace cmft
     {
         imageUnload(_dst);
 
-        _dst.m_data = malloc(_src.m_dataSize);
+        _dst.m_data = CMFT_ALLOC(_src.m_dataSize);
         MALLOC_CHECK(_dst.m_data);
         memcpy(_dst.m_data, _src.m_data, _src.m_dataSize);
         _dst.m_width    = _src.m_width;
@@ -1275,7 +1284,7 @@ namespace cmft
         const uint32_t pixelCount = imageGetNumPixels(_src);
         const uint8_t dstBytesPerPixel = getImageDataInfo(TextureFormat::RGBA32F).m_bytesPerPixel;
         const uint32_t dataSize = pixelCount*dstBytesPerPixel;
-        void* data = malloc(dataSize);
+        void* data = CMFT_ALLOC(dataSize);
         MALLOC_CHECK(data);
 
         // Get total number of channels.
@@ -1546,7 +1555,7 @@ namespace cmft
         const uint32_t pixelCount = imageGetNumPixels(_src);
         const uint8_t dstBytesPerPixel = getImageDataInfo(_dstFormat).m_bytesPerPixel;
         const uint32_t dstDataSize = pixelCount*dstBytesPerPixel;
-        void* dstData = malloc(dstDataSize);
+        void* dstData = CMFT_ALLOC(dstDataSize);
         MALLOC_CHECK(dstData);
 
         // Get total number of channels.
@@ -1724,7 +1733,15 @@ namespace cmft
         if (TextureFormat::RGBA32F == _dstFormat)
         {
             imageUnload(_dst);
-            imageCopy(_dst, imageRgba32f);
+            if (imageRgba32f.m_isRef)
+            {
+                imageCopy(_dst, imageRgba32f);
+            }
+            else
+            {
+                imageMove(_dst, imageRgba32f);
+            }
+
         }
         else
         {
@@ -1812,7 +1829,7 @@ namespace cmft
                 dstDataSize += dstMipWidth * dstMipHeight * bytesPerPixel;
             }
         }
-        void* dstData = malloc(dstDataSize);
+        void* dstData = CMFT_ALLOC(dstDataSize);
         MALLOC_CHECK(dstData);
 
         // Get source offsets.
@@ -2199,7 +2216,7 @@ namespace cmft
         }
 
         // Alloc data.
-        void* dstData = malloc(dstDataSize);
+        void* dstData = CMFT_ALLOC(dstDataSize);
         MALLOC_CHECK(dstData);
 
         // Get source offsets.
@@ -2629,7 +2646,7 @@ namespace cmft
 
         // Alloc data.
         const uint32_t dstDataSize = faceDataSize * CUBE_FACE_NUM;
-        void* data = malloc(dstDataSize);
+        void* data = CMFT_ALLOC(dstDataSize);
         MALLOC_CHECK(data);
 
         // Setup offsets.
@@ -2739,7 +2756,7 @@ namespace cmft
         const uint32_t dstPitch = dstFaceSize * bytesPerPixel;
         const uint32_t dstFaceDataSize = dstPitch * dstFaceSize;
         const uint32_t dstDataSize = dstFaceDataSize * CUBE_FACE_NUM;
-        void* dstData = malloc(dstDataSize);
+        void* dstData = CMFT_ALLOC(dstDataSize);
         MALLOC_CHECK(dstData);
 
         // Get source parameters.
@@ -2892,7 +2909,7 @@ namespace cmft
             const uint32_t dstMipHeight = max(UINT32_C(1), dstHeight >> mip);
             dstDataSize += dstMipWidth * dstMipHeight * bytesPerPixel;
         }
-        void* dstData = malloc(dstDataSize);
+        void* dstData = CMFT_ALLOC(dstDataSize);
         MALLOC_CHECK(dstData);
 
         // Get source image parameters.
@@ -3055,7 +3072,7 @@ namespace cmft
 
             dstDataSize += mipWidth * mipHeight * bytesPerPixel;
         }
-        void* dstData = malloc(dstDataSize);
+        void* dstData = CMFT_ALLOC(dstDataSize);
         MALLOC_CHECK(dstData);
 
         // Get source image offsets.
@@ -3171,7 +3188,7 @@ namespace cmft
                 dstDataSize += mipSize * mipSize * bytesPerPixel;
             }
         }
-        void* dstData = malloc(dstDataSize);
+        void* dstData = CMFT_ALLOC(dstDataSize);
         MALLOC_CHECK(dstData);
 
         uint32_t srcOffsets[CUBE_FACE_NUM][MAX_MIP_NUM];
@@ -3257,7 +3274,7 @@ namespace cmft
 
         for (uint8_t face = 0; face < 6; ++face)
         {
-            void* dstData = malloc(dstDataSize);
+            void* dstData = CMFT_ALLOC(dstDataSize);
             MALLOC_CHECK(dstData);
 
             for (uint8_t mip = 0; mip < _cubemap.m_numMips; ++mip)
@@ -3302,15 +3319,15 @@ namespace cmft
             return false;
         }
 
-        // Alloc destination data.
-        const uint32_t dstDataSize = _faceList[0].m_dataSize * 6;
-        void* dstData = malloc(dstDataSize);
-        MALLOC_CHECK(dstData);
-
         // Get source offsets.
         uint32_t srcOffsets[CUBE_FACE_NUM][MAX_MIP_NUM];
         imageGetMipOffsets(srcOffsets, _faceList[0]);
         const uint32_t bytesPerPixel = getImageDataInfo(_faceList[0].m_format).m_bytesPerPixel;
+
+        // Alloc destination data.
+        const uint32_t dstDataSize = _faceList[0].m_dataSize * 6;
+        void* dstData = CMFT_ALLOC(dstDataSize);
+        MALLOC_CHECK(dstData);
 
         // Copy data.
         uint32_t destinationOffset = 0;
@@ -3386,7 +3403,7 @@ namespace cmft
 
             dstDataSize += mipWidth * mipHeight * bytesPerPixel;
         }
-        void* dstData = malloc(dstDataSize);
+        void* dstData = CMFT_ALLOC(dstDataSize);
         MALLOC_CHECK(dstData);
 
         // Get black pixel.
@@ -3743,7 +3760,7 @@ namespace cmft
         bx::seek(&_reader, currentPos - DDS_DX10_HEADER_SIZE*(remaining == dataSize-DDS_DX10_HEADER_SIZE), bx::Whence::Begin);
 
         // Alloc and read data.
-        void* data = malloc(dataSize);
+        void* data = CMFT_ALLOC(dataSize);
         MALLOC_CHECK(data);
         read = bx::read(&_reader, data, dataSize);
         DEBUG_CHECK(read == dataSize, "Could not read dds image data.");
@@ -3839,7 +3856,7 @@ namespace cmft
         }
 
         // Alloc data.
-        void* data = (void*)malloc(dataSize);
+        void* data = (void*)CMFT_ALLOC(dataSize);
         MALLOC_CHECK(data);
 
         // Jump header key-value data.
@@ -3850,7 +3867,7 @@ namespace cmft
         {
             const uint32_t width  = max(UINT32_C(1), ktxHeader.m_pixelWidth  >> mip);
             const uint32_t height = max(UINT32_C(1), ktxHeader.m_pixelHeight >> mip);
-            const uint32_t pitch = width * bytesPerPixel;
+            const uint32_t pitch  = width * bytesPerPixel;
 
             // Read face size.
             uint32_t faceSize;
@@ -3998,8 +4015,8 @@ namespace cmft
         sscanf_s(buf, "-Y %d +X %d", &height, &width, sizeof(buf));
 
         // Allocate data.
-        const uint32_t dataSize = width * height * 4 /* bytesPerChannel */;
-        uint8_t* data = (uint8_t*)malloc(dataSize);
+        const uint32_t dataSize = width * height * 4 /* bytesPerPixel */;
+        uint8_t* data = (uint8_t*)CMFT_ALLOC(dataSize);
         MALLOC_CHECK(data);
 
         // Read first chunk.
@@ -4164,7 +4181,7 @@ namespace cmft
         const uint32_t numBytesPerPixel = tgaHeader.m_bitsPerPixel/8;
         const uint32_t numPixels = tgaHeader.m_width * tgaHeader.m_height;
         const uint32_t dataSize = numPixels * numBytesPerPixel;
-        uint8_t* data = (uint8_t*)malloc(dataSize);
+        uint8_t* data = (uint8_t*)CMFT_ALLOC(dataSize);
         MALLOC_CHECK(data);
 
         // Skip to data.
@@ -4934,6 +4951,23 @@ namespace cmft
     // ImageRef
     //-----
 
+    bool imageAsCubemap(ImageSoftRef& _dst, const Image& _src)
+    {
+        if (imageIsCubemap(_src))
+        {
+            imageRef(_dst, _src);
+            return true;
+        }
+        else if (imageCubemapFromCross(_dst, _src)
+             ||  imageCubemapFromLatLong(_dst, _src)
+             ||  imageCubemapFromStrip(_dst, _src))
+        {
+            return true;
+        }
+
+        return false;
+    }
+
     void imageRefOrConvert(ImageHardRef& _dst, TextureFormat::Enum _format, Image& _src)
     {
         if (_format == _src.m_format)
@@ -4962,14 +4996,14 @@ namespace cmft
 
     void imageRef(ImageSoftRef& _dst, const Image& _src)
     {
-        _dst.m_data        = _src.m_data;
-        _dst.m_width       = _src.m_width;
-        _dst.m_height      = _src.m_height;
-        _dst.m_dataSize    = _src.m_dataSize;
-        _dst.m_format      = _src.m_format;
-        _dst.m_numMips     = _src.m_numMips;
-        _dst.m_numFaces    = _src.m_numFaces;
-        _dst.m_isRef       = true;
+        _dst.m_data     = _src.m_data;
+        _dst.m_width    = _src.m_width;
+        _dst.m_height   = _src.m_height;
+        _dst.m_dataSize = _src.m_dataSize;
+        _dst.m_format   = _src.m_format;
+        _dst.m_numMips  = _src.m_numMips;
+        _dst.m_numFaces = _src.m_numFaces;
+        _dst.m_isRef    = true;
     }
 
     void imageRef(ImageHardRef& _dst, Image& _src)
@@ -5007,13 +5041,13 @@ namespace cmft
     void imageMove(Image& _dst, ImageHardRef& _src)
     {
         imageUnload(_dst);
-        _dst.m_data         = _src.m_data;
-        _dst.m_width        = _src.m_width;
-        _dst.m_height       = _src.m_height;
-        _dst.m_dataSize     = _src.m_dataSize;
-        _dst.m_format       = _src.m_format;
-        _dst.m_numMips      = _src.m_numMips;
-        _dst.m_numFaces     = _src.m_numFaces;
+        _dst.m_data     = _src.m_data;
+        _dst.m_width    = _src.m_width;
+        _dst.m_height   = _src.m_height;
+        _dst.m_dataSize = _src.m_dataSize;
+        _dst.m_format   = _src.m_format;
+        _dst.m_numMips  = _src.m_numMips;
+        _dst.m_numFaces = _src.m_numFaces;
 
         _src.m_data = NULL;
         if (_src.isRef())
@@ -5026,7 +5060,7 @@ namespace cmft
     {
         if (_image.isCopy() && _image.m_data)
         {
-            free(_image.m_data);
+            CMFT_FREE(_image.m_data);
             _image.m_data = NULL;
         }
     }
@@ -5035,7 +5069,7 @@ namespace cmft
     {
         if (_image.isCopy() && _image.m_data)
         {
-            free(_image.m_data);
+            CMFT_FREE(_image.m_data);
             _image.m_data = NULL;
         }
     }

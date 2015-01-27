@@ -7,6 +7,7 @@
 #define CMFT_CONFIG_H_HEADER_GUARD
 
 #include <stdlib.h> //abort()
+#include <stdio.h> //stderr
 
 #ifndef CMFT_CONFIG_DEBUG
     #define CMFT_CONFIG_DEBUG 1

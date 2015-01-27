@@ -3,8 +3,9 @@
  * License: http://www.opensource.org/licenses/BSD-2-Clause
  */
 
-#include "cmft/cubemapfilter.h"
-#include "cmft/clcontext.h"
+#include <cmft/cubemapfilter.h>
+#include <cmft/clcontext.h>
+#include <cmft/allocator.h>
 
 #include "base/config.h"
 #include "base/printcallback.h"
@@ -13,7 +14,6 @@
 #include "cubemaputils.h"
 #include "radiance.h"
 
-#include <stdlib.h> //malloc
 #include <string.h> //memset
 #include <math.h> //pow, sqrt
 #include <float.h> //FLT_MAX
@@ -36,7 +36,7 @@ namespace cmft
     /// Output consists of 6 faces of specified size containing (x,y,z,angle) floats for each texel.
     ///
     /// Memory should be freed outside of the function !
-    float* buildCubemapNormalSolidAngle(uint32_t _cubemapFaceSize)
+    float* buildCubemapNormalSolidAngle(uint32_t _cubemapFaceSize, EdgeFixup::Enum _fixup = EdgeFixup::None)
     {
         const uint32_t size = _cubemapFaceSize /*width*/
                             * _cubemapFaceSize /*height*/
@@ -44,31 +44,65 @@ namespace cmft
                             * 4 /*numChannels*/
                             * 4 /*bytesPerChannel*/
                             ;
-        float* dst = (float*)malloc(size);
+        float* dst = (float*)CMFT_ALLOC(size);
         MALLOC_CHECK(dst);
 
-        const float invFaceSize = 1.0f/float(int32_t(_cubemapFaceSize));
+        const float cfs = float(int32_t(_cubemapFaceSize));
+        const float invCfs = 1.0f/cfs;
 
-        float* dstPtr = dst;
-        for(uint8_t face = 0; face < 6; ++face)
+        if (EdgeFixup::None == _fixup)
         {
-            for (uint32_t yy = 0; yy < _cubemapFaceSize; ++yy)
+            float* dstPtr = dst;
+            for(uint8_t face = 0; face < 6; ++face)
             {
-                for (uint32_t xx = 0; xx < _cubemapFaceSize; ++xx)
+                float yyf = 1.0f;
+                for (uint32_t yy = 0; yy < _cubemapFaceSize; ++yy, yyf+=2.0f)
                 {
-                    // From [0..size-1] to [-1.0+invSize .. 1.0-invSize].
-                    const float xxf = float(int32_t(xx));
-                    const float yyf = float(int32_t(yy));
-                    const float uu = 2.0f*(xxf+0.5f)*invFaceSize - 1.0f;
-                    const float vv = 2.0f*(yyf+0.5f)*invFaceSize - 1.0f;
+                    float xxf = 1.0f;
+                    for (uint32_t xx = 0; xx < _cubemapFaceSize; ++xx, xxf+=2.0f)
+                    {
+                        // From [0..size-1] to [-1.0+invSize .. 1.0-invSize].
+                        // Ref: uu = 2.0*(xxf+0.5)/faceSize - 1.0;
+                        //      vv = 2.0*(yyf+0.5)/faceSize - 1.0;
+                        const float uu = xxf*invCfs - 1.0f;
+                        const float vv = yyf*invCfs - 1.0f;
 
-                    texelCoordToVec(dstPtr, uu, vv, face, _cubemapFaceSize);
-                    dstPtr[3] = texelSolidAngle(uu, vv, invFaceSize);
+                        texelCoordToVec(dstPtr, uu, vv, face);
+                        dstPtr[3] = texelSolidAngle(uu, vv, invCfs);
 
-                    dstPtr += 4;
+                        dstPtr += 4;
+                    }
                 }
             }
         }
+        else //if (EdgeFixup::Warp == _fixup)#
+        {
+            const float warp = warpFixupFactor(cfs);
+
+            float* dstPtr = dst;
+            for(uint8_t face = 0; face < 6; ++face)
+            {
+                float yyf = 1.0f;
+                for (uint32_t yy = 0; yy < _cubemapFaceSize; ++yy, yyf+=2.0f)
+                {
+                    float xxf = 1.0f;
+                    for (uint32_t xx = 0; xx < _cubemapFaceSize; ++xx, xxf+=2.0f)
+                    {
+                        // From [0..size-1] to [-1.0+invSize .. 1.0-invSize].
+                        // Ref: uu = 2.0*(xxf+0.5)/faceSize - 1.0;
+                        //      vv = 2.0*(yyf+0.5)/faceSize - 1.0;
+                        const float uu = xxf*invCfs - 1.0f;
+                        const float vv = yyf*invCfs - 1.0f;
+
+                        texelCoordToVecWarp(dstPtr, uu, vv, face, warp);
+                        dstPtr[3] = texelSolidAngle(uu, vv, invCfs);
+
+                        dstPtr += 4;
+                    }
+                }
+            }
+        }
+
 
         return dst;
     }
@@ -228,7 +262,7 @@ namespace cmft
         const uint32_t dstPitch = dstFaceSize*dstBytesPerPixel;
         const uint32_t dstFaceDataSize = dstPitch * dstFaceSize;
         const uint32_t dstDataSize = dstFaceDataSize * 6 /*numFaces*/;
-        void* dstData = malloc(dstDataSize);
+        void* dstData = CMFT_ALLOC(dstDataSize);
         MALLOC_CHECK(dstData);
 
         // Build cubemap texel vectors.
@@ -729,7 +763,7 @@ namespace cmft
         }
     }
 
-    void radianceFilter(float *_dstPtr
+    void radianceFilter(float* _dstPtr
                       , uint8_t _face
                       , uint32_t _mipFaceSize
                       , float _filterSize
@@ -738,44 +772,94 @@ namespace cmft
                       , const float* _cubemapVectors
                       , const Image* _imageRgba32f
                       , const uint32_t _faceOffsets[CUBE_FACE_NUM]
+                      , EdgeFixup::Enum _fixup
                       )
     {
-        const float invFaceSize = 1.0f/float(int32_t(_mipFaceSize));
+        const float mfs = float(int32_t(_mipFaceSize));
+        const float invMfs = 1.0f/mfs;
 
-        for (uint32_t yy = 0; yy < _mipFaceSize; ++yy)
+        if (EdgeFixup::None == _fixup)
         {
-            for (uint32_t xx = 0; xx < _mipFaceSize; ++xx)
+            float yyf = 1.0f;
+            for (uint32_t yy = 0; yy < _mipFaceSize; ++yy, yyf+=2.0f)
             {
-                // From [0..size-1] to [-1.0+invSize .. 1.0-invSize].
-                const float xxf = float(int32_t(xx));
-                const float yyf = float(int32_t(yy));
-                const float uu = 2.0f*(xxf+0.5f)*invFaceSize - 1.0f;
-                const float vv = 2.0f*(yyf+0.5f)*invFaceSize - 1.0f;
+                float xxf = 1.0f;
+                for (uint32_t xx = 0; xx < _mipFaceSize; ++xx, xxf+=2.0f)
+                {
+                    // From [0..size-1] to [-1.0+invSize .. 1.0-invSize].
+                    // Ref: uu = 2.0*(xxf+0.5)/faceSize - 1.0;
+                    //      vv = 2.0*(yyf+0.5)/faceSize - 1.0;
+                    const float uu = xxf*invMfs - 1.0f;
+                    const float vv = yyf*invMfs - 1.0f;
 
-                float tapVec[3];
-                texelCoordToVec(tapVec, uu, vv, _face, _mipFaceSize);
+                    float tapVec[3];
+                    texelCoordToVec(tapVec, uu, vv, _face);
 
-                Aabb facesBb[6];
-                determineFilterArea(facesBb, tapVec, _filterSize);
+                    Aabb facesBb[6];
+                    determineFilterArea(facesBb, tapVec, _filterSize);
 
-                float color[3];
-                processFilterArea<float>(color
-                                       , _specularPower
-                                       , _specularAngle
-                                       , tapVec
-                                       , _cubemapVectors
-                                       , facesBb
-                                       , _imageRgba32f->m_width
-                                       , _imageRgba32f->m_data
-                                       , _faceOffsets
-                                       );
+                    float color[3];
+                    processFilterArea<float>(color
+                                           , _specularPower
+                                           , _specularAngle
+                                           , tapVec
+                                           , _cubemapVectors
+                                           , facesBb
+                                           , _imageRgba32f->m_width
+                                           , _imageRgba32f->m_data
+                                           , _faceOffsets
+                                           );
 
-                _dstPtr[0] = float(color[0]);
-                _dstPtr[1] = float(color[1]);
-                _dstPtr[2] = float(color[2]);
-                _dstPtr[3] = 1.0f;
+                    _dstPtr[0] = float(color[0]);
+                    _dstPtr[1] = float(color[1]);
+                    _dstPtr[2] = float(color[2]);
+                    _dstPtr[3] = 1.0f;
 
-                _dstPtr += 4;
+                    _dstPtr += 4;
+                }
+            }
+        }
+        else //if (EdgeFixup::Warp == _fixup)#
+        {
+            const float warp = warpFixupFactor(mfs);
+
+            float yyf = 1.0f;
+            for (uint32_t yy = 0; yy < _mipFaceSize; ++yy, yyf+=2.0f)
+            {
+                float xxf = 1.0f;
+                for (uint32_t xx = 0; xx < _mipFaceSize; ++xx, xxf+=2.0f)
+                {
+                    // From [0..size-1] to [-1.0+invSize .. 1.0-invSize].
+                    // Ref: uu = 2.0*(xxf+0.5)/faceSize - 1.0;
+                    //      vv = 2.0*(yyf+0.5)/faceSize - 1.0;
+                    const float uu = xxf*invMfs - 1.0f;
+                    const float vv = yyf*invMfs - 1.0f;
+
+                    float tapVec[3];
+                    texelCoordToVecWarp(tapVec, uu, vv, _face, warp);
+
+                    Aabb facesBb[6];
+                    determineFilterArea(facesBb, tapVec, _filterSize);
+
+                    float color[3];
+                    processFilterArea<float>(color
+                                           , _specularPower
+                                           , _specularAngle
+                                           , tapVec
+                                           , _cubemapVectors
+                                           , facesBb
+                                           , _imageRgba32f->m_width
+                                           , _imageRgba32f->m_data
+                                           , _faceOffsets
+                                           );
+
+                    _dstPtr[0] = float(color[0]);
+                    _dstPtr[1] = float(color[1]);
+                    _dstPtr[2] = float(color[2]);
+                    _dstPtr[3] = 1.0f;
+
+                    _dstPtr += 4;
+                }
             }
         }
     }
@@ -834,6 +918,7 @@ namespace cmft
         const float* m_cubemapVectors;
         const Image* m_imageRgba32f;
         const uint32_t* m_faceOffsets;
+        EdgeFixup::Enum m_edgeFixup;
     };
 
     struct RadianceFilterTaskList
@@ -917,6 +1002,7 @@ namespace cmft
                          , params->m_cubemapVectors
                          , params->m_imageRgba32f
                          , params->m_faceOffsets
+                         , params->m_edgeFixup
                          );
 
             // Determine task duration.
@@ -1031,7 +1117,7 @@ namespace cmft
 
             // Alloc data for string.
             const long int fileSize = fsize(fp);
-            char* sourceData = (char*)malloc(fileSize+1);
+            char* sourceData = (char*)CMFT_ALLOC(fileSize+1);
             ScopeFree cleanup1(sourceData);
 
             // Read opencl source file.
@@ -1078,19 +1164,19 @@ namespace cmft
                                                          ));
             }
 
-            CL_CHECK(clSetKernelArg(m_kernel,   5, sizeof(int32_t), (const void*)&_image.m_width));
-            CL_CHECK(clSetKernelArg(m_kernel,   6, sizeof(cl_mem),  (const void*)&m_memSrcData[0]));
-            CL_CHECK(clSetKernelArg(m_kernel,   7, sizeof(cl_mem),  (const void*)&m_memSrcData[1]));
-            CL_CHECK(clSetKernelArg(m_kernel,   8, sizeof(cl_mem),  (const void*)&m_memSrcData[2]));
-            CL_CHECK(clSetKernelArg(m_kernel,   9, sizeof(cl_mem),  (const void*)&m_memSrcData[3]));
-            CL_CHECK(clSetKernelArg(m_kernel,  10, sizeof(cl_mem),  (const void*)&m_memSrcData[4]));
-            CL_CHECK(clSetKernelArg(m_kernel,  11, sizeof(cl_mem),  (const void*)&m_memSrcData[5]));
-            CL_CHECK(clSetKernelArg(m_kernel,  12, sizeof(cl_mem),  (const void*)&m_memNormalSolidAngle[0]));
-            CL_CHECK(clSetKernelArg(m_kernel,  13, sizeof(cl_mem),  (const void*)&m_memNormalSolidAngle[1]));
-            CL_CHECK(clSetKernelArg(m_kernel,  14, sizeof(cl_mem),  (const void*)&m_memNormalSolidAngle[2]));
-            CL_CHECK(clSetKernelArg(m_kernel,  15, sizeof(cl_mem),  (const void*)&m_memNormalSolidAngle[3]));
-            CL_CHECK(clSetKernelArg(m_kernel,  16, sizeof(cl_mem),  (const void*)&m_memNormalSolidAngle[4]));
-            CL_CHECK(clSetKernelArg(m_kernel,  17, sizeof(cl_mem),  (const void*)&m_memNormalSolidAngle[5]));
+            CL_CHECK(clSetKernelArg(m_kernel,   6, sizeof(int32_t), (const void*)&_image.m_width));
+            CL_CHECK(clSetKernelArg(m_kernel,   7, sizeof(cl_mem),  (const void*)&m_memSrcData[0]));
+            CL_CHECK(clSetKernelArg(m_kernel,   8, sizeof(cl_mem),  (const void*)&m_memSrcData[1]));
+            CL_CHECK(clSetKernelArg(m_kernel,   9, sizeof(cl_mem),  (const void*)&m_memSrcData[2]));
+            CL_CHECK(clSetKernelArg(m_kernel,  10, sizeof(cl_mem),  (const void*)&m_memSrcData[3]));
+            CL_CHECK(clSetKernelArg(m_kernel,  11, sizeof(cl_mem),  (const void*)&m_memSrcData[4]));
+            CL_CHECK(clSetKernelArg(m_kernel,  12, sizeof(cl_mem),  (const void*)&m_memSrcData[5]));
+            CL_CHECK(clSetKernelArg(m_kernel,  13, sizeof(cl_mem),  (const void*)&m_memNormalSolidAngle[0]));
+            CL_CHECK(clSetKernelArg(m_kernel,  14, sizeof(cl_mem),  (const void*)&m_memNormalSolidAngle[1]));
+            CL_CHECK(clSetKernelArg(m_kernel,  15, sizeof(cl_mem),  (const void*)&m_memNormalSolidAngle[2]));
+            CL_CHECK(clSetKernelArg(m_kernel,  16, sizeof(cl_mem),  (const void*)&m_memNormalSolidAngle[3]));
+            CL_CHECK(clSetKernelArg(m_kernel,  17, sizeof(cl_mem),  (const void*)&m_memNormalSolidAngle[4]));
+            CL_CHECK(clSetKernelArg(m_kernel,  18, sizeof(cl_mem),  (const void*)&m_memNormalSolidAngle[5]));
         }
 
         void setupOutputBuffer(uint32_t _dstFaceSize)
@@ -1119,10 +1205,13 @@ namespace cmft
 
         void setArgs(uint8_t _faceId, uint32_t _dstFaceSize, float _specularPower, float _specularAngle) const
         {
+            const float warp = warpFixupFactor(float(int32_t(_dstFaceSize)));
+
             CL_CHECK(clSetKernelArg(m_kernel, 1, sizeof(float),   (const void*)&_specularPower));
             CL_CHECK(clSetKernelArg(m_kernel, 2, sizeof(float),   (const void*)&_specularAngle));
             CL_CHECK(clSetKernelArg(m_kernel, 3, sizeof(int32_t), (const void*)&_dstFaceSize));
-            CL_CHECK(clSetKernelArg(m_kernel, 4, sizeof(uint8_t), (const void*)&_faceId));
+            CL_CHECK(clSetKernelArg(m_kernel, 4, sizeof(float),   (const void*)&warp));
+            CL_CHECK(clSetKernelArg(m_kernel, 5, sizeof(uint8_t), (const void*)&_faceId));
         }
 
         bool isIdle() const
@@ -1340,6 +1429,7 @@ namespace cmft
                            , uint8_t _glossScale
                            , uint8_t _glossBias
                            , const Image& _src
+                           , EdgeFixup::Enum _edgeFixup
                            , int8_t _numCpuProcessingThreads
                            , const ClContext* _clContext
                            )
@@ -1361,7 +1451,27 @@ namespace cmft
         s_radianceProgram.setClContext(_clContext);
         if (s_radianceProgram.hasValidDeviceContext())
         {
-            s_radianceProgram.createFromStr(s_radianceProgramSource, "radianceFilter");
+            enum
+            {
+                HeaderSize = 32,
+                SourceSize = sizeof(sc_radianceProgramSource),
+                TotalSize = HeaderSize + SourceSize,
+            };
+
+            char source[TotalSize];
+            source[0] = '\0';
+
+            // Write macro definitions at the beginning.
+            if (EdgeFixup::Warp == _edgeFixup)
+            {
+                cmft_strscpy(source, "#define WARP_FIXUP\n", HeaderSize);
+            }
+
+            // After that put the source code.
+            char* headerEnd = source + strlen(source);
+            memcpy(headerEnd, sc_radianceProgramSource, SourceSize);
+
+            s_radianceProgram.createFromStr(source, "radianceFilter");
         }
 
         // Check at least some processig device is valid and choosen for filtering.
@@ -1408,7 +1518,7 @@ namespace cmft
                 dstDataSize += faceSize * faceSize * bytesPerPixel;
             }
         }
-        void* dstData = malloc(dstDataSize);
+        void* dstData = CMFT_ALLOC(dstDataSize);
         MALLOC_CHECK(dstData);
 
         // Get source image offsets.
@@ -1498,7 +1608,7 @@ namespace cmft
         else
         {
             // Build cubemap vectors.
-            float* cubemapVectors = buildCubemapNormalSolidAngle(imageRgba32f.m_width);
+            float* cubemapVectors = buildCubemapNormalSolidAngle(imageRgba32f.m_width, _edgeFixup);
             ScopeFree cleanup(cubemapVectors);
 
             // Enqueue memory transfer for cl device.
@@ -1557,6 +1667,7 @@ namespace cmft
                         cubemapVectors,
                         &imageRgba32f,
                         srcFaceOffsets,
+                        _edgeFixup,
                     };
 
                     // Enqueue processing parameters.
@@ -1671,12 +1782,13 @@ namespace cmft
                            , uint8_t _mipCount
                            , uint8_t _glossScale
                            , uint8_t _glossBias
+                           , EdgeFixup::Enum _edgeFixup
                            , int8_t _numCpuProcessingThreads
                            , const ClContext* _clContext
                            )
     {
         Image tmp;
-        if (imageRadianceFilter(tmp, _dstFaceSize, _lightingModel, _excludeBase, _mipCount, _glossScale, _glossBias, _image, _numCpuProcessingThreads, _clContext))
+        if (imageRadianceFilter(tmp, _dstFaceSize, _lightingModel, _excludeBase, _mipCount, _glossScale, _glossBias, _image, _edgeFixup, _numCpuProcessingThreads, _clContext))
         {
             imageMove(_image, tmp);
         }

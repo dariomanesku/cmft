@@ -38,6 +38,7 @@ eval $CMFT $@ --input "okretnica.tga"           \
               --glossScale 10                   \
               --glossBias 1                     \
               --lightingModel phongbrdf         \
+              --edgeFixup none                  \
               --dstFaceSize 256                 \
               ::Processing devices              \
               --numCpuProcessingThreads 4       \
@@ -113,6 +114,7 @@ eval $CMFT $@ --input "okretnica.tga"           \
 #              --glossScale 10               \
 #              --glossBias 1                 \
 #              --lightingModel phongbrdf     \
+#              --edgeFixup none              \
 #              --dstFaceSize 256             \
 #              ::Processing devices          \
 #              --numCpuProcessingThreads 4   \
@@ -159,8 +161,8 @@ eval $CMFT $@ --input "okretnica.tga"           \
 #              --negZflipV                   \
 #              ::Output                      \
 #              --outputNum 5                 \
-#              --output0 "cmft_cubemap"    --output0params dds,bgra8,cubemap                \
-#              --output1 "cmft_hstrip"     --output1params dds,bgra8,hstrip                 \
-#              --output2 "cmft_cubecross"  --output2params ktx,rgba32f,cubecross,horizontal \
-#              --output3 "cmft_facelist"   --output3params tga,bgra8,facelist               \
+#              --output0 "cmft_cubemap"    --output0params dds,bgra8,cubemap  \
+#              --output1 "cmft_hstrip"     --output1params dds,bgra8,hstrip   \
+#              --output2 "cmft_cubecross"  --output2params ktx,rgba32f,hcross \
+#              --output3 "cmft_facelist"   --output3params tga,bgra8,facelist \
 #              --output4 "cmft_latlong"    --output4params hdr,rgbe,latlong

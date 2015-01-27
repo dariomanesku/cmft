@@ -69,6 +69,13 @@ static const CliOptionMap s_lightingModel[] =
     CLI_OPTION_MAP_TERMINATOR,
 };
 
+static const CliOptionMap s_edgeFixup[] =
+{
+    { "None", EdgeFixup::None },
+    { "Warp", EdgeFixup::Warp },
+    CLI_OPTION_MAP_TERMINATOR,
+};
+
 static const CliOptionMap s_clVendors[] =
 {
     { "NONE_FROM_THE_LIST", (uint32_t)CMFT_CL_VENDOR_OTHER   },
@@ -149,9 +156,6 @@ bool valueFromOptionMap(uint32_t& _val, const CliOptionMap* _cliOptionMap, const
     char optionStr[128];
     cmft_strscpy(optionStr, _optionStr, min(_optionStrSize, size_t(128)));
 
-    // Transform it to lower case for easy searching.
-    strtolower(optionStr);
-
     // Try to find value in cliOptionMap.
     const CliOptionMap* iter;
     while (iter = _cliOptionMap++, iter->m_str[0] != '\0')
@@ -169,13 +173,13 @@ bool valueFromOptionMap(uint32_t& _val, const CliOptionMap* _cliOptionMap, const
 struct OutputFile
 {
     OutputFile()
-        : m_fileType(0)
-        , m_textureFormat(0)
-        , m_outputType(0)
     {
+        m_fileType          = 0;
+        m_textureFormat     = 0;
+        m_outputType        = 0;
         m_optionalParam0[0] = '\0';
         m_optionalParam1[0] = '\0';
-        m_fileName[0] = '\0';
+        m_fileName[0]       = '\0';
     }
 
     uint32_t m_fileType;
@@ -221,6 +225,7 @@ struct InputParameters
     uint32_t m_glossBias;
     uint32_t m_dstFaceSize;
     uint32_t m_lightingModel;
+    uint32_t m_edgeFixup;
 
     // Processing devices.
     uint32_t m_numCpuProcessingThreads;
@@ -323,6 +328,9 @@ void inputParametersFromCommandLine(InputParameters& _inputParameters, const bx:
 
     // Lighting model.
     valueFromOptionMap(_inputParameters.m_lightingModel, s_lightingModel, _cmdLine.findOption("lightingModel"));
+
+    // Edge fixup.
+    valueFromOptionMap(_inputParameters.m_lightingModel, s_edgeFixup, _cmdLine.findOption("edgeFixup"));
 
     // Processing devices.
     _cmdLine.hasArg(_inputParameters.m_numCpuProcessingThreads, '\0', "numCpuProcessingThreads");
@@ -532,6 +540,7 @@ void inputParametersDefault(InputParameters& _inputParameters)
     _inputParameters.m_glossBias = 1;
     _inputParameters.m_dstFaceSize = 0;
     _inputParameters.m_lightingModel = 0;
+    _inputParameters.m_edgeFixup = 0;
 
     // Processing devices.
     _inputParameters.m_numCpuProcessingThreads = UINT32_MAX;
@@ -759,6 +768,9 @@ void printHelp()
             "          phongbrdf\n"
             "          blinn\n"
             "          blinnbrdf\n"
+            "    --edgeFixup <fixup>                DirectX9 and OpenGL without ARB_seamless_cube_map cannot filter sample cubemap across face edges. In those cases, use warp edge fixup. Otherwise, choose 'none'. Cubemaps filtered with warp edge fixup also require some shader code to be executed at runtime. See 'cmft/include/cubemapfilter.h' for more details. [radiance filter param]\n"
+            "          none\n"
+            "          warp\n"
             "    --numCpuProcessingThreads <uint>   Should not be bigger than the number of physical CPU cores/threads. [radiance filter param]\n"
             "    --useOpenCL <bool>                 OpenCL processing can be used alongside processing on CPU. Therefore, OpenCL device should be GPU. [radiance filter param]\n"
             "    --clVendor <vendor>                This parameter should generally be 'anyGpuVendor'. If other vendor is to be choosen, type in part of the vendor name. Use 'cmft --printCLDevices' to list available devices and vendors. [radiance filter param]\n"
@@ -813,7 +825,7 @@ void printHelp()
             "    --outputNum <N>                    Number of outputs to be considered. Should be equal or bigger than the number of outputs specified. Could be ommited. Default value is 16, maximum 16.\n"
             "    --output[0..N-1] <file name>       File name without extension.\n"
             "    --output[0..N-1]params <params>    Output parameters as following:\n"
-            "          <params> = <fileFormat>,<textureFormat>,<outputType>,<optional_param>\n"
+            "          <params> = <fileFormat>,<textureFormat>,<outputType>\n"
             "          <fileFromat> = [dds,ktx,tga,hdr]\n"
             "          <dds_textureFormat> = [bgr8,bgra8,rgba16,rgba16f,rgba32f]\n"
             "          <ktx_textureFormat> = [rgb8,rgb16,rgb16f,rgb32f,rgba8,rgba16,rgba16f,rgba32f]\n"
@@ -999,6 +1011,7 @@ int cmftMain(int _argc, char const* const* _argv)
                           , (uint8_t)inputParameters.m_mipCount
                           , (uint8_t)inputParameters.m_glossScale
                           , (uint8_t)inputParameters.m_glossBias
+                          , (EdgeFixup::Enum)inputParameters.m_edgeFixup
                           , (int8_t)inputParameters.m_numCpuProcessingThreads
                           , &clContext
                           );

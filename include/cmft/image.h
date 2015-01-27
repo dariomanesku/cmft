@@ -156,6 +156,9 @@ namespace cmft
     const ImageDataInfo& getImageDataInfo(TextureFormat::Enum _format);
 
     ///
+    uint8_t getNaturalAlignment(TextureFormat::Enum _format);
+
+    ///
     void imageCreate(Image& _image, uint32_t _width, uint32_t _height, uint32_t _rgba = 0x303030ff, uint8_t _numMips = 1, uint8_t _numFaces = 1, TextureFormat::Enum _format = TextureFormat::RGBA32F);
 
     ///
@@ -366,6 +369,9 @@ namespace cmft
 
         void** m_origDataPtr;
     };
+
+    ///
+    bool imageAsCubemap(ImageSoftRef& _dst, const Image& _src);
 
     /// If requested format is the same as source, _dst becomes a reference to _src.
     /// Otherwise, _dst is filled with a converted copy of the image.
