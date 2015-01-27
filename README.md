@@ -182,7 +182,7 @@ Add me and drop me a line on twitter: [@dariomanesku](https://twitter.com/dariom
 [License (BSD 2-clause)](https://github.com/dariomanesku/cmft/blob/master/LICENSE)
 -------------------------------------------------------------------------------
 
-    Copyright 2014 Dario Manesku. All rights reserved.
+    Copyright 2014-2015 Dario Manesku. All rights reserved.
 
     https://github.com/dariomanesku/cmft
 
