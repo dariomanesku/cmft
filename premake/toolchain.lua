@@ -91,7 +91,6 @@ function cmft_toolchain(_buildDir, _projectsDir)
     flags
     {
         "StaticRuntime",
-        "NoMinimalRebuild",
         "NoNativeWChar",
         "NoRTTI",
         "NoExceptions",

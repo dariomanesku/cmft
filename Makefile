@@ -16,22 +16,23 @@ else
 OS=windows
 endif
 
-PREMAKE4=./dependency/bx/tools/bin/$(OS)/premake4
+GENIE=./dependency/bx/tools/bin/$(OS)/genie
 
 export CMFT_WIN_CLANG_DIR_=$(subst \,\\,$(subst /,\,$(WIN_CLANG_DIR)))
 export CMFT_WIN_MINGW_DIR_=$(subst \,\\,$(subst /,\,$(WIN_MINGW_DIR)))
 
 .PHONY: all
 all:
-	$(PREMAKE4) --file=premake/main.lua xcode4
-	$(PREMAKE4) --file=premake/main.lua vs2008
-	$(PREMAKE4) --file=premake/main.lua vs2010
-	$(PREMAKE4) --file=premake/main.lua vs2012
-	$(PREMAKE4) --file=premake/main.lua --compiler=osx-gcc     gmake
-	$(PREMAKE4) --file=premake/main.lua --compiler=linux-gcc   gmake
-#	$(PREMAKE4) --file=premake/main.lua --compiler=linux-clang gmake
-#	$(PREMAKE4) --file=premake/main.lua --compiler=win-clang   gmake
-#	$(PREMAKE4) --file=premake/main.lua --compiler=win-mingw   gmake
+	$(GENIE) --file=premake/main.lua xcode4
+	$(GENIE) --file=premake/main.lua vs2008
+	$(GENIE) --file=premake/main.lua vs2010
+	$(GENIE) --file=premake/main.lua vs2012
+	$(GENIE) --file=premake/main.lua vs2013
+	$(GENIE) --file=premake/main.lua --compiler=osx-gcc     gmake
+	$(GENIE) --file=premake/main.lua --compiler=linux-gcc   gmake
+#	$(GENIE) --file=premake/main.lua --compiler=linux-clang gmake
+#	$(GENIE) --file=premake/main.lua --compiler=win-clang   gmake
+#	$(GENIE) --file=premake/main.lua --compiler=win-mingw   gmake
 
 .PHONY: clean-projects
 clean-projects:
