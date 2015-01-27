@@ -18,8 +18,8 @@
 #include <base/config.h> //INFO, WARN
 #include <base/printcallback.h> //_INFO, _WARN, g_printInfo, g_printWarnings
 #include <base/macros.h> //countof
-#include <base/utils.h> //strncpy
 
+#include <dm/misc.h> //DM_PATH_LEN, dm::min, dm::strscpya, dm::ScopeFclose
 
 using namespace cmft;
 
@@ -154,7 +154,7 @@ bool valueFromOptionMap(uint32_t& _val, const CliOptionMap* _cliOptionMap, const
 
     // Copy input string.
     char optionStr[128];
-    cmft_strscpy(optionStr, _optionStr, min(_optionStrSize, size_t(128)));
+    dm::strscpy(optionStr, _optionStr, dm::min(_optionStrSize, size_t(128)));
 
     // Try to find value in cliOptionMap.
     const CliOptionMap* iter;
@@ -187,19 +187,19 @@ struct OutputFile
     uint32_t m_outputType;
     char m_optionalParam0[128];
     char m_optionalParam1[128];
-    char m_fileName[2048];
+    char m_fileName[DM_PATH_LEN];
 };
 
 struct InputParameters
 {
     // Input.
-    char m_inputFilePath[2048];
-    char m_inputPosXFace[2048];
-    char m_inputNegXFace[2048];
-    char m_inputPosYFace[2048];
-    char m_inputNegYFace[2048];
-    char m_inputPosZFace[2048];
-    char m_inputNegZFace[2048];
+    char m_inputFilePath[DM_PATH_LEN];
+    char m_inputPosXFace[DM_PATH_LEN];
+    char m_inputNegXFace[DM_PATH_LEN];
+    char m_inputPosYFace[DM_PATH_LEN];
+    char m_inputNegYFace[DM_PATH_LEN];
+    char m_inputPosZFace[DM_PATH_LEN];
+    char m_inputNegZFace[DM_PATH_LEN];
 
     // Image Operations.
     float m_inputGammaPowNumerator;
@@ -246,16 +246,14 @@ struct InputParameters
 
 void inputParametersFromCommandLine(InputParameters& _inputParameters, const bx::CommandLine& _cmdLine)
 {
-#define CMFT_COPY(_dst, _src) cmft_strscpy((_dst), (_src), sizeof(_dst))
-
     // Input.
-    CMFT_COPY(_inputParameters.m_inputFilePath, _cmdLine.findOption("input"));
-    CMFT_COPY(_inputParameters.m_inputPosXFace, _cmdLine.findOption("inputFacePosX"));
-    CMFT_COPY(_inputParameters.m_inputNegXFace, _cmdLine.findOption("inputFaceNegX"));
-    CMFT_COPY(_inputParameters.m_inputPosYFace, _cmdLine.findOption("inputFacePosY"));
-    CMFT_COPY(_inputParameters.m_inputNegYFace, _cmdLine.findOption("inputFaceNegY"));
-    CMFT_COPY(_inputParameters.m_inputPosZFace, _cmdLine.findOption("inputFacePosZ"));
-    CMFT_COPY(_inputParameters.m_inputNegZFace, _cmdLine.findOption("inputFaceNegZ"));
+    dm::strscpya(_inputParameters.m_inputFilePath, _cmdLine.findOption("input"));
+    dm::strscpya(_inputParameters.m_inputPosXFace, _cmdLine.findOption("inputFacePosX"));
+    dm::strscpya(_inputParameters.m_inputNegXFace, _cmdLine.findOption("inputFaceNegX"));
+    dm::strscpya(_inputParameters.m_inputPosYFace, _cmdLine.findOption("inputFacePosY"));
+    dm::strscpya(_inputParameters.m_inputNegYFace, _cmdLine.findOption("inputFaceNegY"));
+    dm::strscpya(_inputParameters.m_inputPosZFace, _cmdLine.findOption("inputFacePosZ"));
+    dm::strscpya(_inputParameters.m_inputNegZFace, _cmdLine.findOption("inputFaceNegZ"));
 
     // Image Operations.
     _cmdLine.hasArg(_inputParameters.m_inputGammaPowNumerator,    '\0', "inputGamma");
@@ -341,7 +339,7 @@ void inputParametersFromCommandLine(InputParameters& _inputParameters, const bx:
     const char* clVendorOption = _cmdLine.findOption("clVendor");
     if(!valueFromOptionMap(clVendor, s_clVendors, clVendorOption))
     {
-        CMFT_COPY(_inputParameters.m_vendorStrPart, clVendorOption);
+        dm::strscpya(_inputParameters.m_vendorStrPart, clVendorOption);
     }
     _inputParameters.m_clVendor = clVendor;
 
@@ -356,7 +354,7 @@ void inputParametersFromCommandLine(InputParameters& _inputParameters, const bx:
     uint32_t outputCount = 0;
     uint32_t outputEnd = MAX_OUTPUT_NUM;
     _cmdLine.hasArg(outputEnd, '\0', "outputNum");
-    outputEnd = min(outputEnd, uint32_t(MAX_OUTPUT_NUM));
+    outputEnd = dm::min(outputEnd, uint32_t(MAX_OUTPUT_NUM));
     for (uint8_t outputId = 0; outputId < outputEnd; ++outputId)
     {
         char outputNameOption[16];
@@ -369,7 +367,7 @@ void inputParametersFromCommandLine(InputParameters& _inputParameters, const bx:
         if (NULL != outputName)
         {
             // Get file name.
-            CMFT_COPY(_inputParameters.m_outputFiles[outputCount].m_fileName, outputName);
+            dm::strscpya(_inputParameters.m_outputFiles[outputCount].m_fileName, outputName);
 
             // Set default parameters.
             uint32_t fileType      = ImageFileType::DDS;
@@ -381,7 +379,7 @@ void inputParametersFromCommandLine(InputParameters& _inputParameters, const bx:
             if (NULL != outputParams)
             {
                 char buf[256];
-                cmft_strscpy(buf, outputParams, 256);
+                dm::strscpya(buf, outputParams);
 
                 const char* fileTypeStr      = strtok(buf,",");
                 const char* textureFormatStr = strtok(NULL,",");
@@ -398,7 +396,7 @@ void inputParametersFromCommandLine(InputParameters& _inputParameters, const bx:
                 else if (!valueFromOptionMap(fileType, s_validFileTypes, fileTypeStr))
                 {
                     char requestedFileType[128];
-                    cmft_strscpy(requestedFileType, outputParams, 128);
+                    dm::strscpya(requestedFileType, outputParams);
                     WARN("Output(%u) - File type %s is invalid or not supported by cmft.", outputId, requestedFileType);
                 }
 
@@ -413,7 +411,7 @@ void inputParametersFromCommandLine(InputParameters& _inputParameters, const bx:
                 else if(!valueFromOptionMap(textureFormat, s_validTextureFormats, textureFormatStr))
                 {
                     char requestedTextureFormat[128];
-                    cmft_strscpy(requestedTextureFormat, textureFormatStr, 128);
+                    dm::strscpya(requestedTextureFormat, textureFormatStr);
 
                     WARN("Output(%u) - Requested texture format %s is invalid or not supported by cmft.", outputId, requestedTextureFormat);
 
@@ -449,7 +447,7 @@ void inputParametersFromCommandLine(InputParameters& _inputParameters, const bx:
                 else if(!valueFromOptionMap(outputType, s_validOutputTypes, outputTypeStr))
                 {
                     char requestedOutputType[128];
-                    cmft_strscpy(requestedOutputType, outputTypeStr, 128);
+                    dm::strscpya(requestedOutputType, outputTypeStr);
 
                     WARN("Output(%u) - Requested output type %s is invalid or not supported by cmft.", outputId, requestedOutputType);
 
@@ -462,7 +460,7 @@ void inputParametersFromCommandLine(InputParameters& _inputParameters, const bx:
                     const ImageFileType::Enum ft = (ImageFileType::Enum)fileType;
 
                     char requestedOutputType[128];
-                    cmft_strscpy(requestedOutputType, outputTypeStr, 128);
+                    dm::strscpya(requestedOutputType, outputTypeStr);
 
                     char validOutputTypes[128];
                     getValidOutputTypesStr(validOutputTypes, ft);
@@ -481,12 +479,12 @@ void inputParametersFromCommandLine(InputParameters& _inputParameters, const bx:
                 // Copy optional parameters if present.
                 if (NULL != optionalParam0)
                 {
-                    CMFT_COPY(_inputParameters.m_outputFiles[outputCount].m_optionalParam0, optionalParam0);
+                    dm::strscpya(_inputParameters.m_outputFiles[outputCount].m_optionalParam0, optionalParam0);
                 }
 
                 if (NULL != optionalParam1)
                 {
-                    CMFT_COPY(_inputParameters.m_outputFiles[outputCount].m_optionalParam1, optionalParam1);
+                    dm::strscpya(_inputParameters.m_outputFiles[outputCount].m_optionalParam1, optionalParam1);
                 }
             }
 
@@ -498,30 +496,28 @@ void inputParametersFromCommandLine(InputParameters& _inputParameters, const bx:
         }
     }
     _inputParameters.m_outputFilesNum = outputCount;
-
-#undef CMFT_COPY
 }
 
 void inputParametersDefault(InputParameters& _inputParameters)
 {
     // Input.
-    strcpy(_inputParameters.m_inputFilePath, "");
-    strcpy(_inputParameters.m_inputPosXFace, "");
-    strcpy(_inputParameters.m_inputNegXFace, "");
-    strcpy(_inputParameters.m_inputPosYFace, "");
-    strcpy(_inputParameters.m_inputNegYFace, "");
-    strcpy(_inputParameters.m_inputPosZFace, "");
-    strcpy(_inputParameters.m_inputNegZFace, "");
+    _inputParameters.m_inputFilePath[0] = '\0';
+    _inputParameters.m_inputPosXFace[0] = '\0';
+    _inputParameters.m_inputNegXFace[0] = '\0';
+    _inputParameters.m_inputPosYFace[0] = '\0';
+    _inputParameters.m_inputNegYFace[0] = '\0';
+    _inputParameters.m_inputPosZFace[0] = '\0';
+    _inputParameters.m_inputNegZFace[0] = '\0';
 
     // Output.
     _inputParameters.m_outputFilesNum = 0;
 
     // Image Operations.
-    _inputParameters.m_inputGammaPowNumerator = 1.0f;
-    _inputParameters.m_inputGammaPowDenominator = 1.0f;
-    _inputParameters.m_outputGammaPowNumerator = 1.0f;
+    _inputParameters.m_inputGammaPowNumerator    = 1.0f;
+    _inputParameters.m_inputGammaPowDenominator  = 1.0f;
+    _inputParameters.m_outputGammaPowNumerator   = 1.0f;
     _inputParameters.m_outputGammaPowDenominator = 1.0f;
-    _inputParameters.m_generateMipMapChain = false;
+    _inputParameters.m_generateMipMapChain       = false;
 
     // Cubemap rotate/flip.
     _inputParameters.m_imageOpPosX = 0;
@@ -532,41 +528,41 @@ void inputParametersDefault(InputParameters& _inputParameters)
     _inputParameters.m_imageOpNegZ = 0;
 
     // Filter parameters.
-    _inputParameters.m_filterType = 0;
-    _inputParameters.m_srcFaceSize = 0;
-    _inputParameters.m_excludeBase = false;
-    _inputParameters.m_mipCount = 9;
-    _inputParameters.m_glossScale = 10;
-    _inputParameters.m_glossBias = 1;
-    _inputParameters.m_dstFaceSize = 0;
+    _inputParameters.m_filterType    = 0;
+    _inputParameters.m_srcFaceSize   = 0;
+    _inputParameters.m_excludeBase   = false;
+    _inputParameters.m_mipCount      = 9;
+    _inputParameters.m_glossScale    = 10;
+    _inputParameters.m_glossBias     = 1;
+    _inputParameters.m_dstFaceSize   = 0;
     _inputParameters.m_lightingModel = 0;
-    _inputParameters.m_edgeFixup = 0;
+    _inputParameters.m_edgeFixup     = 0;
 
     // Processing devices.
     _inputParameters.m_numCpuProcessingThreads = UINT32_MAX;
-    _inputParameters.m_useOpenCL = true;
-    _inputParameters.m_deviceIndex = 0;
-    _inputParameters.m_clVendor = CMFT_CL_VENDOR_ANY_GPU;
-    strcpy(_inputParameters.m_vendorStrPart, "");
-    _inputParameters.m_deviceType = CMFT_CL_DEVICE_TYPE_GPU;
+    _inputParameters.m_useOpenCL               = true;
+    _inputParameters.m_deviceIndex             = 0;
+    _inputParameters.m_clVendor                = CMFT_CL_VENDOR_ANY_GPU;
+    _inputParameters.m_vendorStrPart[0]        = '\0';
+    _inputParameters.m_deviceType              = CMFT_CL_DEVICE_TYPE_GPU;
 
     // Misc.
     _inputParameters.m_silent = false;
 }
 
 /// Outputs C file.
-void outputShCoeffs(const char* _fileName, double _shCoeffs[SH_COEFF_NUM][3])
+void outputShCoeffs(const char* _pathName, double _shCoeffs[SH_COEFF_NUM][3])
 {
     // Get base name.
     char baseName[128];
-    if (!getFileName(baseName, 128, _fileName))
+    if (!dm::basename(baseName, 128, _pathName))
     {
         strcpy(baseName, "cmft");
     }
     baseName[0] = (char)toupper(baseName[0]);
 
     char baseNameUpper[128];
-    strtoupper(baseNameUpper, baseName);
+    dm::strtoupper(baseNameUpper, baseName);
 
     // File content.
     char content[10240];
@@ -616,8 +612,8 @@ void outputShCoeffs(const char* _fileName, double _shCoeffs[SH_COEFF_NUM][3])
            );
 
     // Append *.c extension.
-    char filePath[512];
-    strcpy(filePath, _fileName);
+    char filePath[DM_PATH_LEN];
+    strcpy(filePath, _pathName);
     strcat(filePath, ".c");
 
     // Open file.
@@ -627,7 +623,7 @@ void outputShCoeffs(const char* _fileName, double _shCoeffs[SH_COEFF_NUM][3])
         WARN("Could not open file %s for writing.", filePath);
         return;
     }
-    ScopeFclose cleanup(fp);
+    dm::ScopeFclose cleanup(fp);
 
     // Write content.
     CMFT_UNUSED size_t write;
@@ -640,7 +636,7 @@ void printHelp()
 {
     fprintf(stderr
           , "cmft - cubemap filtering tool\n"
-            "Copyright 2014 Dario Manesku. All rights reserved.\n"
+            "Copyright 2014-2015 Dario Manesku. All rights reserved.\n"
             "License: http://www.opensource.org/licenses/BSD-2-Clause\n\n"
           );
 

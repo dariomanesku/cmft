@@ -9,10 +9,11 @@
 #define BX_CL_IMPLEMENTATION
 #include <bx/cl.h>
 
+#include <dm/misc.h> //dm::strscpya
+
 #include "cmft/clcontext.h"
 #include "base/config.h" //INFO, WARN
 #include "base/printcallback.h" //_INFO, _WARN
-#include "base/utils.h" //strtolower, cmft_strscpy
 
 namespace cmft
 {
@@ -33,25 +34,16 @@ namespace cmft
         cl_platform_id choosenPlatform = platforms[0];
         if (NULL != _vendorStrPart)
         {
-            // If specific vendor is requested, transform input to lowercase.
-            if (_vendor&CMFT_CL_VENDOR_OTHER)
-            {
-                strtolower(_vendorStrPart);
-            }
-
             char buffer[256];
             for (cl_uint ii = 0; ii < numPlatforms; ++ii)
             {
                 // Get platform vendor.
                 CL_CHECK(clGetPlatformInfo(platforms[ii], CL_PLATFORM_VENDOR, 256, buffer, NULL));
 
-                // Transform it to lower case for easier searching.
-                strtolower(buffer);
-
                 if (_vendor&CMFT_CL_VENDOR_OTHER)
                 {
                     // If specific vendor is requested, check for it.
-                    const char* searchSpecific = bx::strnstr(buffer, _vendorStrPart, 256);
+                    const char* searchSpecific = bx::stristr(buffer, _vendorStrPart, 256);
                     if (NULL != searchSpecific)
                     {
                         choosenPlatform = platforms[ii];
@@ -65,19 +57,19 @@ namespace cmft
                     // Check for predefined vendors.
                     if (_vendor&CMFT_CL_VENDOR_AMD)
                     {
-                        const char* searchAmd = bx::strnstr(buffer, "advanced micro devices", 256);
+                        const char* searchAmd = bx::stristr(buffer, "advanced micro devices", 256);
                         found |= (NULL != searchAmd);
                     }
 
                     if (_vendor&CMFT_CL_VENDOR_INTEL)
                     {
-                        const char* searchIntel  = bx::strnstr(buffer, "intel", 256);
+                        const char* searchIntel  = bx::stristr(buffer, "intel", 256);
                         found |= (NULL != searchIntel);
                     }
 
                     if (_vendor&CMFT_CL_VENDOR_NVIDIA)
                     {
-                        const char* searchNvidia = bx::strnstr(buffer, "nvidia", 256);
+                        const char* searchNvidia = bx::stristr(buffer, "nvidia", 256);
                         found |= (NULL != searchNvidia);
                     }
 
@@ -140,8 +132,8 @@ namespace cmft
         }
 
         // Fill structure.
-        cmft_strscpy(m_deviceVendor, deviceVendor, 128);
-        cmft_strscpy(m_deviceName, deviceName, 128);
+        dm::strscpya(m_deviceVendor, deviceVendor);
+        dm::strscpya(m_deviceName, deviceName);
         m_device = chosenDevice;
         m_context = context;
         m_commandQueue = commandQueue;
@@ -207,26 +199,23 @@ namespace cmft
             char vendor[256];
             CL_CHECK(clGetPlatformInfo(platforms[ii], CL_PLATFORM_VENDOR, 256, vendor, NULL));
 
-            // Transform it to lower case for easier searching.
-            strtolower(vendor);
-
             // Check for known vendors and save vendor str for later printing.
             char platformOutputStr[32];
-            if (NULL != bx::strnstr(vendor, "advanced micro devices", 256))
+            if (NULL != bx::stristr(vendor, "advanced micro devices", 256))
             {
-                cmft_strscpy(platformOutputStr, "amd", 32);
+                dm::strscpya(platformOutputStr, "amd");
             }
-            else if (NULL != bx::strnstr(vendor, "intel", 256))
+            else if (NULL != bx::stristr(vendor, "intel", 256))
             {
-                cmft_strscpy(platformOutputStr, "intel", 32);
+                dm::strscpya(platformOutputStr, "intel");
             }
-            else if (NULL != bx::strnstr(vendor, "nvidia", 256))
+            else if (NULL != bx::stristr(vendor, "nvidia", 256))
             {
-                cmft_strscpy(platformOutputStr, "nvidia", 32);
+                dm::strscpya(platformOutputStr, "nvidia");
             }
             else
             {
-                cmft_strscpy(platformOutputStr, trimWhitespace(vendor), 32);
+                dm::strscpya(platformOutputStr, trimWhitespace(vendor));
             }
 
             // Enumerate current platform devices.
@@ -249,19 +238,19 @@ namespace cmft
                     char deviceTypeOutputStr[16];
                     if (CMFT_CL_DEVICE_TYPE_GPU == deviceType)
                     {
-                        cmft_strscpy(deviceTypeOutputStr, "gpu", 16);
+                        dm::strscpya(deviceTypeOutputStr, "gpu");
                     }
                     else if (CMFT_CL_DEVICE_TYPE_CPU == deviceType)
                     {
-                        cmft_strscpy(deviceTypeOutputStr, "cpu", 16);
+                        dm::strscpya(deviceTypeOutputStr, "cpu");
                     }
                     else if (CMFT_CL_DEVICE_TYPE_ACCELERATOR == deviceType)
                     {
-                        cmft_strscpy(deviceTypeOutputStr, "accelerator", 16);
+                        dm::strscpya(deviceTypeOutputStr, "accelerator");
                     }
                     else //if (CMFT_CL_DEVICE_TYPE_DEFAULT == deviceType)
                     {
-                        cmft_strscpy(deviceTypeOutputStr, "default", 16);
+                        dm::strscpya(deviceTypeOutputStr, "default");
                     }
 
                     // Print device info.

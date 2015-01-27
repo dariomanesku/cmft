@@ -8,7 +8,6 @@
 
 #include "base/config.h"
 #include "base/printcallback.h"
-#include "base/utils.h"
 #include "base/macros.h"
 #include "cubemaputils.h"
 
@@ -16,6 +15,8 @@
 #include <bx/endian.h>
 #include <bx/string.h> //streol, strnl
 #include <bx/readerwriter.h>
+
+#include <dm/misc.h> //dm::min/max, dm::swap, dm::ScopeFclose
 
 #include <string.h>
 
@@ -1023,8 +1024,8 @@ namespace cmft
         uint32_t dstDataSize = 0;
         for (uint8_t mip = 0; mip < numMips; ++mip)
         {
-            const uint32_t mipWidth  = max(UINT32_C(1), _width  >> mip);
-            const uint32_t mipHeight = max(UINT32_C(1), _height >> mip);
+            const uint32_t mipWidth  = dm::max(UINT32_C(1), _width  >> mip);
+            const uint32_t mipHeight = dm::max(UINT32_C(1), _height >> mip);
             dstDataSize += mipWidth * mipHeight * bytesPerPixel;
         }
         dstDataSize *= numFaces;
@@ -1115,8 +1116,8 @@ namespace cmft
         uint32_t count = 0;
         for (uint8_t mip = 0; mip < _image.m_numMips; ++mip)
         {
-            const uint32_t width  = max(UINT32_C(1), _image.m_width  >> mip);
-            const uint32_t height = max(UINT32_C(1), _image.m_height >> mip);
+            const uint32_t width  = dm::max(UINT32_C(1), _image.m_width  >> mip);
+            const uint32_t height = dm::max(UINT32_C(1), _image.m_height >> mip);
             count += width * height;
         }
         count *= _image.m_numFaces;
@@ -1135,8 +1136,8 @@ namespace cmft
             {
                 _offsets[face][mip] = offset;
 
-                const uint32_t width  = max(UINT32_C(1), _image.m_width  >> mip);
-                const uint32_t height = max(UINT32_C(1), _image.m_height >> mip);
+                const uint32_t width  = dm::max(UINT32_C(1), _image.m_width  >> mip);
+                const uint32_t height = dm::max(UINT32_C(1), _image.m_height >> mip);
                 offset += width * height * bytesPerPixel;
             }
         }
@@ -1153,8 +1154,8 @@ namespace cmft
 
             for (uint8_t mip = 0; mip < _image.m_numMips; ++mip)
             {
-                const uint32_t width  = max(UINT32_C(1), _image.m_width  >> mip);
-                const uint32_t height = max(UINT32_C(1), _image.m_height >> mip);
+                const uint32_t width  = dm::max(UINT32_C(1), _image.m_width  >> mip);
+                const uint32_t height = dm::max(UINT32_C(1), _image.m_height >> mip);
                 offset += width * height * bytesPerPixel;
             }
         }
@@ -1446,47 +1447,47 @@ namespace cmft
 
     inline void bgr8FromRgba32f(uint8_t* _bgr8, const float* _rgba32f)
     {
-        _bgr8[2] = uint8_t(clamp(_rgba32f[0], 0.0f, 1.0f) * 255.0f);
-        _bgr8[1] = uint8_t(clamp(_rgba32f[1], 0.0f, 1.0f) * 255.0f);
-        _bgr8[0] = uint8_t(clamp(_rgba32f[2], 0.0f, 1.0f) * 255.0f);
+        _bgr8[2] = uint8_t(dm::clamp(_rgba32f[0], 0.0f, 1.0f) * 255.0f);
+        _bgr8[1] = uint8_t(dm::clamp(_rgba32f[1], 0.0f, 1.0f) * 255.0f);
+        _bgr8[0] = uint8_t(dm::clamp(_rgba32f[2], 0.0f, 1.0f) * 255.0f);
     }
 
     inline void bgra8FromRgba32f(uint8_t* _bgra8, const float* _rgba32f)
     {
-        _bgra8[2] = uint8_t(clamp(_rgba32f[0], 0.0f, 1.0f) * 255.0f);
-        _bgra8[1] = uint8_t(clamp(_rgba32f[1], 0.0f, 1.0f) * 255.0f);
-        _bgra8[0] = uint8_t(clamp(_rgba32f[2], 0.0f, 1.0f) * 255.0f);
-        _bgra8[3] = uint8_t(clamp(_rgba32f[3], 0.0f, 1.0f) * 255.0f);
+        _bgra8[2] = uint8_t(dm::clamp(_rgba32f[0], 0.0f, 1.0f) * 255.0f);
+        _bgra8[1] = uint8_t(dm::clamp(_rgba32f[1], 0.0f, 1.0f) * 255.0f);
+        _bgra8[0] = uint8_t(dm::clamp(_rgba32f[2], 0.0f, 1.0f) * 255.0f);
+        _bgra8[3] = uint8_t(dm::clamp(_rgba32f[3], 0.0f, 1.0f) * 255.0f);
     }
 
     inline void rgb8FromRgba32f(uint8_t* _rgb8, const float* _rgba32f)
     {
-        _rgb8[0] = uint8_t(clamp(_rgba32f[0], 0.0f, 1.0f) * 255.0f);
-        _rgb8[1] = uint8_t(clamp(_rgba32f[1], 0.0f, 1.0f) * 255.0f);
-        _rgb8[2] = uint8_t(clamp(_rgba32f[2], 0.0f, 1.0f) * 255.0f);
+        _rgb8[0] = uint8_t(dm::clamp(_rgba32f[0], 0.0f, 1.0f) * 255.0f);
+        _rgb8[1] = uint8_t(dm::clamp(_rgba32f[1], 0.0f, 1.0f) * 255.0f);
+        _rgb8[2] = uint8_t(dm::clamp(_rgba32f[2], 0.0f, 1.0f) * 255.0f);
     }
 
     inline void rgba8FromRgba32f(uint8_t* _rgba8, const float* _rgba32f)
     {
-        _rgba8[0] = uint8_t(clamp(_rgba32f[0], 0.0f, 1.0f) * 255.0f);
-        _rgba8[1] = uint8_t(clamp(_rgba32f[1], 0.0f, 1.0f) * 255.0f);
-        _rgba8[2] = uint8_t(clamp(_rgba32f[2], 0.0f, 1.0f) * 255.0f);
-        _rgba8[3] = uint8_t(clamp(_rgba32f[3], 0.0f, 1.0f) * 255.0f);
+        _rgba8[0] = uint8_t(dm::clamp(_rgba32f[0], 0.0f, 1.0f) * 255.0f);
+        _rgba8[1] = uint8_t(dm::clamp(_rgba32f[1], 0.0f, 1.0f) * 255.0f);
+        _rgba8[2] = uint8_t(dm::clamp(_rgba32f[2], 0.0f, 1.0f) * 255.0f);
+        _rgba8[3] = uint8_t(dm::clamp(_rgba32f[3], 0.0f, 1.0f) * 255.0f);
     }
 
     inline void rgb16FromRgba32f(uint16_t* _rgb16, const float* _rgba32f)
     {
-        _rgb16[0] = uint16_t(clamp(_rgba32f[0], 0.0f, 1.0f) * 65535.0f);
-        _rgb16[1] = uint16_t(clamp(_rgba32f[1], 0.0f, 1.0f) * 65535.0f);
-        _rgb16[2] = uint16_t(clamp(_rgba32f[2], 0.0f, 1.0f) * 65535.0f);
+        _rgb16[0] = uint16_t(dm::clamp(_rgba32f[0], 0.0f, 1.0f) * 65535.0f);
+        _rgb16[1] = uint16_t(dm::clamp(_rgba32f[1], 0.0f, 1.0f) * 65535.0f);
+        _rgb16[2] = uint16_t(dm::clamp(_rgba32f[2], 0.0f, 1.0f) * 65535.0f);
     }
 
     inline void rgba16FromRgba32f(uint16_t* _rgba16, const float* _rgba32f)
     {
-        _rgba16[0] = uint16_t(clamp(_rgba32f[0], 0.0f, 1.0f) * 65535.0f);
-        _rgba16[1] = uint16_t(clamp(_rgba32f[1], 0.0f, 1.0f) * 65535.0f);
-        _rgba16[2] = uint16_t(clamp(_rgba32f[2], 0.0f, 1.0f) * 65535.0f);
-        _rgba16[3] = uint16_t(clamp(_rgba32f[3], 0.0f, 1.0f) * 65535.0f);
+        _rgba16[0] = uint16_t(dm::clamp(_rgba32f[0], 0.0f, 1.0f) * 65535.0f);
+        _rgba16[1] = uint16_t(dm::clamp(_rgba32f[1], 0.0f, 1.0f) * 65535.0f);
+        _rgba16[2] = uint16_t(dm::clamp(_rgba32f[2], 0.0f, 1.0f) * 65535.0f);
+        _rgba16[3] = uint16_t(dm::clamp(_rgba32f[3], 0.0f, 1.0f) * 65535.0f);
     }
 
     inline void rgb16fFromRgba32f(uint16_t* _rgb16f, const float* _rgba32f)
@@ -1519,8 +1520,8 @@ namespace cmft
 
     inline void rgbeFromRgba32f(uint8_t* _rgbe, const float* _rgba32f)
     {
-        const float maxVal = max(_rgba32f[0], max(_rgba32f[1], _rgba32f[2]));
-        const float exp = ceilf(log2f(maxVal));
+        const float maxVal = dm::max(dm::max(_rgba32f[0], _rgba32f[1]), _rgba32f[2]);
+        const float exp = ceilf(dm::log2f(maxVal));
         const float toRgb8 = 255.0f * 1.0f/ldexp(1.0f, int(exp)); //ldexp -> exp2 (c++11 - <cmath.h>)
         _rgbe[0] = uint8_t(_rgba32f[0] * toRgb8);
         _rgbe[1] = uint8_t(_rgba32f[1] * toRgb8);
@@ -1780,8 +1781,8 @@ namespace cmft
         {
             for (uint8_t mip = 0; mip < _mip; ++mip)
             {
-                const uint32_t width  = max(UINT32_C(1), _image.m_width  >> mip);
-                const uint32_t height = max(UINT32_C(1), _image.m_height >> mip);
+                const uint32_t width  = dm::max(UINT32_C(1), _image.m_width  >> mip);
+                const uint32_t height = dm::max(UINT32_C(1), _image.m_height >> mip);
                 offset += width * height * bytesPerPixel;
             }
         }
@@ -1824,8 +1825,8 @@ namespace cmft
             for (uint8_t mip = 0; mip < imageRgba32f.m_numMips; ++mip)
             {
                 dstOffsets[face][mip] = dstDataSize;
-                const uint32_t dstMipWidth  = max(UINT32_C(1), _width  >> mip);
-                const uint32_t dstMipHeight = max(UINT32_C(1), _height >> mip);
+                const uint32_t dstMipWidth  = dm::max(UINT32_C(1), _width  >> mip);
+                const uint32_t dstMipHeight = dm::max(UINT32_C(1), _height >> mip);
                 dstDataSize += dstMipWidth * dstMipHeight * bytesPerPixel;
             }
         }
@@ -1841,12 +1842,12 @@ namespace cmft
         {
             for (uint8_t mip = 0; mip < imageRgba32f.m_numMips; ++mip)
             {
-                const uint32_t srcMipWidth  = max(UINT32_C(1), imageRgba32f.m_width  >> mip);
-                const uint32_t srcMipHeight = max(UINT32_C(1), imageRgba32f.m_height >> mip);
+                const uint32_t srcMipWidth  = dm::max(UINT32_C(1), imageRgba32f.m_width  >> mip);
+                const uint32_t srcMipHeight = dm::max(UINT32_C(1), imageRgba32f.m_height >> mip);
                 const uint32_t srcMipPitch  = srcMipWidth * bytesPerPixel;
 
-                const uint32_t dstMipWidth  = max(UINT32_C(1), _width  >> mip);
-                const uint32_t dstMipHeight = max(UINT32_C(1), _height >> mip);
+                const uint32_t dstMipWidth  = dm::max(UINT32_C(1), _width  >> mip);
+                const uint32_t dstMipHeight = dm::max(UINT32_C(1), _height >> mip);
                 const uint32_t dstMipPitch  = dstMipWidth * bytesPerPixel;
 
                 const float dstToSrcRatioX = float(int32_t(srcMipWidth)) /float(int32_t(dstMipWidth));
@@ -1867,13 +1868,13 @@ namespace cmft
                         uint32_t weight = 0;
 
                         uint32_t ySrc = uint32_t(float(yDst)*dstToSrcRatioY);
-                        uint32_t ySrcEnd = ySrc + max(uint32_t(1), uint32_t(dstToSrcRatioY));
+                        uint32_t ySrcEnd = ySrc + dm::max(uint32_t(1), uint32_t(dstToSrcRatioY));
                         for (; ySrc < ySrcEnd; ++ySrc)
                         {
                             const uint8_t* srcRowData = (const uint8_t*)srcMipData + ySrc*srcMipPitch;
 
                             uint32_t xSrc = uint32_t(float(xDst)*dstToSrcRatioX);
-                            uint32_t xSrcEnd = xSrc + max(uint32_t(1), uint32_t(dstToSrcRatioX));
+                            uint32_t xSrcEnd = xSrc + dm::max(uint32_t(1), uint32_t(dstToSrcRatioX));
                             for (; xSrc < xSrcEnd; ++xSrc)
                             {
                                 const float* srcColumnData = (const float*)((const uint8_t*)srcRowData + xSrc*bytesPerPixel);
@@ -1884,7 +1885,7 @@ namespace cmft
                             }
                         }
 
-                        const float invWeight = 1.0f/float(max(weight, UINT32_C(1)));
+                        const float invWeight = 1.0f/float(dm::max(weight, UINT32_C(1)));
                         dstFaceColumn[0] = color[0] * invWeight;
                         dstFaceColumn[1] = color[1] * invWeight;
                         dstFaceColumn[2] = color[2] * invWeight;
@@ -2026,6 +2027,8 @@ namespace cmft
             uint32_t offsets[CUBE_FACE_NUM][MAX_MIP_NUM];
             imageGetMipOffsets(offsets, _image);
 
+            uint8_t* tmp = (uint8_t*)alloca(bytesPerPixel * _image.m_width);
+
             for (uint8_t ii = 0; op != UINT32_MAX; ++ii, op = va_arg(_argList, uint32_t))
             {
                 const uint16_t imageOp = (op&IMAGE_OP_MASK);
@@ -2037,8 +2040,8 @@ namespace cmft
                     {
                         for (uint8_t mip = 0; mip < _image.m_numMips; ++mip)
                         {
-                            const uint32_t width  = max(UINT32_C(1), _image.m_width  >> mip);
-                            const uint32_t height = max(UINT32_C(1), _image.m_height >> mip);
+                            const uint32_t width  = dm::max(UINT32_C(1), _image.m_width  >> mip);
+                            const uint32_t height = dm::max(UINT32_C(1), _image.m_height >> mip);
                             const uint32_t pitch = width * bytesPerPixel;
 
                             uint8_t* facePtr = (uint8_t*)_image.m_data + offsets[imageFace][mip];
@@ -2052,7 +2055,7 @@ namespace cmft
                                     {
                                         uint8_t* aa = (uint8_t*)rowPtr    + xx*bytesPerPixel;
                                         uint8_t* bb = (uint8_t*)columnPtr + xxEnd*pitch;
-                                        cmft_swap(aa, bb, bytesPerPixel);
+                                        dm::swap(aa, bb, tmp, bytesPerPixel);
                                     }
                                 }
                             }
@@ -2071,8 +2074,8 @@ namespace cmft
                     {
                         for (uint8_t mip = 0; mip < _image.m_numMips; ++mip)
                         {
-                            const uint32_t width  = max(UINT32_C(1), _image.m_width  >> mip);
-                            const uint32_t height = max(UINT32_C(1), _image.m_height >> mip);
+                            const uint32_t width  = dm::max(UINT32_C(1), _image.m_width  >> mip);
+                            const uint32_t height = dm::max(UINT32_C(1), _image.m_height >> mip);
                             const uint32_t pitch = width * bytesPerPixel;
 
                             uint8_t* facePtr = (uint8_t*)_image.m_data + offsets[imageFace][mip];
@@ -2085,7 +2088,7 @@ namespace cmft
                                 {
                                     uint8_t* aa = (uint8_t*)rowPtr    + bytesPerPixel*xx;
                                     uint8_t* bb = (uint8_t*)rowPtrEnd + bytesPerPixel*xxEnd;
-                                    cmft_swap(aa, bb, bytesPerPixel);
+                                    dm::swap(aa, bb, tmp, bytesPerPixel);
                                 }
                             }
 
@@ -2097,7 +2100,7 @@ namespace cmft
                                 {
                                     uint8_t* aa = (uint8_t*)rowPtr + bytesPerPixel*xx;
                                     uint8_t* bb = (uint8_t*)rowPtr + bytesPerPixel*xxEnd;
-                                    cmft_swap(aa, bb, bytesPerPixel);
+                                    dm::swap(aa, bb, tmp, bytesPerPixel);
                                 }
                             }
                         }
@@ -2116,8 +2119,8 @@ namespace cmft
                     {
                         for (uint8_t mip = 0; mip < _image.m_numMips; ++mip)
                         {
-                            const uint32_t width  = max(UINT32_C(1), _image.m_width  >> mip);
-                            const uint32_t height = max(UINT32_C(1), _image.m_height >> mip);
+                            const uint32_t width  = dm::max(UINT32_C(1), _image.m_width  >> mip);
+                            const uint32_t height = dm::max(UINT32_C(1), _image.m_height >> mip);
                             const uint32_t pitch = width * bytesPerPixel;
 
                             uint8_t* facePtr = (uint8_t*)_image.m_data + offsets[imageFace][mip];
@@ -2131,7 +2134,7 @@ namespace cmft
                                     {
                                         uint8_t* aa = (uint8_t*)rowPtr    + xx*bytesPerPixel;
                                         uint8_t* bb = (uint8_t*)columnPtr + xx*pitch;
-                                        cmft_swap(aa, bb, bytesPerPixel);
+                                        dm::swap(aa, bb, tmp, bytesPerPixel);
                                     }
                                 }
                             }
@@ -2149,8 +2152,8 @@ namespace cmft
                 {
                     for (uint8_t mip = 0; mip < _image.m_numMips; ++mip)
                     {
-                        const uint32_t width  = max(UINT32_C(1), _image.m_width  >> mip);
-                        const uint32_t height = max(UINT32_C(1), _image.m_height >> mip);
+                        const uint32_t width  = dm::max(UINT32_C(1), _image.m_width  >> mip);
+                        const uint32_t height = dm::max(UINT32_C(1), _image.m_height >> mip);
                         const uint32_t pitch = width * bytesPerPixel;
 
                         uint8_t* facePtr = (uint8_t*)_image.m_data + offsets[imageFace][mip];
@@ -2158,7 +2161,7 @@ namespace cmft
                         {
                             uint8_t* rowPtr    = (uint8_t*)facePtr + pitch*yy;
                             uint8_t* rowPtrEnd = (uint8_t*)facePtr + pitch*yyEnd;
-                            cmft_swap(rowPtr, rowPtrEnd, pitch);
+                            dm::swap(rowPtr, rowPtrEnd, tmp, pitch);
                         }
                     }
                 }
@@ -2167,8 +2170,8 @@ namespace cmft
                 {
                     for (uint8_t mip = 0; mip < _image.m_numMips; ++mip)
                     {
-                        const uint32_t width  = max(UINT32_C(1), _image.m_width  >> mip);
-                        const uint32_t height = max(UINT32_C(1), _image.m_height >> mip);
+                        const uint32_t width  = dm::max(UINT32_C(1), _image.m_width  >> mip);
+                        const uint32_t height = dm::max(UINT32_C(1), _image.m_height >> mip);
                         const uint32_t pitch = width * bytesPerPixel;
 
                         uint8_t* facePtr = (uint8_t*)_image.m_data + offsets[imageFace][mip];
@@ -2179,7 +2182,7 @@ namespace cmft
                             {
                                 uint8_t* columnPtr    = (uint8_t*)rowPtr + bytesPerPixel*xx;
                                 uint8_t* columnPtrEnd = (uint8_t*)rowPtr + bytesPerPixel*xxEnd;
-                                cmft_swap(columnPtr, columnPtrEnd, bytesPerPixel);
+                                dm::swap(columnPtr, columnPtrEnd, tmp, bytesPerPixel);
                             }
                         }
                     }
@@ -2198,7 +2201,7 @@ namespace cmft
         uint32_t dstOffsets[CUBE_FACE_NUM][MAX_MIP_NUM];
         uint32_t dstDataSize = 0;
         uint8_t mipCount = 0;
-        const uint8_t maxMipNum = min(_numMips, uint8_t(MAX_MIP_NUM));
+        const uint8_t maxMipNum = dm::min(_numMips, uint8_t(MAX_MIP_NUM));
         const uint32_t bytesPerPixel = 4 /*numChannels*/ * 4 /*bytesPerChannel*/;
         for (uint8_t face = 0; face < imageRgba32f.m_numFaces; ++face)
         {
@@ -2208,8 +2211,8 @@ namespace cmft
             for (mipCount = 0; (mipCount < maxMipNum) && (width != 1) && (height != 1); ++mipCount)
             {
                 dstOffsets[face][mipCount] = dstDataSize;
-                width  = max(UINT32_C(1), imageRgba32f.m_width  >> mipCount);
-                height = max(UINT32_C(1), imageRgba32f.m_height >> mipCount);
+                width  = dm::max(UINT32_C(1), imageRgba32f.m_width  >> mipCount);
+                height = dm::max(UINT32_C(1), imageRgba32f.m_height >> mipCount);
 
                 dstDataSize += width * height * bytesPerPixel;
             }
@@ -2228,8 +2231,8 @@ namespace cmft
         {
             for (uint8_t mip = 0; mip < mipCount; ++mip)
             {
-                const uint32_t width  = max(UINT32_C(1), imageRgba32f.m_width  >> mip);
-                const uint32_t height = max(UINT32_C(1), imageRgba32f.m_height >> mip);
+                const uint32_t width  = dm::max(UINT32_C(1), imageRgba32f.m_width  >> mip);
+                const uint32_t height = dm::max(UINT32_C(1), imageRgba32f.m_height >> mip);
                 const uint32_t pitch = width * bytesPerPixel;
 
                 uint8_t* dstMipData       = (uint8_t*)dstData                   + dstOffsets[face][mip];
@@ -2249,7 +2252,7 @@ namespace cmft
                 else
                 {
                     const uint8_t parentMip = mip - 1;
-                    const uint32_t parentWidth = max(UINT32_C(1), imageRgba32f.m_width >> parentMip);
+                    const uint32_t parentWidth = dm::max(UINT32_C(1), imageRgba32f.m_width >> parentMip);
                     const uint32_t parentPitch = parentWidth * bytesPerPixel;
                     const uint8_t* parentMipData = (const uint8_t*)dstData + dstOffsets[face][parentMip];
 
@@ -2355,10 +2358,10 @@ namespace cmft
 
         for (;channel < end; channel+=4)
         {
-            channel[0] = clamp(channel[0], 0.0f, 1.0f);
-            channel[1] = clamp(channel[1], 0.0f, 1.0f);
-            channel[2] = clamp(channel[2], 0.0f, 1.0f);
-            channel[3] = clamp(channel[3], 0.0f, 1.0f);
+            channel[0] = dm::clamp(channel[0], 0.0f, 1.0f);
+            channel[1] = dm::clamp(channel[1], 0.0f, 1.0f);
+            channel[2] = dm::clamp(channel[2], 0.0f, 1.0f);
+            channel[3] = dm::clamp(channel[3], 0.0f, 1.0f);
         }
 
         // Move or convert to original format.
@@ -2385,10 +2388,10 @@ namespace cmft
 
         for (;channel < end; channel+=4)
         {
-            channel[0] = clamp(channel[0], 0.0f, 1.0f);
-            channel[1] = clamp(channel[1], 0.0f, 1.0f);
-            channel[2] = clamp(channel[2], 0.0f, 1.0f);
-            channel[3] = clamp(channel[3], 0.0f, 1.0f);
+            channel[0] = dm::clamp(channel[0], 0.0f, 1.0f);
+            channel[1] = dm::clamp(channel[1], 0.0f, 1.0f);
+            channel[2] = dm::clamp(channel[2], 0.0f, 1.0f);
+            channel[3] = dm::clamp(channel[3], 0.0f, 1.0f);
         }
 
         // If image was converted, convert back to original format.
@@ -2466,12 +2469,12 @@ namespace cmft
         const uint32_t bytesPerPixel = getImageDataInfo(_image.m_format).m_bytesPerPixel;
         const uint32_t imagePitch = _image.m_width * bytesPerPixel;
 
-        const uint32_t faceSize = alignf((float)(int32_t)_image.m_width / (isVertical ? 3.0f : 4.0f), bytesPerPixel);
+        const uint32_t faceSize = dm::alignf((float)(int32_t)_image.m_width / (isVertical ? 3.0f : 4.0f), bytesPerPixel);
         const uint32_t facePitch = faceSize * bytesPerPixel;
         const uint32_t rowDataSize = imagePitch * faceSize;
 
-        const uint32_t halfFacePitch   = alignf((float)(int32_t)facePitch   / 2.0f, bytesPerPixel);
-        const uint32_t halfRowDataSize = alignf((float)(int32_t)rowDataSize / 2.0f, bytesPerPixel);
+        const uint32_t halfFacePitch   = dm::alignf((float)(int32_t)facePitch   / 2.0f, bytesPerPixel);
+        const uint32_t halfRowDataSize = dm::alignf((float)(int32_t)rowDataSize / 2.0f, bytesPerPixel);
 
         uint32_t keyPointsOffsets[6];
         if (isVertical)
@@ -2798,8 +2801,8 @@ namespace cmft
                     {
                         const uint32_t x0 = uint32_t(xSrc);
                         const uint32_t y0 = uint32_t(ySrc);
-                        const uint32_t x1 = min(x0+1, imageRgba32f.m_width-1);
-                        const uint32_t y1 = min(y0+1, imageRgba32f.m_height-1);
+                        const uint32_t x1 = dm::min(x0+1, imageRgba32f.m_width-1);
+                        const uint32_t y1 = dm::min(y0+1, imageRgba32f.m_height-1);
 
                         const float *src0 = (const float*)((const uint8_t*)imageRgba32f.m_data + y0*srcPitch + x0*bytesPerPixel);
                         const float *src1 = (const float*)((const uint8_t*)imageRgba32f.m_data + y0*srcPitch + x1*bytesPerPixel);
@@ -2905,8 +2908,8 @@ namespace cmft
         for (uint8_t mip = 0; mip < imageRgba32f.m_numMips; ++mip)
         {
             dstMipOffsets[mip] = dstDataSize;
-            const uint32_t dstMipWidth  = max(UINT32_C(1), dstWidth  >> mip);
-            const uint32_t dstMipHeight = max(UINT32_C(1), dstHeight >> mip);
+            const uint32_t dstMipWidth  = dm::max(UINT32_C(1), dstWidth  >> mip);
+            const uint32_t dstMipHeight = dm::max(UINT32_C(1), dstHeight >> mip);
             dstDataSize += dstMipWidth * dstMipHeight * bytesPerPixel;
         }
         void* dstData = CMFT_ALLOC(dstDataSize);
@@ -2919,14 +2922,14 @@ namespace cmft
         // Iterate over destination image (latlong).
         for (uint8_t mip = 0; mip < imageRgba32f.m_numMips; ++mip)
         {
-            const uint32_t dstMipWidth  = max(UINT32_C(1), dstWidth  >> mip);
-            const uint32_t dstMipHeight = max(UINT32_C(1), dstHeight >> mip);
+            const uint32_t dstMipWidth  = dm::max(UINT32_C(1), dstWidth  >> mip);
+            const uint32_t dstMipHeight = dm::max(UINT32_C(1), dstHeight >> mip);
             const uint32_t dstMipPitch = dstMipWidth * bytesPerPixel;
             const float invDstWidthf  = 1.0f/float(dstMipWidth-1);
             const float invDstHeightf = 1.0f/float(dstMipHeight-1);
 
-            const uint32_t srcMipWidth  = max(UINT32_C(1), imageRgba32f.m_width  >> mip);
-            const uint32_t srcMipHeight = max(UINT32_C(1), imageRgba32f.m_height >> mip);
+            const uint32_t srcMipWidth  = dm::max(UINT32_C(1), imageRgba32f.m_width  >> mip);
+            const uint32_t srcMipHeight = dm::max(UINT32_C(1), imageRgba32f.m_height >> mip);
             const uint32_t srcPitch = srcMipWidth * bytesPerPixel;
             const float srcWidthMinusOne  = float(int32_t(srcMipWidth-1));
             const float srcHeightMinusOne = float(int32_t(srcMipHeight-1));
@@ -2962,8 +2965,8 @@ namespace cmft
                     {
                         const uint32_t x0 = uint32_t(xSrc);
                         const uint32_t y0 = uint32_t(ySrc);
-                        const uint32_t x1 = min(x0+1, srcMipWidth-1);
-                        const uint32_t y1 = min(y0+1, srcMipHeight-1);
+                        const uint32_t x1 = dm::min(x0+1, srcMipWidth-1);
+                        const uint32_t y1 = dm::min(y0+1, srcMipHeight-1);
 
                         const uint8_t* srcFaceData = (const uint8_t*)imageRgba32f.m_data + srcOffsets[faceIdx][mip];
                         const float *src0 = (const float*)((const uint8_t*)srcFaceData + y0*srcPitch + x0*bytesPerPixel);
@@ -3067,8 +3070,8 @@ namespace cmft
         for (uint8_t mip = 0; mip < _src.m_numMips; ++mip)
         {
             dstMipOffsets[mip] = dstDataSize;
-            const uint32_t mipWidth  = max(UINT32_C(1), dstWidth  >> mip);
-            const uint32_t mipHeight = max(UINT32_C(1), dstHeight >> mip);
+            const uint32_t mipWidth  = dm::max(UINT32_C(1), dstWidth  >> mip);
+            const uint32_t mipHeight = dm::max(UINT32_C(1), dstHeight >> mip);
 
             dstDataSize += mipWidth * mipHeight * bytesPerPixel;
         }
@@ -3089,7 +3092,7 @@ namespace cmft
                 // Get dst ptr for current mip level.
                 uint8_t* dstMipData = (uint8_t*)dstData + dstMipOffsets[mip];
 
-                const uint32_t mipFaceSize = max(UINT32_C(1), _src.m_width >> mip);
+                const uint32_t mipFaceSize = dm::max(UINT32_C(1), _src.m_width >> mip);
                 const uint32_t mipFacePitch = mipFaceSize * bytesPerPixel;
                 //
                 //   Horizontal strip.
@@ -3122,7 +3125,7 @@ namespace cmft
                 const uint32_t advance = _vertical ? mipFacePitch * mipFaceSize : mipFacePitch;
                 uint8_t* dstFaceData = (uint8_t*)dstMipData + advance*face;
 
-                const uint32_t dstMipSize = max(UINT32_C(1), dstWidth >> mip);
+                const uint32_t dstMipSize = dm::max(UINT32_C(1), dstWidth >> mip);
                 const uint32_t dstMipPitch = dstMipSize*bytesPerPixel;
 
                 for (uint32_t yy = 0; yy < mipFaceSize; ++yy)
@@ -3183,7 +3186,7 @@ namespace cmft
             for (uint8_t mip = 0; mip < _src.m_numMips; ++mip)
             {
                 dstOffsets[face][mip] = dstDataSize;
-                const uint32_t mipSize = max(UINT32_C(1), dstSize >> mip);
+                const uint32_t mipSize = dm::max(UINT32_C(1), dstSize >> mip);
 
                 dstDataSize += mipSize * mipSize * bytesPerPixel;
             }
@@ -3205,7 +3208,7 @@ namespace cmft
                 const uint8_t* srcMipData = (const uint8_t*)_src.m_data + srcOffsets[0][mip];
 
                 // Advance by (dstPitch * faceIdx) to get to the desired face in the strip.
-                const uint32_t dstMipSize = max(UINT32_C(1), dstSize >> mip);
+                const uint32_t dstMipSize = dm::max(UINT32_C(1), dstSize >> mip);
                 const uint32_t dstMipPitch = dstMipSize * bytesPerPixel;
                 const uint8_t* srcFaceData = (const uint8_t*)srcMipData + dstMipPitch*face;
 
@@ -3264,7 +3267,7 @@ namespace cmft
         for (uint8_t mip = 0; mip < _cubemap.m_numMips; ++mip)
         {
             dstMipOffsets[mip] = dstDataSize;
-            const uint32_t mipSize = max(UINT32_C(1), _cubemap.m_width >> mip);
+            const uint32_t mipSize = dm::max(UINT32_C(1), _cubemap.m_width >> mip);
             dstDataSize += mipSize * mipSize * bytesPerPixel;
         }
 
@@ -3282,7 +3285,7 @@ namespace cmft
                 const uint8_t* srcFaceData = (const uint8_t*)_cubemap.m_data + cubemapOffsets[face][mip];
                 uint8_t* dstFaceData = (uint8_t*)dstData + dstMipOffsets[mip];
 
-                const uint32_t mipFaceSize = max(UINT32_C(1), _cubemap.m_width >> mip);
+                const uint32_t mipFaceSize = dm::max(UINT32_C(1), _cubemap.m_width >> mip);
                 const uint32_t mipPitch = mipFaceSize * bytesPerPixel;
 
                 for (uint32_t yy = 0; yy < mipFaceSize; ++yy)
@@ -3339,7 +3342,7 @@ namespace cmft
                 const uint8_t* srcMipData = (const uint8_t*)srcFaceData + srcOffsets[0][mip];
                 uint8_t* dstMipData = (uint8_t*)dstData + destinationOffset;
 
-                const uint32_t mipFaceSize = max(UINT32_C(1), _faceList[0].m_width >> mip);
+                const uint32_t mipFaceSize = dm::max(UINT32_C(1), _faceList[0].m_width >> mip);
                 const uint32_t mipPitch = mipFaceSize * bytesPerPixel;
                 const uint32_t mipFaceDataSize = mipPitch * mipFaceSize;
 
@@ -3398,8 +3401,8 @@ namespace cmft
         for (uint8_t mip = 0; mip < srcCpy.m_numMips; ++mip)
         {
             dstMipOffsets[mip] = dstDataSize;
-            const uint32_t mipWidth  = max(UINT32_C(1), dstWidth  >> mip);
-            const uint32_t mipHeight = max(UINT32_C(1), dstHeight >> mip);
+            const uint32_t mipWidth  = dm::max(UINT32_C(1), dstWidth  >> mip);
+            const uint32_t mipHeight = dm::max(UINT32_C(1), dstHeight >> mip);
 
             dstDataSize += mipWidth * mipHeight * bytesPerPixel;
         }
@@ -3414,8 +3417,8 @@ namespace cmft
         // Fill with black.
         for (uint8_t mip = 0; mip < srcCpy.m_numMips; ++mip)
         {
-            const uint32_t mipWidth  = max(UINT32_C(1), dstWidth  >> mip);
-            const uint32_t mipHeight = max(UINT32_C(1), dstHeight >> mip);
+            const uint32_t mipWidth  = dm::max(UINT32_C(1), dstWidth  >> mip);
+            const uint32_t mipHeight = dm::max(UINT32_C(1), dstHeight >> mip);
             const uint32_t mipPitch = mipWidth*bytesPerPixel;
 
             uint8_t* dstMipData = (uint8_t*)dstData + dstMipOffsets[mip];
@@ -3436,10 +3439,10 @@ namespace cmft
 
         for (uint8_t mip = 0; mip < srcCpy.m_numMips; ++mip)
         {
-            const uint32_t srcWidth = max(UINT32_C(1), srcCpy.m_width >> mip);
+            const uint32_t srcWidth = dm::max(UINT32_C(1), srcCpy.m_width >> mip);
             const uint32_t srcPitch = srcWidth * bytesPerPixel;
 
-            const uint32_t mipWidth = max(UINT32_C(1), dstWidth >> mip);
+            const uint32_t mipWidth = dm::max(UINT32_C(1), dstWidth >> mip);
             const uint32_t mipPitch = mipWidth * bytesPerPixel;
 
             const uint32_t denominator = (_vertical?3:4);
@@ -3741,8 +3744,8 @@ namespace cmft
         {
             for (uint8_t mip = 0; mip < ddsHeader.m_mipMapCount; ++mip)
             {
-                uint32_t width  = max(UINT32_C(1), ddsHeader.m_width  >> mip);
-                uint32_t height = max(UINT32_C(1), ddsHeader.m_height >> mip);
+                uint32_t width  = dm::max(UINT32_C(1), ddsHeader.m_width  >> mip);
+                uint32_t height = dm::max(UINT32_C(1), ddsHeader.m_height >> mip);
                 dataSize += width * height * bytesPerPixel;
             }
         }
@@ -3849,8 +3852,8 @@ namespace cmft
             for (uint8_t mip = 0; mip < ktxHeader.m_numMips; ++mip)
             {
                 offsets[mip][face] = dataSize;
-                const uint32_t width  = max(UINT32_C(1), ktxHeader.m_pixelWidth  >> mip);
-                const uint32_t height = max(UINT32_C(1), ktxHeader.m_pixelHeight >> mip);
+                const uint32_t width  = dm::max(UINT32_C(1), ktxHeader.m_pixelWidth  >> mip);
+                const uint32_t height = dm::max(UINT32_C(1), ktxHeader.m_pixelHeight >> mip);
                 dataSize += width * height * bytesPerPixel;
             }
         }
@@ -3865,8 +3868,8 @@ namespace cmft
         // Read data.
         for (uint8_t mip = 0; mip < ktxHeader.m_numMips; ++mip)
         {
-            const uint32_t width  = max(UINT32_C(1), ktxHeader.m_pixelWidth  >> mip);
-            const uint32_t height = max(UINT32_C(1), ktxHeader.m_pixelHeight >> mip);
+            const uint32_t width  = dm::max(UINT32_C(1), ktxHeader.m_pixelWidth  >> mip);
+            const uint32_t height = dm::max(UINT32_C(1), ktxHeader.m_pixelHeight >> mip);
             const uint32_t pitch  = width * bytesPerPixel;
 
             // Read face size.
@@ -4376,7 +4379,7 @@ namespace cmft
             WARN("Could not open file %s for writing.", _fileName);
             return false;
         }
-        ScopeFclose cleanup(fp);
+        dm::ScopeFclose cleanup(fp);
 
         // Write magic.
         const uint32_t magic = DDS_MAGIC;
@@ -4443,7 +4446,7 @@ namespace cmft
             WARN("Could not open file %s for writing.", _fileName);
             return false;
         }
-        ScopeFclose cleanup(fp);
+        dm::ScopeFclose cleanup(fp);
 
         CMFT_UNUSED size_t write;
 
@@ -4481,8 +4484,8 @@ namespace cmft
         DEBUG_CHECK(NULL != _image.m_data, "Image data is null.");
         for (uint8_t mip = 0; mip < _image.m_numMips; ++mip)
         {
-            const uint32_t width  = max(UINT32_C(1), _image.m_width  >> mip);
-            const uint32_t height = max(UINT32_C(1), _image.m_height >> mip);
+            const uint32_t width  = dm::max(UINT32_C(1), _image.m_width  >> mip);
+            const uint32_t height = dm::max(UINT32_C(1), _image.m_height >> mip);
 
             const uint32_t pitch = width * bytesPerPixel;
             const uint32_t faceSize = pitch * height;
@@ -4560,7 +4563,7 @@ namespace cmft
             WARN("Could not open file %s for writing.", _fileName);
             return false;
         }
-        ScopeFclose cleanup(fp);
+        dm::ScopeFclose cleanup(fp);
 
         if (1 != imageRgbe.m_numFaces)
         {
@@ -4651,7 +4654,7 @@ namespace cmft
             WARN("Could not open file %s for writing.", _fileName);
             return false;
         }
-        ScopeFclose cleanup(fp);
+        dm::ScopeFclose cleanup(fp);
 
         if (1 != _image.m_numFaces)
         {

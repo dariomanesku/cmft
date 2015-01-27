@@ -3,13 +3,15 @@
 -- License: http://www.opensource.org/licenses/BSD-2-Clause
 --
 
-function cmftProject(_cmftDir, _bxDir)
+function cmftProject(_cmftDir)
 
     local CMFT_INCLUDE_DIR  = (_cmftDir .. "include/")
     local CMFT_SRC_DIR      = (_cmftDir .. "src/cmft/")
 
-    local BX_INCLUDE_DIR    = (_bxDir .. "include/")
-    local BX_THIRDPARTY_DIR = (_bxDir .. "3rdparty/")
+    local BX_INCLUDE_DIR    = (_cmftDir .. "dependency/bx/include/")
+    local BX_THIRDPARTY_DIR = (_cmftDir .. "dependency/bx/3rdparty/")
+
+    local DM_INCLUDE_DIR    = (_cmftDir .. "dependency/dm/include/")
 
     project "cmft"
         uuid("0809b9fb-eaf6-4e80-9d80-7b490e29f212")
@@ -51,10 +53,11 @@ function cmftProject(_cmftDir, _bxDir)
 
         includedirs
         {
+            DM_INCLUDE_DIR,
             BX_INCLUDE_DIR,
+            BX_THIRDPARTY_DIR,
             CMFT_INCLUDE_DIR,
             CMFT_SRC_DIR,
-            BX_THIRDPARTY_DIR,
         }
 
 end -- cmftProject

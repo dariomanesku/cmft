@@ -4,7 +4,8 @@
 --
 
 local CMFT_DIR = (path.getabsolute("..") .. "/")
-local BX_DIR = (CMFT_DIR .. "dependency/bx/")
+local BX_DIR   = (CMFT_DIR .. "dependency/bx/")
+local DM_DIR   = (CMFT_DIR .. "dependency/dm/")
 
 local CMFT_BUILD_DIR    = (CMFT_DIR .. "_build/")
 local CMFT_PROJECTS_DIR = (CMFT_DIR .. "_projects/")
@@ -24,12 +25,12 @@ compat(BX_DIR)
 
 -- cmft_cli project.
 dofile "cmft_cli.lua"
-cmftCliProject(CMFT_DIR, BX_DIR)
+cmftCliProject(CMFT_DIR)
 compat(BX_DIR)
 
 -- cmft project.
 dofile "cmft.lua"
-cmftProject(CMFT_DIR, BX_DIR)
+cmftProject(CMFT_DIR)
 compat(BX_DIR)
 
 strip()

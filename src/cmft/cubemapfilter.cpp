@@ -10,7 +10,6 @@
 #include "base/config.h"
 #include "base/printcallback.h"
 #include "base/macros.h"
-#include "base/utils.h"
 #include "cubemaputils.h"
 #include "radiance.h"
 
@@ -18,10 +17,33 @@
 #include <math.h> //pow, sqrt
 #include <float.h> //FLT_MAX
 
+#include <dm/misc.h> //dm::min/max,dm::fsize
+
 #include <bx/timer.h> //bx::getHPFrequency
 #include <bx/os.h> //bx::sleep
 #include <bx/thread.h> //bx::thread
 #include <bx/mutex.h> //bx::mutex
+
+// TODO:
+#ifndef CMFT_FREE
+    #define CMFT_FREE(_ptr) ::free(_ptr)
+#endif
+
+struct ScopeFree : dm::NoCopyNoAssign
+{
+    ScopeFree(void* _ptr) : m_ptr(_ptr) { }
+
+    ~ScopeFree()
+    {
+        if (m_ptr)
+        {
+            CMFT_FREE(m_ptr);
+        }
+    }
+
+private:
+    void* m_ptr;
+};
 
 namespace cmft
 {
@@ -398,22 +420,22 @@ namespace cmft
 
         void add(float _x, float _y)
         {
-            m_min[0] = min(m_min[0], _x);
-            m_min[1] = min(m_min[1], _y);
-            m_max[0] = max(m_max[0], _x);
-            m_max[1] = max(m_max[1], _y);
+            m_min[0] = dm::min(m_min[0], _x);
+            m_min[1] = dm::min(m_min[1], _y);
+            m_max[0] = dm::max(m_max[0], _x);
+            m_max[1] = dm::max(m_max[1], _y);
         }
 
         inline void clampMin(float _x, float _y)
         {
-            m_min[0] = max(m_min[0], _x);
-            m_min[1] = max(m_min[1], _y);
+            m_min[0] = dm::max(m_min[0], _x);
+            m_min[1] = dm::max(m_min[1], _y);
         }
 
         inline void clampMax(float _x, float _y)
         {
-            m_max[0] = min(m_max[0], _x);
-            m_max[1] = min(m_max[1], _y);
+            m_max[0] = dm::min(m_max[0], _x);
+            m_max[1] = dm::min(m_max[1], _y);
         }
 
         void clamp(float _minX, float _minY, float _maxX, float _maxY)
@@ -954,7 +976,7 @@ namespace cmft
         const RadianceFilterParams* getFromBottom(uint8_t _numLevels = 0)
         {
             bx::MutexScope lock(m_indexMutex);
-            const uint8_t barrier = (0 == _numLevels) ? m_topMipIndex : max(m_topMipIndex, uint8_t(m_totalMipCount-_numLevels));
+            const uint8_t barrier = (0 == _numLevels) ? m_topMipIndex : dm::max(m_topMipIndex, uint8_t(m_totalMipCount-_numLevels));
             while (barrier <= m_bottomMipIndex)
             {
                 if (m_mipFaceIdx[m_bottomMipIndex] >= 6)
@@ -1113,10 +1135,10 @@ namespace cmft
                 WARN("Could not open file %s for reading.", _filePath);
                 return false;
             }
-            ScopeFclose cleanup0(fp);
+            dm::ScopeFclose cleanup0(fp);
 
             // Alloc data for string.
-            const long int fileSize = fsize(fp);
+            const long int fileSize = dm::fsize(fp);
             char* sourceData = (char*)CMFT_ALLOC(fileSize+1);
             ScopeFree cleanup1(sourceData);
 
@@ -1377,7 +1399,7 @@ namespace cmft
 
     float specularPowerFor(float _mip, float _mipCount, float _glossScale, float _glossBias)
     {
-        const float glossiness = max(0.0f, 1.0f - _mip/(_mipCount-1.0f+0.0000001f));
+        const float glossiness = dm::max(0.0f, 1.0f - _mip/(_mipCount-(1.0f+0.0000001f)));
         const float specularPower = powf(2.0f, _glossScale * glossiness + _glossBias);
         return specularPower;
     }
@@ -1445,7 +1467,7 @@ namespace cmft
         // Multi-threading parameters.
         bx::Thread cpuThreads[64];
         uint8_t activeCpuThreads = 0;
-        const uint8_t maxActiveCpuThreads = (uint8_t)max(int8_t(0), min(_numCpuProcessingThreads, int8_t(64)));
+        const uint8_t maxActiveCpuThreads = (uint8_t)DM_CLAMP(_numCpuProcessingThreads, 0, 64);
 
         // Prepare OpenCL kernel and device memory.
         s_radianceProgram.setClContext(_clContext);
@@ -1464,7 +1486,7 @@ namespace cmft
             // Write macro definitions at the beginning.
             if (EdgeFixup::Warp == _edgeFixup)
             {
-                cmft_strscpy(source, "#define WARP_FIXUP\n", HeaderSize);
+                dm::strscpy(source, "#define WARP_FIXUP\n", HeaderSize);
             }
 
             // After that put the source code.
@@ -1504,8 +1526,8 @@ namespace cmft
         // Alloc dst data.
         const uint32_t dstFaceSize = (0 == _dstFaceSize) ? _src.m_width : _dstFaceSize;
         const uint8_t mipMin = 1;
-        const uint8_t mipMax = (uint8_t)log2f(float(int32_t(dstFaceSize)))+uint8_t(1);
-        const uint8_t mipCount = clamp(_mipCount, mipMin, mipMax);
+        const uint8_t mipMax = uint8_t(dm::log2f(dm::utof(dstFaceSize)) + 1);
+        const uint8_t mipCount = dm::clamp(_mipCount, mipMin, mipMax);
         const uint32_t bytesPerPixel = 4 /*numChannels*/ * 4 /*bytesPerChannel*/;
         uint32_t dstOffsets[CUBE_FACE_NUM][MAX_MIP_NUM];
         uint32_t dstDataSize = 0;
@@ -1514,7 +1536,7 @@ namespace cmft
             for (uint8_t mip = 0; mip < mipCount; ++mip)
             {
                 dstOffsets[face][mip] = dstDataSize;
-                uint32_t faceSize = max(uint32_t(1), dstFaceSize >> mip);
+                uint32_t faceSize = DM_MAX(1, dstFaceSize >> mip);
                 dstDataSize += faceSize * faceSize * bytesPerPixel;
             }
         }
@@ -1548,7 +1570,7 @@ namespace cmft
         {
             INFO("Radiance -> Excluding base image.");
 
-            const float dstToSrcRatio = float(int32_t(imageRgba32f.m_width))/float(int32_t(dstFaceSize));
+            const float dstToSrcRatio = dm::utof(imageRgba32f.m_width)/dm::utof(dstFaceSize);
             const uint32_t dstFacePitch = dstFaceSize * bytesPerPixel;
             const uint32_t srcFacePitch = imageRgba32f.m_width * bytesPerPixel;
 
@@ -1571,14 +1593,14 @@ namespace cmft
                         uint32_t weightAccum = 0;
 
                         for (uint32_t ySrc = uint32_t(float(yDst)*dstToSrcRatio)
-                            , end = ySrc+max(uint32_t(1), uint32_t(dstToSrcRatio))
+                            , end = ySrc+DM_MAX(1, uint32_t(dstToSrcRatio))
                             ; ySrc < end
                             ; ++ySrc)
                         {
                             const uint8_t* srcRowData = (const uint8_t*)srcFaceData + ySrc*srcFacePitch;
 
                             for (uint32_t xSrc = uint32_t(float(xDst)*dstToSrcRatio)
-                                , end = xSrc+max(uint32_t(1), uint32_t(dstToSrcRatio))
+                                , end = xSrc+DM_MAX(1, uint32_t(dstToSrcRatio))
                                 ; xSrc < end
                                 ; ++xSrc)
                             {
@@ -1591,7 +1613,7 @@ namespace cmft
                         }
 
                         // Divide by weight and save to destination pixel.
-                        const float invWeight = 1.0f/float(int32_t(weightAccum));
+                        const float invWeight = 1.0f/dm::utof(weightAccum);
                         dstFaceColumn[0] = color[0] * invWeight;
                         dstFaceColumn[1] = color[1] * invWeight;
                         dstFaceColumn[2] = color[2] * invWeight;
@@ -1640,17 +1662,17 @@ namespace cmft
             for (uint32_t mip = mipStart; mip < mipCount; ++mip)
             {
                 // Determine filter parameters.
-                const uint32_t mipFaceSize = max(UINT32_C(1), dstFaceSize >> mip);
+                const uint32_t mipFaceSize = DM_MAX(1, dstFaceSize >> mip);
                 const float mipFaceSizef = float(int32_t(mipFaceSize));
                 const float minAngle = atan2f(1.0f, mipFaceSizef);
-                const float maxAngle = float(M_PI)/2.0f;
+                const float maxAngle = dm::piHalf;
                 const float toFilterSize = 1.0f/(minAngle*mipFaceSizef*2.0f);
                 const float specularPowerRef = specularPowerFor(float(int32_t(mip)), mipCountf, glossScalef, glossBiasf);
                 const float specularPower = applyLightningModel(specularPowerRef, _lightingModel);
-                const float filterAngle = clamp(cosinePowerFilterAngle(specularPower), minAngle, maxAngle);
-                const float cosAngle = max(0.0f, cosf(filterAngle));
+                const float filterAngle = dm::clamp(cosinePowerFilterAngle(specularPower), minAngle, maxAngle);
+                const float cosAngle = dm::max(0.0f, cosf(filterAngle));
                 const float texelSize = 1.0f/mipFaceSizef;
-                const float filterSize = max(texelSize, filterAngle * toFilterSize);
+                const float filterSize = dm::max(texelSize, filterAngle * toFilterSize);
 
                 for (uint8_t face = 0; face < 6; ++face)
                 {
