@@ -3,7 +3,6 @@
 -- License: http://www.opensource.org/licenses/BSD-2-Clause
 --
 
-
 function cmftProject(_cmftDir, _bxDir)
 
     local CMFT_INCLUDE_DIR  = (_cmftDir .. "include/")

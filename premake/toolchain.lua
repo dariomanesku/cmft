@@ -92,7 +92,6 @@ function cmft_toolchain(_buildDir, _projectsDir)
     {
         "StaticRuntime",
         "NoMinimalRebuild",
-        "NoPCH",
         "NoNativeWChar",
         "NoRTTI",
         "NoExceptions",
@@ -113,7 +112,7 @@ function cmft_toolchain(_buildDir, _projectsDir)
 
     configuration { "Release" }
         targetsuffix "Release"
-        flags { "OptimizeSpeed", }
+        flags { "OptimizeSpeed", "NoPCH" }
 
     configuration { "*gcc* or *mingw" }
         --TODO
@@ -349,7 +348,6 @@ function cmft_toolchain(_buildDir, _projectsDir)
 end
 
 function compat(_bxDir)
-
     -- VS
     configuration { "vs*" }
         includedirs { _bxDir .. "include/compat/msvc" }
