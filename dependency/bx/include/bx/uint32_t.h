@@ -613,29 +613,6 @@ namespace bx
 		return result;
 	}
 
-	inline uint64_t uint64_cntbits_ref(uint64_t _val)
-	{
-		const uint32_t lo = uint32_t(_val&UINT32_MAX);
-		const uint32_t hi = uint32_t(_val>>32);
-
-		const uint32_t total = bx::uint32_cntbits(lo)
-							 + bx::uint32_cntbits(hi);
-
-		return total;
-	}
-
-	/// Count number of bits set.
-	inline uint64_t uint64_cntbits(uint64_t _val)
-	{
-#if BX_COMPILER_GCC || BX_COMPILER_CLANG
-		return __builtin_popcountll(_val);
-#elif BX_COMPILER_MSVC && BX_PLATFORM_WINDOWS
-		return __popcnt64(_val);
-#else
-		return uint64_cntbits_ref(_val);
-#endif // BX_COMPILER_
-	}
-
 	inline uint64_t uint64_cntlz_ref(uint64_t _val)
 	{
 		return _val & UINT64_C(0xffffffff00000000)
