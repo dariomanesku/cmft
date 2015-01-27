@@ -1,8 +1,10 @@
 #pragma once
 
-#if __GNUC__ >=3
-#pragma GCC system_header
+#if __GNUC__ >= 3
+#	pragma GCC system_header
 #endif
+
+#define __SAL_H_FULL_VER 1
 
 //#define __null // << Conflicts with GCC internal type __null
 #define __notnull
@@ -27,7 +29,7 @@
 #define __exceptthat
 #define __execeptthat
 #define __inner_success(expr)
-#define __inner_checkReturn
+#define __inner_checkReturn __attribute__((warn_unused_result))
 #define __inner_typefix(ctype)
 #define __inner_override
 #define __inner_callback
@@ -235,7 +237,7 @@
 #define __nullterminated
 #define __nullnullterminated
 #define __reserved
-#define __checkReturn
+#define __checkReturn __inner_checkReturn
 #define __typefix(ctype)
 #define __override
 #define __callback
@@ -245,9 +247,9 @@
 #define __data_entrypoint(category)
 
 #ifndef __fallthrough
-    #define __fallthrough __inner_fallthrough
+#	define __fallthrough __inner_fallthrough
 #endif
 
 #ifndef __analysis_assume
-    #define __analysis_assume(expr)
+#	define __analysis_assume(expr)
 #endif

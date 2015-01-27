@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 Branimir Karadzic. All rights reserved.
+ * Copyright 2010-2015 Branimir Karadzic. All rights reserved.
  * License: http://www.opensource.org/licenses/BSD-2-Clause
  */
 
@@ -10,7 +10,7 @@
 
 #if BX_PLATFORM_ANDROID
 #	include <android/log.h>
-#elif BX_PLATFORM_WINDOWS || BX_PLATFORM_XBOX360
+#elif BX_PLATFORM_WINDOWS || BX_PLATFORM_WINRT || BX_PLATFORM_XBOX360
 extern "C" __declspec(dllimport) void __stdcall OutputDebugStringA(const char* _str);
 #elif BX_PLATFORM_IOS || BX_PLATFORM_OSX
 #	if defined(__OBJC__)
@@ -27,12 +27,17 @@ extern "C" void NSLog(CFStringRef _format, ...);
 
 namespace bx
 {
+#if BX_COMPILER_CLANG_ANALYZER
+	inline __attribute__((analyzer_noreturn)) void debugBreak();
+#endif // BX_COMPILER_CLANG_ANALYZER
+
 	inline void debugBreak()
 	{
 #if BX_COMPILER_MSVC
 		__debugbreak();
 #elif BX_CPU_ARM
-		asm("bkpt 0");
+		__builtin_trap();
+//		asm("bkpt 0");
 #elif !BX_PLATFORM_NACL && BX_CPU_X86 && (BX_COMPILER_GCC || BX_COMPILER_CLANG)
 		// NaCl doesn't like int 3:
 		// NativeClient: NaCl module load failed: Validation failure. File violates Native Client safety rules.
@@ -47,7 +52,7 @@ namespace bx
 	{
 #if BX_PLATFORM_ANDROID
 		__android_log_write(ANDROID_LOG_DEBUG, "", _out);
-#elif BX_PLATFORM_WINDOWS || BX_PLATFORM_XBOX360
+#elif BX_PLATFORM_WINDOWS || BX_PLATFORM_WINRT || BX_PLATFORM_XBOX360
 		OutputDebugStringA(_out);
 #elif BX_PLATFORM_IOS || BX_PLATFORM_OSX
 #	if defined(__OBJC__)

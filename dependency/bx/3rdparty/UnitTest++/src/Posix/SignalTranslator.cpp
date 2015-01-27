@@ -2,6 +2,16 @@
 
 namespace UnitTest {
 
+#if defined(__native_client__)
+SignalTranslator::SignalTranslator()
+{
+}
+
+SignalTranslator::~SignalTranslator()
+{
+}
+#else
+
 sigjmp_buf* SignalTranslator::s_jumpTarget = 0;
 
 namespace {
@@ -42,5 +52,6 @@ SignalTranslator::~SignalTranslator()
     s_jumpTarget = m_oldJumpTarget;
 }
 
+#endif // defined(__native_client__)
 
 }

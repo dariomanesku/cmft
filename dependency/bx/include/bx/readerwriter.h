@@ -1,21 +1,23 @@
 /*
- * Copyright 2010-2013 Branimir Karadzic. All rights reserved.
+ * Copyright 2010-2015 Branimir Karadzic. All rights reserved.
  * License: http://www.opensource.org/licenses/BSD-2-Clause
  */
- 
+
 #ifndef BX_READERWRITER_H_HEADER_GUARD
 #define BX_READERWRITER_H_HEADER_GUARD
 
+#include <stdarg.h> // va_list
 #include <stdio.h>
 #include <string.h>
 
 #include "bx.h"
+#include "allocator.h"
 #include "uint32_t.h"
 
-#if BX_COMPILER_MSVC
+#if BX_COMPILER_MSVC_COMPATIBLE
 #	define fseeko64 _fseeki64
 #	define ftello64 _ftelli64
-#elif BX_PLATFORM_ANDROID|BX_PLATFORM_IOS|BX_PLATFORM_OSX|BX_PLATFORM_QNX
+#elif BX_PLATFORM_ANDROID || BX_PLATFORM_FREEBSD || BX_PLATFORM_IOS || BX_PLATFORM_OSX || BX_PLATFORM_QNX
 #	define fseeko64 fseeko
 #	define ftello64 ftello
 #endif // BX_
@@ -72,6 +74,7 @@ namespace bx
 	template<typename Ty>
 	inline int32_t read(ReaderI* _reader, Ty& _value)
 	{
+		BX_STATIC_ASSERT(BX_TYPE_IS_POD(Ty) );
 		return _reader->read(&_value, sizeof(Ty) );
 	}
 
@@ -80,6 +83,7 @@ namespace bx
 	template<typename Ty>
 	inline int32_t readHE(ReaderI* _reader, Ty& _value, bool _fromLittleEndian)
 	{
+		BX_STATIC_ASSERT(BX_TYPE_IS_POD(Ty) );
 		Ty value;
 		int32_t result = _reader->read(&value, sizeof(Ty) );
 		_value = toHostEndian(value, _fromLittleEndian);
@@ -96,6 +100,7 @@ namespace bx
 	template<typename Ty>
 	inline int32_t write(WriterI* _writer, const Ty& _value)
 	{
+		BX_STATIC_ASSERT(BX_TYPE_IS_POD(Ty) );
 		return _writer->write(&_value, sizeof(Ty) );
 	}
 
@@ -103,6 +108,7 @@ namespace bx
 	template<typename Ty>
 	inline int32_t writeLE(WriterI* _writer, const Ty& _value)
 	{
+		BX_STATIC_ASSERT(BX_TYPE_IS_POD(Ty) );
 		Ty value = toLittleEndian(_value);
 		int32_t result = _writer->write(&value, sizeof(Ty) );
 		return result;
@@ -112,16 +118,48 @@ namespace bx
 	template<typename Ty>
 	inline int32_t writeBE(WriterI* _writer, const Ty& _value)
 	{
+		BX_STATIC_ASSERT(BX_TYPE_IS_POD(Ty) );
 		Ty value = toBigEndian(_value);
 		int32_t result = _writer->write(&value, sizeof(Ty) );
 		return result;
 	}
 
+	/// Write formated string.
+	inline int32_t writePrintf(WriterI* _writer, const char* _format, ...)
+	{
+		va_list argList;
+		va_start(argList, _format);
+
+		char temp[2048];
+		char* out = temp;
+		int32_t max = sizeof(temp);
+		int32_t len = vsnprintf(out, max, _format, argList);
+		if (len > max)
+		{
+			out = (char*)alloca(len);
+			len = vsnprintf(out, len, _format, argList);
+		}
+
+		int32_t size = write(_writer, out, len);
+
+		va_end(argList);
+
+		return size;
+	}
+
+	/// Skip _offset bytes forward.
 	inline int64_t skip(SeekerI* _seeker, int64_t _offset)
 	{
 		return _seeker->seek(_offset, Whence::Current);
 	}
 
+	/// Seek to any position in file.
+	inline int64_t seek(SeekerI* _seeker, int64_t _offset = 0, Whence::Enum _whence = Whence::Current)
+	{
+		return _seeker->seek(_offset, _whence);
+	}
+
+	/// Returns size of file.
 	inline int64_t getSize(SeekerI* _seeker)
 	{
 		int64_t offset = _seeker->seek();
@@ -204,23 +242,42 @@ namespace bx
 		uint32_t m_size;
 	};
 
-	inline int64_t int64_min(int64_t _a, int64_t _b)
+	class MemoryBlock : public MemoryBlockI
 	{
-		return _a < _b ? _a : _b;
-	}
+	public:
+		MemoryBlock(ReallocatorI* _allocator)
+			: m_allocator(_allocator)
+			, m_data(NULL)
+			, m_size(0)
+		{
+		}
 
-	inline int64_t int64_max(int64_t _a, int64_t _b)
-	{
-		return _a > _b ? _a : _b;
-	}
+		virtual ~MemoryBlock()
+		{
+			BX_FREE(m_allocator, m_data);
+		}
 
-	inline int64_t int64_clamp(int64_t _a, int64_t _min, int64_t _max)
-	{
-		const int64_t min    = int64_min(_a, _max);
-		const int64_t result = int64_max(_min, min);
+		virtual void* more(uint32_t _size = 0) BX_OVERRIDE
+		{
+			if (0 < _size)
+			{
+				m_size += _size;
+				m_data = BX_REALLOC(m_allocator, m_data, m_size);
+			}
 
-		return result;
-	}
+			return m_data;
+		}
+
+		virtual uint32_t getSize() BX_OVERRIDE
+		{
+			return m_size;
+		}
+
+	private:
+		ReallocatorI* m_allocator;
+		void* m_data;
+		uint32_t m_size;
+	};
 
 	class SizerWriter : public WriterSeekerI
 	{

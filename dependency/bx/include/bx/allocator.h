@@ -1,14 +1,15 @@
 /*
- * Copyright 2010-2013 Branimir Karadzic. All rights reserved.
+ * Copyright 2010-2015 Branimir Karadzic. All rights reserved.
  * License: http://www.opensource.org/licenses/BSD-2-Clause
  */
- 
+
 #ifndef BX_ALLOCATOR_H_HEADER_GUARD
 #define BX_ALLOCATOR_H_HEADER_GUARD
 
 #include "bx.h"
 
 #include <memory.h>
+#include <string.h> //::memmove
 #include <new>
 
 #if BX_CONFIG_ALLOCATOR_CRT
@@ -23,9 +24,9 @@
 #	define BX_ALIGNED_REALLOC(_allocator, _ptr, _size, _align) bx::realloc(_allocator, _ptr, _size, _align, __FILE__, __LINE__)
 #	define BX_ALIGNED_FREE(_allocator, _ptr, _align)           bx::free(_allocator, _ptr, _align, __FILE__, __LINE__)
 #	define BX_NEW(_allocator, _type)                           ::new(BX_ALLOC(_allocator, sizeof(_type) ) ) _type
-#	define BX_DELETE(_allocator, _ptr)                         bx::deleteObject(_allocator, _ptr, __FILE__, __LINE__)
+#	define BX_DELETE(_allocator, _ptr)                         bx::deleteObject(_allocator, _ptr, 0, __FILE__, __LINE__)
 #	define BX_ALIGNED_NEW(_allocator, _type, _align)           ::new(BX_ALIGNED_ALLOC(_allocator, sizeof(_type), _align) ) _type
-#	define BX_ALIGNED_DELETE(_allocator, _ptr, _align)         bx::alignedDeleteObject(_allocator, _ptr, _align, __FILE__, __LINE__)
+#	define BX_ALIGNED_DELETE(_allocator, _ptr, _align)         bx::deleteObject(_allocator, _ptr, _align, __FILE__, __LINE__)
 #else
 #	define BX_ALLOC(_allocator, _size)                         bx::alloc(_allocator, _size, 0)
 #	define BX_REALLOC(_allocator, _ptr, _size)                 bx::realloc(_allocator, _ptr, _size, 0)
@@ -34,9 +35,9 @@
 #	define BX_ALIGNED_REALLOC(_allocator, _ptr, _size, _align) bx::realloc(_allocator, _ptr, _size, _align)
 #	define BX_ALIGNED_FREE(_allocator, _ptr, _align)           bx::free(_allocator, _ptr, _align)
 #	define BX_NEW(_allocator, _type)                           ::new(BX_ALLOC(_allocator, sizeof(_type) ) ) _type
-#	define BX_DELETE(_allocator, _ptr)                         bx::deleteObject(_allocator, _ptr)
+#	define BX_DELETE(_allocator, _ptr)                         bx::deleteObject(_allocator, _ptr, 0)
 #	define BX_ALIGNED_NEW(_allocator, _type, _align)           ::new(BX_ALIGNED_ALLOC(_allocator, sizeof(_type), _align) ) _type
-#	define BX_ALIGNED_DELETE(_allocator, _ptr, _align)         bx::alignedDeleteObject(_allocator, _ptr, _align)
+#	define BX_ALIGNED_DELETE(_allocator, _ptr, _align)         bx::deleteObject(_allocator, _ptr, _align)
 #endif // BX_CONFIG_DEBUG_ALLOC
 
 #ifndef BX_CONFIG_ALLOCATOR_NATURAL_ALIGNMENT
@@ -141,22 +142,12 @@ namespace bx
 	}
 
 	template <typename ObjectT>
-	inline void deleteObject(AllocatorI* _allocator, ObjectT* _object, const char* _file = NULL, uint32_t _line = 0)
+	inline void deleteObject(AllocatorI* _allocator, ObjectT* _object, size_t _align = 0, const char* _file = NULL, uint32_t _line = 0)
 	{
 		if (NULL != _object)
 		{
 			_object->~ObjectT();
-			free(_allocator, _object, 0, _file, _line);
-		}
-	}
-
-	template <typename ObjectT>
-	inline void alignedDeleteObject(AllocatorI* _allocator, ObjectT* _object, size_t _align, const char* _file = NULL, uint32_t _line = 0)
-	{
-		if (NULL != _object)
-		{
-			_object->~ObjectT();
-			alignedFree(_allocator, _object, _align, _file, _line);
+			free(_allocator, _object, _align, _file, _line);
 		}
 	}
 

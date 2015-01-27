@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 Branimir Karadzic. All rights reserved.
+ * Copyright 2010-2015 Branimir Karadzic. All rights reserved.
  * License: http://www.opensource.org/licenses/BSD-2-Clause
  */
 
@@ -125,7 +125,7 @@ TEST(float4_compare)
 {
 	float4_check_uint32("cmpeq"
 		, float4_cmpeq(float4_ld(1.0f, 2.0f, 3.0f, 4.0f), float4_ld(0.0f, 2.0f, 0.0f, 3.0f) )
-		, 0, -1, 0, 0
+		, 0, 0xffffffff, 0, 0
 		);
 
 	float4_check_uint32("cmplt"
@@ -135,59 +135,59 @@ TEST(float4_compare)
 
 	float4_check_uint32("cmple"
 		, float4_cmple(float4_ld(1.0f, 2.0f, 3.0f, 4.0f), float4_ld(0.0f, 2.0f, 0.0f, 3.0f) )
-		, 0, -1, 0, 0
+		, 0, 0xffffffff, 0, 0
 		);
 
 	float4_check_uint32("cmpgt"
 		, float4_cmpgt(float4_ld(1.0f, 2.0f, 3.0f, 4.0f), float4_ld(0.0f, 2.0f, 0.0f, 3.0f) )
-		, -1, 0, -1, -1
+		, 0xffffffff, 0, 0xffffffff, 0xffffffff
 		);
 
 	float4_check_uint32("cmpge"
 		, float4_cmpge(float4_ld(1.0f, 2.0f, 3.0f, 4.0f), float4_ld(0.0f, 2.0f, 0.0f, 3.0f) )
-		, -1, -1, -1, -1
+		, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
 		);
 
 	float4_check_uint32("icmpeq"
-		, float4_icmpeq(float4_ild(0, 1, 2, 3), float4_ild(0, -2, 1, 3) )
-		, -1, 0, 0, -1
+		, float4_icmpeq(float4_ild(0, 1, 2, 3), float4_ild(0, uint32_t(-2), 1, 3) )
+		, 0xffffffff, 0, 0, 0xffffffff
 		);
 
 	float4_check_uint32("icmplt"
-		, float4_icmplt(float4_ild(0, 1, 2, 3), float4_ild(0, -2, 1, 3) )
+		, float4_icmplt(float4_ild(0, 1, 2, 3), float4_ild(0, uint32_t(-2), 1, 3) )
 		, 0, 0, 0, 0
 		);
 
 	float4_check_uint32("icmpgt"
-		, float4_icmpgt(float4_ild(0, 1, 2, 3), float4_ild(0, -2, 1, 3) )
-		, 0, -1, -1, 0
+		, float4_icmpgt(float4_ild(0, 1, 2, 3), float4_ild(0, uint32_t(-2), 1, 3) )
+		, 0, 0xffffffff, 0xffffffff, 0
 		);
 }
 
 TEST(float4_test)
 {
 	float4_check_bool("test_any_xyzw"
-		, float4_test_any_xyzw(float4_ild(-1, 0, 0, 0) )
+		, float4_test_any_xyzw(float4_ild(0xffffffff, 0, 0, 0) )
 		, true
 		);
 
 	float4_check_bool("test_all_xyzw"
-		, float4_test_all_xyzw(float4_ild(-1, 0, -1, 0) )
+		, float4_test_all_xyzw(float4_ild(0xffffffff, 0, 0xffffffff, 0) )
 		, false
 		);
 
 	float4_check_bool("test_all_xyzw"
-		, float4_test_all_xyzw(float4_ild(-1, -1, -1, -1) )
+		, float4_test_all_xyzw(float4_ild(0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff) )
 		, true
 		);
 
 	float4_check_bool("test_all_xw"
-		, float4_test_all_xw(float4_ild(-1, 0, 0, -1) )
+		, float4_test_all_xw(float4_ild(0xffffffff, 0, 0, 0xffffffff) )
 		, true
 		);
 
 	float4_check_bool("test_all_xzw"
-		, float4_test_all_xzw(float4_ild(-1, 0, 0, -1) )
+		, float4_test_all_xzw(float4_ild(0xffffffff, 0, 0, 0xffffffff) )
 		, false
 		);
 }
@@ -200,13 +200,13 @@ TEST(float4_load)
 		);
 
 	float4_check_int32("ild"
-		, float4_ild(-1, 0, 1, 2)
-		, -1, 0, 1, 2
+		, float4_ild(uint32_t(-1), 0, 1, 2)
+		, uint32_t(-1), 0, 1, 2
 		);
 
 	float4_check_int32("ild"
-		, float4_ild(-1, -2, -3, -4)
-		, -1, -2, -3, -4
+		, float4_ild(uint32_t(-1), uint32_t(-2), uint32_t(-3), uint32_t(-4) )
+		, uint32_t(-1), uint32_t(-2), uint32_t(-3), uint32_t(-4)
 		);
 
 	float4_check_uint32("zero", float4_zero()
@@ -255,17 +255,17 @@ TEST(float4)
 
 	float4_check_uint32("or "
 		, float4_or(float4_isplat(0x55555555), float4_isplat(0xaaaaaaaa) )
-		, -1, -1, -1, -1
+		, uint32_t(-1), uint32_t(-1), uint32_t(-1), uint32_t(-1)
 		);
 
 	float4_check_uint32("xor"
 		, float4_or(float4_isplat(0x55555555), float4_isplat(0xaaaaaaaa) )
-		, -1, -1, -1, -1
+		, uint32_t(-1), uint32_t(-1), uint32_t(-1), uint32_t(-1)
 		);
 
 	float4_check_int32("imin"
-		, float4_imin(float4_ild(0, 1, 2, 3), float4_ild(-1, 2, -2, 1) )
-		, -1, 1, -2, 1
+		, float4_imin(float4_ild(0, 1, 2, 3), float4_ild(uint32_t(-1), 2, uint32_t(-2), 1) )
+		, uint32_t(-1), 1, uint32_t(-2), 1
 		);
 
 	float4_check_float("min"
@@ -274,7 +274,7 @@ TEST(float4)
 		);
 
 	float4_check_int32("imax"
-		, float4_imax(float4_ild(0, 1, 2, 3), float4_ild(-1, 2, -2, 1) )
+		, float4_imax(float4_ild(0, 1, 2, 3), float4_ild(uint32_t(-1), 2, uint32_t(-2), 1) )
 		, 0, 2, 2, 3
 		);
 

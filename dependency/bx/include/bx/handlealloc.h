@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 Branimir Karadzic. All rights reserved.
+ * Copyright 2010-2015 Branimir Karadzic. All rights reserved.
  * License: http://www.opensource.org/licenses/BSD-2-Clause
  */
 
@@ -17,7 +17,7 @@ namespace bx
 	public:
 		static const uint16_t invalid = 0xffff;
 
-		BX_NO_INLINE HandleAllocT()
+		HandleAllocT()
 			: m_numHandles(0)
 		{
 			for (uint16_t ii = 0; ii < MaxHandlesT; ++ii)
@@ -68,6 +68,7 @@ namespace bx
 
 		void free(uint16_t _handle)
 		{
+			BX_CHECK(0 < m_numHandles, "Freeing invalid handle %d.", _handle);
 			uint16_t* sparse = &m_handles[MaxHandlesT];
 			uint16_t index = sparse[_handle];
 			--m_numHandles;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 Branimir Karadzic. All rights reserved.
+ * Copyright 2010-2015 Branimir Karadzic. All rights reserved.
  * License: http://www.opensource.org/licenses/BSD-2-Clause
  */
 
@@ -29,7 +29,7 @@
 #include "bx.h"
 
 #if BX_COMPILER_MSVC
-#	if BX_PLATFORM_WINDOWS
+#	if BX_PLATFORM_WINDOWS || BX_PLATFORM_WINRT
 #		include <math.h> // math.h is included because VS bitches:
 						 // warning C4985: 'ceil': attributes not present on previous declaration.
 						 // must be included before intrin.h.
@@ -263,6 +263,14 @@ namespace bx
 		return _a > _b ? _a : _b;
 	}
 
+	inline uint32_t uint32_clamp(uint32_t _a, uint32_t _min, uint32_t _max)
+	{
+		const uint32_t tmp    = uint32_max(_a, _min);
+		const uint32_t result = uint32_min(tmp, _max);
+
+		return result;
+	}
+
 	inline uint32_t uint32_incwrap(uint32_t _val, uint32_t _min, uint32_t _max)
 	{
 		const uint32_t inc          = uint32_inc(_val);
@@ -313,13 +321,13 @@ namespace bx
 	/// Count number of bits set.
 	inline uint32_t uint32_cntbits(uint32_t _val)
 	{
-#if BX_COMPILER_GCC
+#if BX_COMPILER_GCC || BX_COMPILER_CLANG
 		return __builtin_popcount(_val);
 #elif BX_COMPILER_MSVC && BX_PLATFORM_WINDOWS
 		return __popcnt(_val);
 #else
 		return uint32_cntbits_ref(_val);
-#endif // BX_COMPILER_GCC
+#endif // BX_COMPILER_
 	}
 
 	inline uint32_t uint32_cntlz_ref(uint32_t _val)
@@ -343,7 +351,7 @@ namespace bx
 	/// Count number of leading zeros.
 	inline uint32_t uint32_cntlz(uint32_t _val)
 	{
-#if BX_COMPILER_GCC
+#if BX_COMPILER_GCC || BX_COMPILER_CLANG
 		return __builtin_clz(_val);
 #elif BX_COMPILER_MSVC && BX_PLATFORM_WINDOWS
 		unsigned long index;
@@ -366,7 +374,7 @@ namespace bx
 
 	inline uint32_t uint32_cnttz(uint32_t _val)
 	{
-#if BX_COMPILER_GCC
+#if BX_COMPILER_GCC || BX_COMPILER_CLANG
 		return __builtin_ctz(_val);
 #elif BX_COMPILER_MSVC && BX_PLATFORM_WINDOWS
 		unsigned long index;
@@ -575,7 +583,7 @@ namespace bx
 		union { uint32_t ui; float flt;	} utof;
 		utof.ui = f_result;
 		return utof.flt;
-	} 
+	}
 
 	inline uint16_t uint16_min(uint16_t _a, uint16_t _b)
 	{
@@ -585,6 +593,47 @@ namespace bx
 	inline uint16_t uint16_max(uint16_t _a, uint16_t _b)
 	{
 		return _a < _b ? _b : _a;
+	}
+
+	inline int64_t int64_min(int64_t _a, int64_t _b)
+	{
+		return _a < _b ? _a : _b;
+	}
+
+	inline int64_t int64_max(int64_t _a, int64_t _b)
+	{
+		return _a > _b ? _a : _b;
+	}
+
+	inline int64_t int64_clamp(int64_t _a, int64_t _min, int64_t _max)
+	{
+		const int64_t min    = int64_min(_a, _max);
+		const int64_t result = int64_max(_min, min);
+
+		return result;
+	}
+
+	inline uint64_t uint64_cntbits_ref(uint64_t _val)
+	{
+		const uint32_t lo = uint32_t(_val&UINT32_MAX);
+		const uint32_t hi = uint32_t(_val>>32);
+
+		const uint32_t total = bx::uint32_cntbits(lo)
+							 + bx::uint32_cntbits(hi);
+
+		return total;
+	}
+
+	/// Count number of bits set.
+	inline uint64_t uint64_cntbits(uint64_t _val)
+	{
+#if BX_COMPILER_GCC || BX_COMPILER_CLANG
+		return __builtin_popcountll(_val);
+#elif BX_COMPILER_MSVC && BX_PLATFORM_WINDOWS
+		return __popcnt64(_val);
+#else
+		return uint64_cntbits_ref(_val);
+#endif // BX_COMPILER_
 	}
 
 	inline uint64_t uint64_cntlz_ref(uint64_t _val)
@@ -598,7 +647,7 @@ namespace bx
 	/// Count number of leading zeros.
 	inline uint64_t uint64_cntlz(uint64_t _val)
 	{
-#if BX_COMPILER_GCC
+#if BX_COMPILER_GCC || BX_COMPILER_CLANG
 		return __builtin_clz(_val);
 #elif BX_COMPILER_MSVC && BX_PLATFORM_WINDOWS && BX_ARCH_64BIT
 		unsigned long index;
@@ -619,7 +668,7 @@ namespace bx
 
 	inline uint64_t uint64_cnttz(uint64_t _val)
 	{
-#if BX_COMPILER_GCC
+#if BX_COMPILER_GCC || BX_COMPILER_CLANG
 		return __builtin_ctz(_val);
 #elif BX_COMPILER_MSVC && BX_PLATFORM_WINDOWS && BX_ARCH_64BIT
 		unsigned long index;

@@ -12,6 +12,8 @@ public:
     SignalTranslator();
     ~SignalTranslator();
 
+#if defined(__native_client__)
+#else
     static sigjmp_buf* s_jumpTarget;
 
 private:
@@ -24,18 +26,23 @@ private:
     struct sigaction m_old_SIGBUS_action;
 //    struct sigaction m_old_SIGABRT_action;
 //    struct sigaction m_old_SIGALRM_action;
+#endif // defined(__native_client__)
 };
 
-#if !defined (__GNUC__)
-    #define UNITTEST_EXTENSION
+#if !defined(__GNUC__) && !defined(__clang__)
+#	define UNITTEST_EXTENSION
 #else
-    #define UNITTEST_EXTENSION __extension__
+#	define UNITTEST_EXTENSION __extension__
 #endif
 
-#define UNITTEST_THROW_SIGNALS \
-	UnitTest::SignalTranslator sig; \
-	if (UNITTEST_EXTENSION sigsetjmp(*UnitTest::SignalTranslator::s_jumpTarget, 1) != 0) \
-        throw ("Unhandled system exception"); 
+#if defined(__native_client__)
+#	define UNITTEST_THROW_SIGNALS
+#else
+#	define UNITTEST_THROW_SIGNALS \
+		UnitTest::SignalTranslator sig; \
+		if (UNITTEST_EXTENSION sigsetjmp(*UnitTest::SignalTranslator::s_jumpTarget, 1) != 0) \
+			throw ("Unhandled system exception"); 
+#endif // defined(__native_client__)
 
 }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 Branimir Karadzic. All rights reserved.
+ * Copyright 2010-2015 Branimir Karadzic. All rights reserved.
  * License: http://www.opensource.org/licenses/BSD-2-Clause
  */
 
@@ -8,7 +8,11 @@
 
 #if BX_PLATFORM_POSIX
 #	include <pthread.h>
-#endif // BX_PLATFORM_POSIX
+#elif BX_PLATFORM_WINRT
+using namespace Platform;
+using namespace Windows::Foundation;
+using namespace Windows::System::Threading;
+#endif
 
 #include "sem.h"
 
@@ -27,7 +31,7 @@ namespace bx
 
 	public:
 		Thread()
-#if BX_PLATFORM_WINDOWS|BX_PLATFORM_XBOX360
+#if BX_PLATFORM_WINDOWS|BX_PLATFORM_XBOX360|BX_PLATFORM_WINRT
 			: m_handle(INVALID_HANDLE_VALUE)
 #elif BX_PLATFORM_POSIX
 			: m_handle(0)
@@ -65,6 +69,15 @@ namespace bx
 				, 0
 				, NULL
 				);
+#elif BX_PLATFORM_WINRT
+			m_handle = CreateEventEx(nullptr, nullptr, CREATE_EVENT_MANUAL_RESET, EVENT_ALL_ACCESS);
+			auto workItemHandler = ref new WorkItemHandler([=](IAsyncAction^)
+			{
+				m_exitCode = threadFunc(this);
+				SetEvent(m_handle);
+			}, CallbackContext::Any);
+
+			ThreadPool::RunAsync(workItemHandler, WorkItemPriority::Normal, WorkItemOptions::TimeSliced);
 #elif BX_PLATFORM_POSIX
 			int result;
 			BX_UNUSED(result);
@@ -99,6 +112,10 @@ namespace bx
 			GetExitCodeThread(m_handle, (DWORD*)&m_exitCode);
 			CloseHandle(m_handle);
 			m_handle = INVALID_HANDLE_VALUE;
+#elif BX_PLATFORM_WINRT
+			WaitForSingleObjectEx(m_handle, INFINITE, FALSE);
+			CloseHandle(m_handle);
+			m_handle = INVALID_HANDLE_VALUE;
 #elif BX_PLATFORM_POSIX
 			union
 			{
@@ -117,6 +134,11 @@ namespace bx
 			return m_running;
 		}
 
+		int32_t getExitCode() const
+		{
+			return m_exitCode;
+		}
+
 	private:
 		int32_t entry()
 		{
@@ -124,7 +146,7 @@ namespace bx
 			return m_fn(m_userData);
 		}
 
-#if BX_PLATFORM_WINDOWS|BX_PLATFORM_XBOX360
+#if BX_PLATFORM_WINDOWS|BX_PLATFORM_XBOX360|BX_PLATFORM_WINRT
 		static DWORD WINAPI threadFunc(LPVOID _arg)
 		{
 			Thread* thread = (Thread*)_arg;
@@ -145,7 +167,7 @@ namespace bx
 		}
 #endif // BX_PLATFORM_
 
-#if BX_PLATFORM_WINDOWS|BX_PLATFORM_XBOX360
+#if BX_PLATFORM_WINDOWS|BX_PLATFORM_XBOX360|BX_PLATFORM_WINRT
 		HANDLE m_handle;
 #elif BX_PLATFORM_POSIX
 		pthread_t m_handle;
@@ -189,7 +211,7 @@ namespace bx
 		uint32_t m_id;
 	};
 
-#else
+#elif !(BX_PLATFORM_WINRT)
 
 	class TlsData
 	{

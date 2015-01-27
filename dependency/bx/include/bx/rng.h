@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 Branimir Karadzic. All rights reserved.
+ * Copyright 2010-2015 Branimir Karadzic. All rights reserved.
  * License: http://www.opensource.org/licenses/BSD-2-Clause
  */
 
@@ -7,9 +7,7 @@
 #define BX_RNG_H_HEADER_GUARD
 
 #include "bx.h"
-
-#define _USE_MATH_DEFINES
-#include <math.h>
+#include "fpumath.h"
 
 namespace bx
 {
@@ -115,7 +113,7 @@ namespace bx
 	static inline void randUnitSphere(float _result[3], Ty* _rng)
 	{
 		float rand0 = frnd(_rng) * 2.0f - 1.0f;
-		float rand1 = frnd(_rng) * float(M_PI) * 2.0f;
+		float rand1 = frnd(_rng) * pi * 2.0f;
 
 		float sqrtf1 = sqrtf(1.0f - rand0*rand0);
 		_result[0] = sqrtf1 * cosf(rand1);
@@ -167,7 +165,7 @@ namespace bx
 			tt = 2.0f * tt - 1.0f;
 
 			const float phi = (ii + 0.5f) / _num;
-			const float phirad =  phi * 2.0f * float(M_PI);
+			const float phirad =  phi * 2.0f * pi;
 			const float st = sqrtf(1.0f-tt*tt) * _scale;
 
 			float* xyz = (float*)data;

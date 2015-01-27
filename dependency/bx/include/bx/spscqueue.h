@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 Branimir Karadzic. All rights reserved.
+ * Copyright 2010-2015 Branimir Karadzic. All rights reserved.
  * License: http://www.opensource.org/licenses/BSD-2-Clause
  */
 
@@ -203,4 +203,4 @@ namespace bx
 
 } // namespace bx
 
-#endif // BX_RINGBUFFER_H_HEADER_GUARD
+#endif // BX_SPSCQUEUE_H_HEADER_GUARD

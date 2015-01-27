@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 Branimir Karadzic. All rights reserved.
+ * Copyright 2010-2015 Branimir Karadzic. All rights reserved.
  * License: http://www.opensource.org/licenses/BSD-2-Clause
  */
 
@@ -47,7 +47,7 @@ namespace bx
 				uint32_t tmp = ( (_test.uxyzw[3]>>31)<<3) \
 				             | ( (_test.uxyzw[2]>>31)<<2) \
 				             | ( (_test.uxyzw[1]>>31)<<1) \
-				             | (_test.uxyzw[0]>>31) \
+				             | (  _test.uxyzw[0]>>31)     \
 				             ; \
 				return 0 != (tmp&(_mask) ); \
 			} \
@@ -57,7 +57,7 @@ namespace bx
 				uint32_t tmp = ( (_test.uxyzw[3]>>31)<<3) \
 				             | ( (_test.uxyzw[2]>>31)<<2) \
 				             | ( (_test.uxyzw[1]>>31)<<1) \
-				             | (_test.uxyzw[0]>>31) \
+				             | (  _test.uxyzw[0]>>31)     \
 				             ; \
 				return (_mask) == (tmp&(_mask) ); \
 			}

@@ -118,7 +118,7 @@ namespace tinystl {
 	template<typename T, typename Alloc>
 	static inline void buffer_destroy(buffer<T, Alloc>* b) {
 		buffer_destroy_range(b->first, b->last);
-		Alloc::static_deallocate(b->first, (size_t)((char*)b->first - (char*)b->last));
+		Alloc::static_deallocate(b->first, (size_t)((char*)b->capacity - (char*)b->first));
 	}
 
 	template<typename T, typename Alloc>
@@ -144,6 +144,22 @@ namespace tinystl {
 		buffer_fill_urange(b->last, b->first + size, value);
 		buffer_destroy_range(b->first + size, b->last);
 		b->last = b->first + size;
+	}
+
+	template<typename T, typename Alloc>
+	static inline void buffer_shrink_to_fit(buffer<T, Alloc>* b) {
+		if (b->last == b->first) {
+			const size_t capacity = (size_t)(b->last - b->first);
+			Alloc::static_deallocate(b->first, sizeof(T)*capacity);
+			b->capacity = b->first;
+		} else if (b->capacity != b->last) {
+			const size_t size = (size_t)(b->last - b->first);
+			T* newfirst = (T*)Alloc::static_allocate(sizeof(T) * size);
+			buffer_move_urange(newfirst, b->first, b->last);
+			b->first = newfirst;
+			b->last = newfirst + size;
+			b->capacity = b->last;
+		}
 	}
 
 	template<typename T, typename Alloc>

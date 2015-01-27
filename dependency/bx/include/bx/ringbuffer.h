@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 Branimir Karadzic. All rights reserved.
+ * Copyright 2010-2015 Branimir Karadzic. All rights reserved.
  * License: http://www.opensource.org/licenses/BSD-2-Clause
  */
 
@@ -14,6 +14,11 @@ namespace bx
 {
 	class RingBufferControl
 	{
+		BX_CLASS(RingBufferControl
+			, NO_COPY
+			, NO_ASSIGNMENT
+			);
+
 	public:
 		RingBufferControl(uint32_t _size)
 			: m_size(_size)
@@ -82,14 +87,15 @@ namespace bx
 		uint32_t m_current;
 		uint32_t m_write;
 		uint32_t m_read;
-
-	private:
-		RingBufferControl(const RingBufferControl&);
-		void operator=(const RingBufferControl&);
 	};
 
 	class SpScRingBufferControl
 	{
+		BX_CLASS(SpScRingBufferControl
+			, NO_COPY
+			, NO_ASSIGNMENT
+			);
+
 	public:
 		SpScRingBufferControl(uint32_t _size)
 			: m_size(_size)
@@ -162,15 +168,17 @@ namespace bx
 		uint32_t m_current;
 		uint32_t m_write;
 		uint32_t m_read;
-
-	private:
-		SpScRingBufferControl(const SpScRingBufferControl&);
-		void operator=(const SpScRingBufferControl&);
 	};
 
 	template <typename Control>
 	class ReadRingBufferT
 	{
+		BX_CLASS(ReadRingBufferT
+			, NO_DEFAULT_CTOR
+			, NO_COPY
+			, NO_ASSIGNMENT
+			);
+
 	public:
 		ReadRingBufferT(Control& _control, const char* _buffer, uint32_t _size)
 			: m_control(_control)
@@ -220,10 +228,6 @@ namespace bx
 		template <typename Ty>
 		friend class WriteRingBufferT;
 
-		ReadRingBufferT();
-		ReadRingBufferT(const Control&);
-		void operator=(const Control&);
-
 		Control& m_control;
 		uint32_t m_read;
 		uint32_t m_end;
@@ -237,6 +241,12 @@ namespace bx
 	template <typename Control>
 	class WriteRingBufferT
 	{
+		BX_CLASS(WriteRingBufferT
+			, NO_DEFAULT_CTOR
+			, NO_COPY
+			, NO_ASSIGNMENT
+			);
+
 	public:
 		WriteRingBufferT(Control& _control, char* _buffer, uint32_t _size)
 			: m_control(_control)
@@ -303,10 +313,6 @@ namespace bx
 		}
 
 	private:
-		WriteRingBufferT();
-		WriteRingBufferT(const WriteRingBufferT<Control>&);
-		void operator=(const WriteRingBufferT<Control>&);
-
 		Control& m_control;
 		uint32_t m_write;
 		uint32_t m_end;

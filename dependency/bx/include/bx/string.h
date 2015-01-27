@@ -1,10 +1,10 @@
 /*
- * Copyright 2010-2013 Branimir Karadzic. All rights reserved.
+ * Copyright 2010-2015 Branimir Karadzic. All rights reserved.
  * License: http://www.opensource.org/licenses/BSD-2-Clause
  */
 
-#ifndef BX_PRINTF_H_HEADER_GUARD
-#define BX_PRINTF_H_HEADER_GUARD
+#ifndef BX_STRING_H_HEADER_GUARD
+#define BX_STRING_H_HEADER_GUARD
 
 #include "bx.h"
 #include <alloca.h>
@@ -16,6 +16,7 @@
 
 namespace bx
 {
+	///
 	inline bool toBool(const char* _str)
 	{
 		char ch = (char)tolower(_str[0]);
@@ -25,7 +26,7 @@ namespace bx
 	/// Case insensitive string compare.
 	inline int32_t stricmp(const char* _a, const char* _b)
 	{
-#if BX_COMPILER_MSVC
+#if BX_COMPILER_MSVC_COMPATIBLE
 		return _stricmp(_a, _b);
 #else
 		return strcasecmp(_a, _b);
@@ -70,6 +71,87 @@ namespace bx
 		} while (0 != strncmp(_str, cmp, len) );
 
 		return --_str;
+	}
+
+	/// Find substring in string. Case insensitive.
+	inline const char* stristr(const char* _str, const char* _find)
+	{
+		const char* ptr = _str;
+
+		for (size_t len = strlen(_str), searchLen = strlen(_find)
+		    ; len >= searchLen
+		    ; ++ptr, --len)
+		{
+			// Find start of the string.
+			while (tolower(*ptr) != tolower(*_find) )
+			{
+				++ptr;
+				--len;
+
+				// Search pattern lenght can't be longer than the string.
+				if (searchLen > len)
+				{
+					return NULL;
+				}
+			}
+
+			// Set pointers.
+			const char* string = ptr;
+			const char* search = _find;
+
+			// Start comparing.
+			while (tolower(*string++) == tolower(*search++) )
+			{
+				// If end of the 'search' string is reached, all characters match.
+				if ('\0' == *search)
+				{
+					return ptr;
+				}
+			}
+		}
+
+		return NULL;
+	}
+
+	/// Find substring in string. Case insensitive. Limit search to _size.
+	inline const char* stristr(const char* _str, const char* _find, size_t _max)
+	{
+		const char* ptr = _str;
+
+		const size_t total = strlen(_str);
+		size_t len = _max < total ? _max : total;
+
+		for (const size_t searchLen = strlen(_find); len >= searchLen; ++ptr, --len)
+		{
+			// Find start of the string.
+			while (tolower(*ptr) != tolower(*_find) )
+			{
+				++ptr;
+				--len;
+
+				// Search pattern lenght can't be longer than the string.
+				if (searchLen > len)
+				{
+					return NULL;
+				}
+			}
+
+			// Set pointers.
+			const char* string = ptr;
+			const char* search = _find;
+
+			// Start comparing.
+			while (tolower(*string++) == tolower(*search++) )
+			{
+				// If end of the 'search' string is reached, all characters match.
+				if ('\0' == *search)
+				{
+					return ptr;
+				}
+			}
+		}
+
+		return NULL;
 	}
 
 	/// Find new line. Returns pointer after new line terminator.
@@ -247,6 +329,7 @@ namespace bx
 #endif // BX_COMPILER_MSVC
 	}
 
+	///
 	inline int32_t snprintf(char* _str, size_t _count, const char* _format, ...) // BX_PRINTF_ARGS(3, 4)
 	{
 		va_list argList;
@@ -256,6 +339,7 @@ namespace bx
 		return len;
 	}
 
+	///
 	inline int32_t swnprintf(wchar_t* _out, size_t _count, const wchar_t* _format, ...)
 	{
 		va_list argList;
@@ -265,6 +349,7 @@ namespace bx
 		return len;
 	}
 
+	///
 	template <typename Ty>
 	inline void stringPrintfVargs(Ty& _out, const char* _format, va_list _argList)
 	{
@@ -281,6 +366,7 @@ namespace bx
 		_out.append(out);
 	}
 
+	///
 	template <typename Ty>
 	inline void stringPrintf(Ty& _out, const char* _format, ...)
 	{
@@ -288,6 +374,38 @@ namespace bx
 		va_start(argList, _format);
 		stringPrintfVargs(_out, _format, argList);
 		va_end(argList);
+	}
+
+	/// Extract base file name from file path.
+	inline const char* baseName(const char* _filePath)
+	{
+		const char* bs       = strrchr(_filePath, '\\');
+		const char* fs       = strrchr(_filePath, '/');
+		const char* slash    = (bs > fs ? bs : fs);
+		const char* colon    = strrchr(_filePath, ':');
+		const char* basename = slash > colon ? slash : colon;
+		if (NULL != basename)
+		{
+			return basename+1;
+		}
+
+		return _filePath;
+	}
+
+	/// Convert size in bytes to human readable string.
+	inline void prettify(char* _out, size_t _count, uint64_t _size)
+	{
+		uint8_t idx = 0;
+		double size = double(_size);
+		while (_size != (_size&0x7ff)
+		&&     idx < 9)
+		{
+			_size >>= 10;
+			size *= 1.0/1024.0;
+			++idx;
+		}
+
+		snprintf(_out, _count, "%0.2f %c%c", size, "BkMGTPEZY"[idx], idx > 0 ? 'B' : '\0');
 	}
 
 	/*
@@ -385,4 +503,4 @@ namespace bx
 
 } // namespace bx
 
-#endif // BX_PRINTF_H_HEADER_GUARD
+#endif // BX_STRING_H_HEADER_GUARD

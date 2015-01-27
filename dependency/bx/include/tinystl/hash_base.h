@@ -65,6 +65,9 @@ namespace tinystl {
 		Value second;
 		unordered_hash_node* next;
 		unordered_hash_node* prev;
+
+	private:
+		unordered_hash_node& operator=(const unordered_hash_node&);
 	};
 
 	template<typename Key, typename Value>

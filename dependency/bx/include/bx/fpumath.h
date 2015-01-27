@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2014 Branimir Karadzic. All rights reserved.
+ * Copyright 2011-2015 Branimir Karadzic. All rights reserved.
  * License: http://www.opensource.org/licenses/BSD-2-Clause
  */
 
@@ -8,20 +8,30 @@
 #ifndef BX_FPU_MATH_H_HEADER_GUARD
 #define BX_FPU_MATH_H_HEADER_GUARD
 
-#define _USE_MATH_DEFINES
+#include "bx.h"
 #include <math.h>
 #include <string.h>
 
 namespace bx
 {
+	const float pi     = 3.14159265358979323846f;
+	const float invPi  = 1.0f/3.14159265358979323846f;
+	const float piHalf = 1.57079632679489661923f;
+	const float sqrt2  = 1.41421356237309504880f;
+
 	inline float toRad(float _deg)
 	{
-		return _deg * float(M_PI / 180.0);
+		return _deg * pi / 180.0f;
 	}
 
 	inline float toDeg(float _rad)
 	{
-		return _rad * float(180.0 / M_PI);
+		return _rad * 180.0f / pi;
+	}
+
+	inline float fround(float _f)
+	{
+		return float(int(_f) );
 	}
 
 	inline float fmin(float _a, float _b)
@@ -32,6 +42,16 @@ namespace bx
 	inline float fmax(float _a, float _b)
 	{
 		return _a > _b ? _a : _b;
+	}
+
+	inline float fmin3(float _a, float _b, float _c)
+	{
+		return fmin(_a, fmin(_b, _c) );
+	}
+
+	inline float fmax3(float _a, float _b, float _c)
+	{
+		return fmax(_a, fmax(_b, _c) );
 	}
 
 	inline float fclamp(float _a, float _min, float _max)
@@ -54,6 +74,53 @@ namespace bx
 		return _a < 0.0f ? -1.0f : 1.0f;
 	}
 
+	inline float fstep(float _edge, float _a)
+	{
+		return _a < _edge ? 0.0f : 1.0f;
+	}
+
+	inline float fpulse(float _a, float _start, float _end)
+	{
+		return fstep(_a, _start) - fstep(_a, _end);
+	}
+
+	inline float fabsolute(float _a)
+	{
+		return fabsf(_a);
+	}
+
+	inline float fsqrt(float _a)
+	{
+		return sqrtf(_a);
+	}
+
+	inline float ffract(float _a)
+	{
+		return _a - floorf(_a);
+	}
+
+	inline bool fequal(float _a, float _b, float _epsilon)
+	{
+		return fabsolute(_a - _b) <= _epsilon;
+	}
+
+	inline bool fequal(const float* __restrict _a, const float* __restrict _b, uint32_t _num, float _epsilon)
+	{
+		bool equal = fequal(_a[0], _b[0], _epsilon);
+		for (uint32_t ii = 1; equal && ii < _num; ++ii)
+		{
+			equal = fequal(_a[ii], _b[ii], _epsilon);
+		}
+		return equal;
+	}
+
+	inline float fwrap(float _a, float _wrap)
+	{
+		const float mod    = fmodf(_a, _wrap);
+		const float result = mod < 0.0f ? _wrap + mod : mod;
+		return result;
+	}
+
 	inline void vec3Move(float* __restrict _result, const float* __restrict _a)
 	{
 		_result[0] = _a[0];
@@ -63,9 +130,9 @@ namespace bx
 
 	inline void vec3Abs(float* __restrict _result, const float* __restrict _a)
 	{
-		_result[0] = fabsf(_a[0]);
-		_result[1] = fabsf(_a[1]);
-		_result[2] = fabsf(_a[2]);
+		_result[0] = fabsolute(_a[0]);
+		_result[1] = fabsolute(_a[1]);
+		_result[2] = fabsolute(_a[2]);
 	}
 
 	inline void vec3Neg(float* __restrict _result, const float* __restrict _a)
@@ -117,7 +184,7 @@ namespace bx
 
 	inline float vec3Length(const float* _a)
 	{
-		return sqrtf(vec3Dot(_a, _a) );
+		return fsqrt(vec3Dot(_a, _a) );
 	}
 
 	inline float vec3Norm(float* __restrict _result, const float* __restrict _a)
@@ -128,6 +195,123 @@ namespace bx
 		_result[1] = _a[1] * invLen;
 		_result[2] = _a[2] * invLen;
 		return len;
+	}
+
+	inline void quatIdentity(float* _result)
+	{
+		_result[0] = 0.0f;
+		_result[1] = 0.0f;
+		_result[2] = 0.0f;
+		_result[3] = 1.0f;
+	}
+
+	inline void quatMulXYZ(float* __restrict _result, const float* __restrict _qa, const float* __restrict _qb)
+	{
+		const float ax = _qa[0];
+		const float ay = _qa[1];
+		const float az = _qa[2];
+		const float aw = _qa[3];
+
+		const float bx = _qb[0];
+		const float by = _qb[1];
+		const float bz = _qb[2];
+		const float bw = _qb[3];
+
+		_result[0] = aw * bx + ax * bw + ay * bz - az * by;
+		_result[1] = aw * by - ax * bz + ay * bw + az * bx;
+		_result[2] = aw * bz + ax * by - ay * bx + az * bw;
+	}
+
+	inline void quatMul(float* __restrict _result, const float* __restrict _qa, const float* __restrict _qb)
+	{
+		const float ax = _qa[0];
+		const float ay = _qa[1];
+		const float az = _qa[2];
+		const float aw = _qa[3];
+
+		const float bx = _qb[0];
+		const float by = _qb[1];
+		const float bz = _qb[2];
+		const float bw = _qb[3];
+
+		_result[0] = aw * bx + ax * bw + ay * bz - az * by;
+		_result[1] = aw * by - ax * bz + ay * bw + az * bx;
+		_result[2] = aw * bz + ax * by - ay * bx + az * bw;
+		_result[3] = aw * bw - ax * bx - ay * by - az * bz;
+	}
+
+	inline void quatInvert(float* __restrict _result, const float* __restrict _quat)
+	{
+		_result[0] = -_quat[0];
+		_result[1] = -_quat[1];
+		_result[2] = -_quat[2];
+		_result[3] =  _quat[3];
+	}
+
+	inline void quatToEuler(float* __restrict _result, const float* __restrict _quat)
+	{
+		const float x = _quat[0];
+		const float y = _quat[1];
+		const float z = _quat[2];
+		const float w = _quat[3];
+
+		const float yy = y * y;
+		const float zz = z * z;
+
+		const float xx = x * x;
+		_result[0] = atan2f(2.0f * (x * w - y * z), 1.0f - 2.0f * (xx + zz) );
+		_result[1] = atan2f(2.0f * (y * w + x * z), 1.0f - 2.0f * (yy + zz) );
+		_result[2] = asinf (2.0f * (x * y + z * w) );
+	}
+
+	inline void quatRotateX(float* _result, float _ax)
+	{
+		const float hx = _ax * 0.5f;
+		const float cx = cosf(hx);
+		const float sx = sinf(hx);
+		_result[0] = sx;
+		_result[1] = 0.0f;
+		_result[2] = 0.0f;
+		_result[3] = cx;
+	}
+
+	inline void quatRotateY(float* _result, float _ay)
+	{
+		const float hy = _ay * 0.5f;
+		const float cy = cosf(hy);
+		const float sy = sinf(hy);
+		_result[0] = 0.0f;
+		_result[1] = sy;
+		_result[2] = 0.0f;
+		_result[3] = cy;
+	}
+
+	inline void quatRotateZ(float* _result, float _az)
+	{
+		const float hz = _az * 0.5f;
+		const float cz = cosf(hz);
+		const float sz = sinf(hz);
+		_result[0] = 0.0f;
+		_result[1] = 0.0f;
+		_result[2] = sz;
+		_result[3] = cz;
+	}
+
+	inline void vec3MulQuat(float* __restrict _result, const float* __restrict _vec, const float* __restrict _quat)
+	{
+		float tmp0[4];
+		quatInvert(tmp0, _quat);
+
+		float qv[4];
+		qv[0] = _vec[0];
+		qv[1] = _vec[1];
+		qv[2] = _vec[2];
+		qv[3] = 0.0f;
+
+		float tmp1[4];
+		quatMul(tmp1, tmp0, qv);
+
+		quatMulXYZ(_result, tmp1, _quat);
 	}
 
 	inline void mtxIdentity(float* _result)
@@ -151,6 +335,65 @@ namespace bx
 		_result[5]  = _sy;
 		_result[10] = _sz;
 		_result[15] = 1.0f;
+	}
+
+	inline void mtxQuat(float* __restrict _result, const float* __restrict _quat)
+	{
+		const float x = _quat[0];
+		const float y = _quat[1];
+		const float z = _quat[2];
+		const float w = _quat[3];
+
+		const float x2  =  x + x;
+		const float y2  =  y + y;
+		const float z2  =  z + z;
+		const float x2x = x2 * x;
+		const float x2y = x2 * y;
+		const float x2z = x2 * z;
+		const float x2w = x2 * w;
+		const float y2y = y2 * y;
+		const float y2z = y2 * z;
+		const float y2w = y2 * w;
+		const float z2z = z2 * z;
+		const float z2w = z2 * w;
+
+		_result[ 0] = 1.0f - (y2y + z2z);
+		_result[ 1] =         x2y - z2w;
+		_result[ 2] =         x2z + y2w;
+		_result[ 3] = 0.0f;
+
+		_result[ 4] =         x2y + z2w;
+		_result[ 5] = 1.0f - (x2x + z2z);
+		_result[ 6] =         y2z - x2w;
+		_result[ 7] = 0.0f;
+
+		_result[ 8] =         x2z - y2w;
+		_result[ 9] =         y2z + x2w;
+		_result[10] = 1.0f - (x2x + y2y);
+		_result[11] = 0.0f;
+
+		_result[12] = 0.0f;
+		_result[13] = 0.0f;
+		_result[14] = 0.0f;
+		_result[15] = 1.0f;
+	}
+
+	inline void mtxQuatTranslation(float* __restrict _result, const float* __restrict _quat, const float* __restrict _translation)
+	{
+		mtxQuat(_result, _quat);
+		_result[12] = -(_result[0]*_translation[0] + _result[4]*_translation[1] + _result[ 8]*_translation[2]);
+		_result[13] = -(_result[1]*_translation[0] + _result[5]*_translation[1] + _result[ 9]*_translation[2]);
+		_result[14] = -(_result[2]*_translation[0] + _result[6]*_translation[1] + _result[10]*_translation[2]);
+	}
+
+	inline void mtxQuatTranslationHMD(float* __restrict _result, const float* __restrict _quat, const float* __restrict _translation)
+	{
+		float quat[4];
+		quat[0] = -_quat[0];
+		quat[1] = -_quat[1];
+		quat[2] =  _quat[2];
+		quat[3] =  _quat[3];
+		mtxQuatTranslation(_result, quat, _translation);
 	}
 
 	inline void mtxLookAt(float* __restrict _result, const float* __restrict _eye, const float* __restrict _at, const float* __restrict _up = NULL)
@@ -194,22 +437,44 @@ namespace bx
 		_result[15] = 1.0f;
 	}
 
-	inline void mtxProj(float* _result, float _fovy, float _aspect, float _near, float _far)
+	inline void mtxProjXYWH(float* _result, float _x, float _y, float _width, float _height, float _near, float _far, bool _oglNdc = false)
 	{
-		const float height = 1.0f/tanf(_fovy*( (float)M_PI/180.0f)*0.5f);
-		const float width = height * 1.0f/_aspect;
-		const float aa = _far/(_far-_near);
-		const float bb = -_near * aa;
+		const float diff = _far-_near;
+		const float aa = _oglNdc ?       (_far+_near)/diff : _far/diff;
+		const float bb = _oglNdc ? -(2.0f*_far*_near)/diff : -_near*aa;
 
 		memset(_result, 0, sizeof(float)*16);
-		_result[0] = width;
-		_result[5] = height;
+		_result[ 0] = _width;
+		_result[ 5] = _height;
+		_result[ 8] =  _x;
+		_result[ 9] = -_y;
 		_result[10] = aa;
 		_result[11] = 1.0f;
 		_result[14] = bb;
 	}
 
-	inline void mtxOrtho(float* _result, float _left, float _right, float _bottom, float _top, float _near, float _far)
+	inline void mtxProj(float* _result, float _ut, float _dt, float _lt, float _rt, float _near, float _far, bool _oglNdc = false)
+	{
+		const float width  = 2.0f / (_lt + _rt);
+		const float height = 2.0f / (_ut + _dt);
+		const float xx     = (_lt - _rt) * width  * 0.5f;
+		const float yy     = (_ut - _dt) * height * 0.5f;
+		mtxProjXYWH(_result, xx, yy, width, height, _near, _far, _oglNdc);
+	}
+
+	inline void mtxProj(float* _result, const float _fov[4], float _near, float _far, bool _oglNdc = false)
+	{
+		mtxProj(_result, _fov[0], _fov[1], _fov[2], _fov[3], _near, _far, _oglNdc);
+	}
+
+	inline void mtxProj(float* _result, float _fovy, float _aspect, float _near, float _far, bool _oglNdc = false)
+	{
+		const float height = 1.0f/tanf(toRad(_fovy)*0.5f);
+		const float width  = height * 1.0f/_aspect;
+		mtxProjXYWH(_result, 0.0f, 0.0f, width, height, _near, _far, _oglNdc);
+	}
+
+	inline void mtxOrtho(float* _result, float _left, float _right, float _bottom, float _top, float _near, float _far, float _offset = 0.0f)
 	{
 		const float aa = 2.0f/(_right - _left);
 		const float bb = 2.0f/(_top - _bottom);
@@ -219,10 +484,10 @@ namespace bx
 		const float ff = _near / (_near - _far);
 
 		memset(_result, 0, sizeof(float)*16);
-		_result[0] = aa;
-		_result[5] = bb;
+		_result[ 0] = aa;
+		_result[ 5] = bb;
 		_result[10] = cc;
-		_result[12] = dd;
+		_result[12] = dd + _offset;
 		_result[13] = ee;
 		_result[14] = ff;
 		_result[15] = 1.0f;
@@ -567,6 +832,50 @@ namespace bx
 		_result[2] = normal[2];
 		_result[3] = -vec3Dot(normal, _va);
 	}
+
+	inline void rgbToHsv(float _hsv[3], const float _rgb[3])
+	{
+		const float rr = _rgb[0];
+		const float gg = _rgb[1];
+		const float bb = _rgb[2];
+
+		const float s0 = fstep(bb, gg);
+
+		const float px = flerp(bb,        gg,         s0);
+		const float py = flerp(gg,        bb,         s0);
+		const float pz = flerp(-1.0f,     0.0f,       s0);
+		const float pw = flerp(2.0f/3.0f, -1.0f/3.0f, s0);
+
+		const float s1 = fstep(px, rr);
+
+		const float qx = flerp(px, rr, s1);
+		const float qy = py;
+		const float qz = flerp(pw, pz, s1);
+		const float qw = flerp(rr, px, s1);
+
+		const float dd = qx - fmin(qw, qy);
+		const float ee = 1.0e-10f;
+
+		_hsv[0] = fabsolute(qz + (qw - qy) / (6.0f * dd + ee) );
+		_hsv[1] = dd / (qx + ee);
+		_hsv[2] = qx;
+	}
+
+	inline void hsvToRgb(float _rgb[3], const float _hsv[3])
+	{
+		const float hh = _hsv[0];
+		const float ss = _hsv[1];
+		const float vv = _hsv[2];
+
+		const float px = fabsolute(ffract(hh + 1.0f     ) * 6.0f - 3.0f);
+		const float py = fabsolute(ffract(hh + 2.0f/3.0f) * 6.0f - 3.0f);
+		const float pz = fabsolute(ffract(hh + 1.0f/3.0f) * 6.0f - 3.0f);
+
+		_rgb[0] = vv * flerp(1.0f, fsaturate(px - 1.0f), ss);
+		_rgb[1] = vv * flerp(1.0f, fsaturate(py - 1.0f), ss);
+		_rgb[2] = vv * flerp(1.0f, fsaturate(pz - 1.0f), ss);
+	}
+
 } // namespace bx
 
 #endif // BX_FPU_MATH_H_HEADER_GUARD

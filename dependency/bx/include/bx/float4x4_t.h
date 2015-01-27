@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 Branimir Karadzic. All rights reserved.
+ * Copyright 2010-2015 Branimir Karadzic. All rights reserved.
  * License: http://www.opensource.org/licenses/BSD-2-Clause
  */
 
@@ -10,7 +10,7 @@
 
 namespace bx
 {
-	BX_ALIGN_STRUCT_16(struct) float4x4_t
+	BX_ALIGN_DECL_16(struct) float4x4_t
 	{
 		float4_t col[4];
 	};

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 Branimir Karadzic. All rights reserved.
+ * Copyright 2010-2015 Branimir Karadzic. All rights reserved.
  * License: http://www.opensource.org/licenses/BSD-2-Clause
  */
 
@@ -12,17 +12,17 @@
 #	include <time.h> // clock, clock_gettime
 #elif BX_PLATFORM_EMSCRIPTEN
 #	include <emscripten.h>
-#elif BX_PLATFORM_NACL || BX_PLATFORM_LINUX || BX_PLATFORM_OSX || BX_PLATFORM_IOS || BX_PLATFORM_QNX
-#	include <sys/time.h> // gettimeofday
-#elif BX_PLATFORM_WINDOWS
+#elif BX_PLATFORM_WINDOWS || BX_PLATFORM_WINRT
 #	include <windows.h>
+#else
+#	include <sys/time.h> // gettimeofday
 #endif // BX_PLATFORM_
 
 namespace bx
 {
 	inline int64_t getHPCounter()
 	{
-#if BX_PLATFORM_WINDOWS || BX_PLATFORM_XBOX360
+#if BX_PLATFORM_WINDOWS || BX_PLATFORM_XBOX360 || BX_PLATFORM_WINRT
 		LARGE_INTEGER li;
 		// Performance counter value may unexpectedly leap forward
 		// http://support.microsoft.com/kb/274323
@@ -44,7 +44,7 @@ namespace bx
 
 	inline int64_t getHPFrequency()
 	{
-#if BX_PLATFORM_WINDOWS || BX_PLATFORM_XBOX360
+#if BX_PLATFORM_WINDOWS || BX_PLATFORM_XBOX360 || BX_PLATFORM_WINRT
 		LARGE_INTEGER li;
 		QueryPerformanceFrequency(&li);
 		return li.QuadPart;

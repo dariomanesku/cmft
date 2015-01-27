@@ -1,5 +1,5 @@
 --
--- Copyright 2010-2013 Branimir Karadzic. All rights reserved.
+-- Copyright 2010-2015 Branimir Karadzic. All rights reserved.
 -- License: http://www.opensource.org/licenses/BSD-2-Clause
 --
 
@@ -25,7 +25,7 @@ defines {
 	"BX_CONFIG_ENABLE_MSVC_LEVEL4_WARNINGS=1"
 }
 
-dofile (BX_DIR .. "premake/toolchain.lua")
+dofile "toolchain.lua"
 toolchain(BX_BUILD_DIR, BX_THIRD_PARTY_DIR)
 
 function copyLib()
@@ -33,12 +33,17 @@ end
 
 dofile "bx.lua"
 dofile "unittest++.lua"
+dofile "bin2c.lua"
 
 project "bx.test"
 	uuid "8a653da8-23d6-11e3-acb4-887628d43830"
 	kind "ConsoleApp"
 
 	debugdir (BX_DIR .. "tests")
+
+	removeflags {
+		"NoExceptions",
+	}
 
 	includedirs {
 		BX_DIR .. "include",
@@ -90,3 +95,5 @@ project "bx.test"
 		}
 
 	configuration {}
+
+	strip()
