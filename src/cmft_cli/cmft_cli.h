@@ -328,7 +328,7 @@ void inputParametersFromCommandLine(InputParameters& _inputParameters, const bx:
     valueFromOptionMap(_inputParameters.m_lightingModel, s_lightingModel, _cmdLine.findOption("lightingModel"));
 
     // Edge fixup.
-    valueFromOptionMap(_inputParameters.m_lightingModel, s_edgeFixup, _cmdLine.findOption("edgeFixup"));
+    valueFromOptionMap(_inputParameters.m_edgeFixup, s_edgeFixup, _cmdLine.findOption("edgeFixup"));
 
     // Processing devices.
     _cmdLine.hasArg(_inputParameters.m_numCpuProcessingThreads, '\0', "numCpuProcessingThreads");
