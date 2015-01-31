@@ -131,7 +131,7 @@ Test case #4:
 
 ![cmft-performance-chart](https://github.com/dariomanesku/cmft/raw/master/res/cmft_performance_chart.png)
 
-*Notice: performance tests are outdated. cmft is now running noticeably faster than displayed.*
+*Notice: performance tests are outdated. cmft is now running noticeably faster than displayed!*
 
 
 Recommended tools
