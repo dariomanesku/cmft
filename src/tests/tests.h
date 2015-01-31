@@ -56,6 +56,56 @@ static const char s_outputTest[] =
     "--output6params dds,bgra8,facelist "
 };
 
+static const char s_gpuTest[] =
+{
+    "--input \"okretnica.tga\"           "
+    "--filter radiance                   "
+    "--srcFaceSize 256                   "
+    "--excludeBase false                 "
+    "--mipCount 7                        "
+    "--glossScale 10                     "
+    "--glossBias 1                       "
+    "--lightingModel phongbrdf           "
+    "--edgeFixup none                    "
+    "--dstFaceSize 256                   "
+    "--numCpuProcessingThreads 4         "
+    "--useOpenCL true                    "
+    "--clVendor anyGpuVendor             "
+    "--deviceType gpu                    "
+    "--deviceIndex 0                     "
+    "--inputGammaNumerator 2.2           "
+    "--inputGammaDenominator 1.0         "
+    "--outputGammaNumerator 1.0          "
+    "--outputGammaDenominator 2.2        "
+    "--generateMipChain false            "
+    "--outputNum 1                       "
+    "--output0 \"okretnica_gpu\"         "
+    "--output0params dds,bgra8,latlong   "
+};
+
+static const char s_test0[] =
+{
+    "--input \"okretnica.tga\"          "
+    "--outputGammaNumerator 1.0         "
+    "--outputGammaDenominator 2.2       "
+    "--outputNum 1                      "
+    "--output0 \"okretnica_test0\"      "
+    "--output0params dds,bgra8,cubemap  "
+};
+
+static const char s_test1[] =
+{
+    "--input \"okretnica.tga\"           "
+    "--filter irradiance                 "
+    "--useOpenCL true                    "
+    "--mipCount 12                       "
+    "--generateMipChain true             "
+    "--dstFaceSize 256                   "
+    "--outputNum 1                       "
+    "--output0 \"okretnica_test1\"       "
+    "--output0params dds,rgba16,cubemap  "
+};
+
 int test(const char* _cmd)
 {
     char data[2048];
@@ -66,13 +116,16 @@ int test(const char* _cmd)
     return cmftMain(argc, argv);
 }
 
-int testsMain(int _argc, char const* const* _argv)
+int testsMain(int /*_argc*/, char const* const* /*_argv*/)
 {
-    BX_UNUSED(_argc);
-    BX_UNUSED(_argv);
+    //test(s_radianceTest);
+    //test(s_outputTest);
+    test(s_gpuTest);
+    //test(s_test0);
+    //test(s_test1);
 
-    test(s_radianceTest);
-    test(s_outputTest);
+    char c;
+    scanf("%c", &c);
 
     return 0;
 }
