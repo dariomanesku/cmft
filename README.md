@@ -5,7 +5,7 @@ What is it?
 -----------
 
 Cross-platform open-source command-line cubemap filtering tool.<br \>
-Utilizes both host CPU and OpenCL GPU at the same time for fast processing! (check [perfomance charts](https://github.com/dariomanesku/cmft#performance)) <br \>
+It reaches very fast processing speeds by utilizing both multi-core CPU and OpenCL GPU at the same time! (check [perfomance charts](https://github.com/dariomanesku/cmft#performance)) <br \>
 
 ![cmft-cover](https://github.com/dariomanesku/cmft/raw/master/res/cmft_cover.jpg)
 
@@ -30,7 +30,7 @@ Download binaries here: <br \>
  * [cmft - OSX 32bit](https://github.com/dariomanesku/cmft-bin/raw/master/cmft_osx32.zip)<br />
  * [cmft - OSX 64bit](https://github.com/dariomanesku/cmft-bin/raw/master/cmft_osx64.zip)<br />
 
-*notice: Linux binaries are outdated. For now, on Linux, compile from source.*
+*Notice: Linux binaries are outdated. For now, on Linux, compile from source.*
 
 
 Remark !
@@ -39,10 +39,11 @@ Remark !
 - If you are running OpenCL procesing on the same GPU that it connected to your monitor you may experience the following problem: when you are processing big cubemaps (>1024 face size) with small 'glossScale' parameter (<7 for example), OpenCL kernels may take a long time to execute and that may cause the operative system to step in and kill the display/gpu driver in the middle of proceesing! To avoid this you can:
     - Use smaller input and ouput sizes ('srcFaceSize' and 'dstFaceSize').
     - Choose bigger 'glossScale' parameter.
-    - Use a workaround on Windows: increase the TdrDelay or modify the TdrLevel in the registry and restart the machine. More details here:http://msdn.microsoft.com/en-us/library/windows/hardware/ff569918%28v=vs.85%29.aspx
+    - Use a workaround on Windows: increase the TdrDelay or modify the TdrLevel in the registry and restart the machine. More details here: http://msdn.microsoft.com/en-us/library/windows/hardware/ff569918%28v=vs.85%29.aspx
     - Run cmft on a faster GPU.
     - Run cmft on a GPU that is not connected to the monitor.
     - Run cmft only on CPU.
+
 As cmft is optimized for fast execution this problem show rarely happen. However, if it does, please open an issue and tell me about your case.
 
 
@@ -53,7 +54,7 @@ Building
 	cd cmft
 	make
 
-- After calling `make`, *\_projects* folder will be created with all suppored project files. Deleting *\_projects* folder is safe at any time.<br \>
+- After calling `make`, *\_projects* folder will be created with all supported project files. Deleting *\_projects* folder is safe at any time.<br \>
 - All compiler generated files will be in *\_build* folder. Again, deleting *\_build* folder is safe at any time.<br \>
 
 ### Windows
@@ -80,8 +81,7 @@ Building
 ### Other
 - Also other compilation options may be available, have a look inside *\_projects* directory.<br \>
 - File *config.mk* is used for setting environment variables for different compilers.<br \>
-- Aditional build configurations will be available in the future. If one is there and not described here in this document, it is probably not yet set up properly and may not work out-of-the-box as expected without some care.<br \>
-
+- Additional build configurations will be available in the future. If one is there and not described here in this document, it is probably not yet set up properly and may not work out-of-the-box as expected without some care.<br \>
 
 ### Known issues
 - Linux GCC build works but processing on CPU is noticeably slower comparing to Windows build (haven't yet figured out why). OpenCL runs fine.
@@ -131,7 +131,7 @@ Test case #4:
 
 ![cmft-performance-chart](https://github.com/dariomanesku/cmft/raw/master/res/cmft_performance_chart.png)
 
-*notice: performance tests are outdated. cmft is now running noticeably faster than displayed.*
+*Notice: performance tests are outdated. cmft is now running noticeably faster than displayed.*
 
 
 Recommended tools
@@ -152,6 +152,7 @@ Similar projects
 
 - [CubeMapGen](http://developer.amd.com/tools-and-sdks/archive/legacy-cpu-gpu-tools/cubemapgen/) - A well known for cubemap filtering from AMD.<br \>
 - [Marmoset Skyshop](http://www.marmoset.co/skyshop) - Commercial plugin for Unity3D Game engine.
+- [Knald Lys](https://www.knaldtech.com/lys-open-beta/) - Commercial tool from KnaldTech.
 
 Useful links
 ------------
