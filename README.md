@@ -15,8 +15,8 @@ Utilizes both host CPU and OpenCL GPU at the same time for fast processing! (che
 
 See it in action - [here](https://github.com/dariomanesku/cmftStudio)
 ----------------
-Shading with a prefiltered cubemap:
-![cmftViewer8](https://github.com/dariomanesku/cmftStudio/raw/master/screenshots/cmftViewer8.jpg)
+Screenshot from [cmftStudio](https://github.com/dariomanesku/cmftStudio):
+![cmftStudioScreenshot](https://raw.githubusercontent.com/dariomanesku/cmftStudio/master/screenshots/cmftStudio3.jpg)
 
 
 Download
@@ -30,7 +30,21 @@ Download binaries here: <br \>
  * [cmft - OSX 32bit](https://github.com/dariomanesku/cmft-bin/raw/master/cmft_osx32.zip)<br />
  * [cmft - OSX 64bit](https://github.com/dariomanesku/cmft-bin/raw/master/cmft_osx64.zip)<br />
 
-Notice: Linux binaries are outdated. For now, on Linux, compile from source.
+*notice: Linux binaries are outdated. For now, on Linux, compile from source.*
+
+
+Remark !
+--------
+
+- If you are running OpenCL procesing on the same GPU that it connected to your monitor you may experience the following problem: when you are processing big cubemaps (>1024 face size) with small 'glossScale' parameter (<7 for example), OpenCL kernels may take a long time to execute and that may cause the operative system to step in and kill the display/gpu driver in the middle of proceesing! To avoid this you can:
+    - Use smaller input and ouput sizes ('srcFaceSize' and 'dstFaceSize').
+    - Choose bigger 'glossScale' parameter.
+    - Use a workaround on Windows: increase the TdrDelay or modify the TdrLevel in the registry and restart the machine. More details here:http://msdn.microsoft.com/en-us/library/windows/hardware/ff569918%28v=vs.85%29.aspx
+    - Run cmft on a faster GPU.
+    - Run cmft on a GPU that is not connected to the monitor.
+    - Run cmft only on CPU.
+As cmft is optimized for fast execution this problem show rarely happen. However, if it does, please open an issue and tell me about your case.
+
 
 Building
 --------
@@ -44,7 +58,7 @@ Building
 
 ### Windows
 
-- Visual Studio solution can be found in *\_projects/vs2012/*.<br \>
+- Visual Studio solutions can be found in *\_projects/vs20**/*.<br \>
 
 ### Linux
 
@@ -68,21 +82,11 @@ Building
 - File *config.mk* is used for setting environment variables for different compilers.<br \>
 - Aditional build configurations will be available in the future. If one is there and not described here in this document, it is probably not yet set up properly and may not work out-of-the-box as expected without some care.<br \>
 
-Using
------
-- Use *runtime/cmft\_win.bat* on Windows, *runtime/cmft\_lin.sh* on Linux and *runtime/cmft\_osx.sh* on OSX as a starting point.<br \>
-- First compile the project, edit *runtime/cmft\_*\* file as needed and then run it.<br \>
-- Notice: your screen will freeze during OpenCL execution on the GPU (if the screen is connected to that same GPU). This is because cmft is using one kernel per cubemap face that usually takes a lot of time to execute and durring that time GPU is 100% dedicated to the task and unresponsive to the OS. In the future, cmft will be changed to use smaller kernels to avoid this problem.<br \>
-
-Project status
---------------
-
-- There are still issues to be fixed. Before using cmft in production, wait until [cmftStudio](https://github.com/dariomanesku/cmftStudio) gets released. Throughout [cmftStudio](https://github.com/dariomanesku/cmftStudio) development, all cmft major problems should be discovered and fixed. [cmftStudio](https://github.com/dariomanesku/cmftStudio) will also be a good showcase of what exactly you can get and expect from cmft, so stay tuned.
 
 ### Known issues
-- OpenCL kernels take a long time to run and may freeze the screen and/or crash the driver if running from the same GPU that is connected to the display. This is a limitation of the platform and the only solution is to use small OpenCL kernels that execute fast. Until this issue gets fixed, it's possible to use this workaround on Windows: http://msdn.microsoft.com/en-us/library/windows/hardware/ff569918%28v=vs.85%29.aspx - either increase the TdrDelay or modify the TdrLevel. Screen will still freeze during execution (as OpenCL kernel execution consumes ALL gpu resources) but driver will not crash so it can be used like that. More details on this issue here: https://github.com/dariomanesku/cmft/issues/1
 - Linux GCC build works but processing on CPU is noticeably slower comparing to Windows build (haven't yet figured out why). OpenCL runs fine.
 - PVRTexTool is not properly opening mipmapped \*.ktx files from cmft. This appears to be the problem with the current version of PVRTexTool. Has to be further investigated.
+
 
 Performance
 -----------
@@ -127,6 +131,9 @@ Test case #4:
 
 ![cmft-performance-chart](https://github.com/dariomanesku/cmft/raw/master/res/cmft_performance_chart.png)
 
+*notice: performance tests are outdated. cmft is now running noticeably faster than displayed.*
+
+
 Recommended tools
 -----------------
 
@@ -138,7 +145,7 @@ Environment maps
 ----------------
 
 For testing purposes, you can use environment maps from [here](https://github.com/dariomanesku/environment-maps).<br />
-Also, have a look at [hdrlabs.com archive](http://www.hdrlabs.com/sibl/archive.html).
+Also, have a look at [noemotion hdrs](http://noemotionhdrs.net/) and [hdrlabs.com archive](http://www.hdrlabs.com/sibl/archive.html).
 
 Similar projects
 ----------------
@@ -151,18 +158,11 @@ Useful links
 
 1. [Sebastien Lagarde Blog - AMD Cubemapgen for physically based rendering](http://seblagarde.wordpress.com/2012/06/10/amd-cubemapgen-for-physically-based-rendering/) by [Sébastien Lagarde](https://twitter.com/SebLagarde)
 2. [The Witness Blog - Seamless Cube Map Filtering](http://the-witness.net/news/2012/02/seamless-cube-map-filtering/) by [Ignacio Castaño](https://twitter.com/castano)
-3. ...more to come
 
 Contributors
 ------------
 
 * Cover photo design by Marko Radak. Check out his [personal website](http://markoradak.com/).
-
-More to come
-------------
-
-- [cmftStudio](https://github.com/dariomanesku/cmftStudio) for viewing filtered cubemaps in action. [cmftStudio](https://github.com/dariomanesku/cmftStudio) will be cross-platform and open-source as well, implemented using [bgfx rendering library](https://github.com/bkaradzic/bgfx/).
-- Tutorial and details on theory and implementation.
 
 Get involved
 ------------
