@@ -124,25 +124,23 @@ do                                                                              
     #define CL_CHECK_ERR(_expr) _expr
 #endif
 
-#define _CL_CHECK(_expr)                                                             \
-do                                                                                   \
-{                                                                                    \
-    cl_int err = _expr;                                                              \
-    if (CL_SUCCESS != err)                                                           \
-    {                                                                                \
-        fprintf(stderr, "CMFT OpenCL Error: '%s' returned %d!\n", #_expr, (int)err); \
-        abort();                                                                     \
-    }                                                                                \
-} while (0)
+#define _CL_CHECK(_expr)                                                                 \
+    do                                                                                   \
+    {                                                                                    \
+        cl_int err = _expr;                                                              \
+        if (CL_SUCCESS != err)                                                           \
+        {                                                                                \
+            fprintf(stderr, "CMFT OpenCL Error: '%s' returned %d!\n", #_expr, (int)err); \
+            abort();                                                                     \
+        }                                                                                \
+    } while (0)
 
-/// Notice: 'cl_int err;' should be defined earlier and _expr should be called with 'err' parameter for the error field.
-#define _CL_CHECK_ERR(_expr)                                                      \
-_expr;                                                                            \
-if (CL_SUCCESS != err)                                                            \
-{                                                                                 \
-    fprintf(stderr, "CMFT OpenCL Error: '%s' returned %d!\n", #_expr, (int)err);  \
-    abort();                                                                      \
-}
+#define _CL_CHECK_ERR(_err)                                     \
+    if (CL_SUCCESS != _err)                                     \
+    {                                                           \
+        fprintf(stderr, "CMFT OpenCL Error: %d!\n", (int)_err); \
+        abort();                                                \
+    }
 
 #endif //CMFT_CONFIG_H_HEADER_GUARD
 

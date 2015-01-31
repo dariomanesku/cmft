@@ -23,7 +23,7 @@ namespace cmft
                        , char* _vendorStrPart
                        )
     {
-        cl_int err;
+        cl_int err = CL_SUCCESS;
 
         // Enumerate platforms.
         cl_platform_id platforms[8];
@@ -82,22 +82,39 @@ namespace cmft
             }
         }
 
-        // Try to enumerate devices.
+        // Enumerate devices.
         cl_device_id devices[8];
-        cl_uint numDevices;
-        err = clGetDeviceIDs(choosenPlatform, _preferredDeviceType, 8, devices, &numDevices);
+        cl_uint numDevices = 0;
+
+        // First try to get preferred device type.
+        for (cl_uint ii = 0; ii < numPlatforms; ++ii)
+        {
+            err = clGetDeviceIDs(platforms[ii], _preferredDeviceType, 8, devices, &numDevices);
+            if (CL_SUCCESS == err)
+            {
+                choosenPlatform = platforms[ii];
+                break;
+            }
+        }
+
+        // If failed, just get anything there is.
         if (CL_SUCCESS != err)
         {
-            err = clGetDeviceIDs(choosenPlatform, CL_DEVICE_TYPE_ALL, 8, devices, &numDevices);
-            if (CL_SUCCESS != err)
+            for (cl_uint ii = 0; ii < numPlatforms; ++ii)
             {
-                err = clGetDeviceIDs(platforms[0], CL_DEVICE_TYPE_ALL, 8, devices, &numDevices);
-                if (CL_SUCCESS != err)
+                err = clGetDeviceIDs(platforms[ii], CL_DEVICE_TYPE_ALL, 8, devices, &numDevices);
+                if (CL_SUCCESS == err)
                 {
-                    WARN("OpenCL context initialization failed!");
-                    return false;
+                    choosenPlatform = platforms[ii];
+                    break;
                 }
             }
+        }
+
+        if (CL_SUCCESS != err)
+        {
+            WARN("OpenCL context initialization failed!");
+            return false;
         }
 
         // Choose preferred device and create context.
