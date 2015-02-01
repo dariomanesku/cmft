@@ -68,7 +68,7 @@ static const char s_gpuTest[] =
     "--lightingModel phongbrdf           "
     "--edgeFixup none                    "
     "--dstFaceSize 256                   "
-    "--numCpuProcessingThreads 4         "
+    "--numCpuProcessingThreads 0         "
     "--useOpenCL true                    "
     "--clVendor anyGpuVendor             "
     "--deviceType gpu                    "
