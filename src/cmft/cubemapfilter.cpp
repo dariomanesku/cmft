@@ -1042,57 +1042,60 @@ namespace cmft
 
     struct RadianceFilterTaskList
     {
-        RadianceFilterTaskList(uint8_t _mipStart, uint8_t _mipCount)
+        RadianceFilterTaskList(uint8_t _mipBegin, uint8_t _mipTotalCount)
         {
-            m_topMipIndex    = _mipStart;
-            m_bottomMipIndex = _mipCount-1;
-            m_totalMipCount  = _mipCount;
-            memset(m_mipFaceIdx, 0, MAX_MIP_NUM);
+            m_mipStart = _mipBegin;
+            m_mipEnd   = _mipTotalCount-1;
+            memset(m_mipFace, 0, MAX_MIP_NUM);
         }
 
         // Returns cube face radiance filter parameters starting from the top mip level.
         const RadianceFilterParams* getFromTop()
         {
             bx::MutexScope lock(m_indexMutex);
-            while (m_topMipIndex <= m_bottomMipIndex)
+
+            while (m_mipStart <= m_mipEnd)
             {
-                if (m_mipFaceIdx[m_topMipIndex] >= 6)
+                if (m_mipFace[m_mipStart] >= 6)
                 {
-                    m_topMipIndex++;
+                    m_mipStart++;
                 }
                 else
                 {
-                    return &m_params[m_topMipIndex][m_mipFaceIdx[m_topMipIndex]++];
+                    const uint8_t face = m_mipFace[m_mipStart]++;
+                    return &m_params[m_mipStart][face];
                 }
 
             }
+
             return NULL;
         }
 
         // Returns cube face radiance filter parameters starting from the bottom mip level.
-        const RadianceFilterParams* getFromBottom(uint8_t _numLevels = 0)
+        const RadianceFilterParams* getFromBottom()
         {
             bx::MutexScope lock(m_indexMutex);
-            const uint8_t barrier = (0 == _numLevels) ? m_topMipIndex : dm::max(m_topMipIndex, uint8_t(m_totalMipCount-_numLevels));
-            while (barrier <= m_bottomMipIndex)
+
+            while (m_mipStart <= m_mipEnd)
             {
-                if (m_mipFaceIdx[m_bottomMipIndex] >= 6)
+                if (m_mipFace[m_mipEnd] >= 6)
                 {
-                    m_bottomMipIndex--;
+                    m_mipEnd--;
                 }
                 else
                 {
-                    return &m_params[m_bottomMipIndex][m_mipFaceIdx[m_bottomMipIndex]++];
+                    const uint8_t face = m_mipFace[m_mipEnd]++;
+                    return &m_params[m_mipEnd][face];
                 }
             }
+
             return NULL;
         }
 
         bx::Mutex m_indexMutex;
-        uint8_t m_topMipIndex;
-        uint8_t m_bottomMipIndex;
-        uint8_t m_totalMipCount;
-        uint8_t m_mipFaceIdx[MAX_MIP_NUM];
+        int8_t m_mipStart;
+        int8_t m_mipEnd;
+        int8_t m_mipFace[MAX_MIP_NUM];
         RadianceFilterParams m_params[MAX_MIP_NUM][CUBE_FACE_NUM];
     };
 
