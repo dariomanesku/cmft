@@ -26,163 +26,6 @@ namespace dm
         return bit;
     }
 
-    template <typename BitArrayTy>
-    DM_INLINE void bitArraySet(BitArrayTy* _ba, uint16_t _bit)
-    {
-        DM_CHECK(_bit < _ba->m_max, "bitArraySet | %d, %d", _bit, _ba->m_max);
-
-        const uint16_t bucket = _bit>>6;
-        const uint64_t bit    = UINT64_C(1)<<(_bit&63);
-        _ba->m_bits[bucket] |= bit;
-    }
-
-    template <typename BitArrayTy>
-    DM_INLINE void bitArrayUnset(BitArrayTy* _ba, uint16_t _bit)
-    {
-        DM_CHECK(_bit < _ba->max(), "bitArrayUnset | %d, %d", _bit, _ba->max());
-
-        const uint16_t bucket = _bit>>6;
-        const uint64_t bit    = UINT64_C(1)<<(_bit&63);
-        _ba->m_bits[bucket] &= ~bit;
-    }
-
-    template <typename BitArrayTy>
-    DM_INLINE void bitArrayToggle(BitArrayTy* _ba, uint16_t _bit)
-    {
-        DM_CHECK(_bit < _ba->max(), "bitArrayToggle | %d, %d", _bit, _ba->max());
-
-        const uint16_t bucket = _bit>>6;
-        const uint64_t bit    = UINT64_C(1)<<(_bit&63);
-        _ba->m_bits[bucket] ^= bit;
-    }
-
-    template <typename BitArrayTy>
-    DM_INLINE bool bitArrayIsSet(BitArrayTy* _ba, uint16_t _bit)
-    {
-        DM_CHECK(_bit < _ba->max(), "bitArrayIsSet | %d, %d", _bit, _ba->max());
-
-        const uint16_t bucket = _bit>>6;
-        const uint64_t bit    = UINT64_C(1)<<(_bit&63);
-        return (0 != (_ba->m_bits[bucket] & bit));
-    }
-
-    template <typename BitArrayTy>
-    DM_INLINE uint16_t bitArraySetFirst(BitArrayTy* _ba)
-    {
-        for (uint16_t ii = 0, end = _ba->numSlots(); ii < end; ++ii)
-        {
-            const bool hasUnsetBits = (_ba->m_bits[ii] != UINT64_MAX);
-            if (hasUnsetBits)
-            {
-                // Set the rightmost bit.
-                const uint64_t rightmost = _ba->m_bits[ii]+1;
-                _ba->m_bits[ii] |= rightmost;
-
-                const uint16_t pos = uint16_t(bx::uint64_cnttz(rightmost));
-                const uint16_t idx = (ii<<6)+pos;
-                const uint16_t max = _ba->max();
-                return idx < max ? idx : max;
-            }
-        }
-
-        return _ba->max();
-    }
-
-    template <typename BitArrayTy>
-    DM_INLINE uint16_t bitArrayGetFirstSetBit(BitArrayTy* _ba)
-    {
-        for (uint16_t ii = 0, end = _ba->numSlots(); ii < end; ++ii)
-        {
-            const bool hasSetBits = (0 != _ba->m_bits[ii]);
-            if (hasSetBits)
-            {
-                const uint16_t pos = uint16_t(bx::uint64_cnttz(_ba->m_bits[ii]));
-                return (ii<<6)+pos;
-            }
-        }
-
-        return _ba->max();
-    }
-
-    template <typename BitArrayTy>
-    DM_INLINE uint16_t bitArrayGetFirstUnsetBit(BitArrayTy* _ba)
-    {
-        for (uint16_t ii = 0, end = _ba->numSlots(); ii < end; ++ii)
-        {
-            const bool hasUnsetBits = (_ba->m_bits[ii] != UINT64_MAX);
-            if (hasUnsetBits)
-            {
-                const uint64_t sel = markFirstUnsetBit(_ba->m_bits[ii]);
-                const uint16_t pos = uint16_t(bx::uint64_cnttz(sel));
-                return (ii<<6)+pos;
-            }
-        }
-
-        return _ba->max();
-    }
-
-    template <typename BitArrayTy>
-    DM_INLINE uint16_t bitArrayGetLastSetBit(BitArrayTy* _ba)
-    {
-        for (uint16_t ii = _ba->numSlots(); ii--; )
-        {
-            const bool hasSetBits = (0 != _ba->m_bits[ii]);
-            if (hasSetBits)
-            {
-                const bool allSet = (UINT64_MAX == _ba->m_bits[ii]);
-                if (allSet)
-                {
-                    return (ii+1)<<6;
-                }
-                else
-                {
-                    const uint64_t sel = markFirstUnsetBit(_ba->m_bits[ii]);
-                    const uint64_t leading = bx::uint64_cntlz(sel);
-                    const uint16_t pos = 63-uint16_t(leading);
-                    return ((ii)<<6)+pos;
-                }
-            }
-        }
-
-        return 0;
-    }
-
-    template <typename BitArrayTy>
-    DM_INLINE uint16_t bitArrayGetLastUnsetBit(BitArrayTy* _ba)
-    {
-        for (uint16_t ii = _ba->numSlots(); ii--; )
-        {
-            const bool hasSetBits = (0 != _ba->m_bits[ii]);
-            if (hasSetBits)
-            {
-                const uint64_t leading = bx::uint64_cntlz(_ba->m_bits[ii]);
-                const uint16_t pos = 63-uint16_t(leading);
-                return (ii<<6)+pos;
-            }
-        }
-
-        return _ba->max();
-    }
-
-    template <typename BitArrayTy>
-    DM_INLINE uint16_t bitArrayCount(BitArrayTy* _ba)
-    {
-        uint64_t count = 0;
-        for (uint16_t ii = _ba->numSlots(); ii--; )
-        {
-            const uint64_t curr = _ba->m_bits[ii];
-            count += bx::uint64_cntbits(curr);
-        }
-
-        return uint16_t(count);
-    }
-
-    template <typename BitArrayTy>
-    DM_INLINE void bitArrayReset(BitArrayTy* _ba)
-    {
-        memset(_ba->m_bits, 0, sizeof(_ba->m_bits));
-    }
-
     template <uint16_t MaxT>
     struct BitArrayT
     {
@@ -191,62 +34,7 @@ namespace dm
             reset();
         }
 
-        void set(uint16_t _bit)
-        {
-            bitArraySet(this, _bit);
-        };
-
-        void unset(uint16_t _bit)
-        {
-            bitArrayUnset(this, _bit);
-        };
-
-        void toggle(uint16_t _bit)
-        {
-            bitArrayToggle(this, _bit);
-        };
-
-        bool isSet(uint16_t _bit)
-        {
-            return bitArrayIsSet(this, _bit);
-        }
-
-        uint16_t setFirst()
-        {
-            return bitArraySetFirst(this);
-        }
-
-        /// Returns max() if none set.
-        uint16_t getFirstSetBit()
-        {
-            return bitArrayGetFirstSetBit(this);
-        }
-
-        uint16_t getFirstUnsetBit()
-        {
-            return bitArrayGetFirstUnsetBit(this);
-        }
-
-        /// Returns max() if none set.
-        uint16_t getLastSetBit()
-        {
-            return bitArrayGetLastSetBit(this);
-        }
-
-        uint16_t getLastUnsetBit()
-        {
-            return bitArrayGetLastUnsetBit(this);
-        }
-
-        uint16_t count()
-        {
-            return bitArrayCount(this);
-        }
-
-        void reset()
-        {
-            bitArrayReset(this);
-        }
+        #include "bitarray_inline_impl.h"
 
         uint16_t max() const
         {
@@ -258,7 +46,7 @@ namespace dm
             return NumSlots;
         }
 
-    public:
+    private:
         enum { NumSlots = ((MaxT-1)>>6)+1 };
         uint64_t m_bits[NumSlots];
     };
@@ -329,57 +117,7 @@ namespace dm
             }
         }
 
-        void set(uint16_t _bit)
-        {
-            bitArraySet(this, _bit);
-        };
-
-        void unset(uint16_t _bit)
-        {
-            bitArrayUnset(this, _bit);
-        };
-
-        void toggle(uint16_t _bit)
-        {
-            bitArrayToggle(this, _bit);
-        };
-
-        bool isSet(uint16_t _bit)
-        {
-            return bitArrayIsSet(this, _bit);
-        }
-
-        uint16_t setFirst()
-        {
-            return bitArraySetFirst(this);
-        }
-
-        /// Returns max() if none set.
-        uint16_t getFirstSetBit()
-        {
-            return bitArrayGetFirstSetBit(this);
-        }
-
-        uint16_t getFirstUnsetBit()
-        {
-            return bitArrayGetFirstUnsetBit(this);
-        }
-
-        /// Returns max() if none set.
-        uint16_t getLastSetBit()
-        {
-            return bitArrayGetLastSetBit(this);
-        }
-
-        uint16_t getLastUnsetBit()
-        {
-            return bitArrayGetLastUnsetBit(this);
-        }
-
-        uint16_t count()
-        {
-            return bitArrayCount(this);
-        }
+        #include "bitarray_inline_impl.h"
 
         uint16_t max() const
         {
@@ -391,12 +129,7 @@ namespace dm
             return m_numSlots;
         }
 
-        void reset()
-        {
-            bitArrayReset(this);
-        }
-
-    public:
+    private:
         uint16_t m_max;
         uint16_t m_numSlots;
         uint64_t* m_bits;

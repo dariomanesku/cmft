@@ -17,146 +17,20 @@
 
 namespace dm
 {
-    template <typename OrderedList>
-    DM_INLINE typename OrderedList::ElemTy* olAddNew(OrderedList* _ol)
-    {
-        typedef typename OrderedList::ElemTy Ty;
-        OrderedList::Base* base = (OrderedList::Base*)_ol;
-
-        Ty* obj = base->addNew();
-        const uint16_t handle = base->getHandleOf(obj);
-        _ol->m_handleArray.add(handle);
-        return obj;
-    }
-
-    template <typename OrderedList>
-    DM_INLINE typename OrderedList::ElemTy* olGetObjFromIdx(OrderedList* _ol, uint16_t _idx)
-    {
-        OrderedList::Base* base = (OrderedList::Base*)_ol;
-        DM_CHECK(_idx < _ol->max(), "olGetObjFromIdx | %d, %d", _idx, _ol->max());
-
-        const uint16_t handle = _ol->m_handleArray.getVal(_idx);
-        return base->getObjFromHandle(handle);
-    }
-
-    template <typename OrderedList>
-    DM_INLINE uint16_t olGetIdxFromHandle(OrderedList* _ol, uint16_t _handle)
-    {
-        OrderedList::Base* base = (OrderedList::Base*)_ol;
-
-        for (uint16_t ii = 0, end = base->count(); ii < end; ++ii)
-        {
-            if (_ol->m_handleArray.getVal(ii) == _handle)
-            {
-                return ii;
-            }
-        }
-
-        return OrderedList::Base::Invalid;
-    }
-
-    template <typename OrderedList>
-    DM_INLINE uint16_t olIdxFromHandle(OrderedList* _ol, uint16_t _handle)
-    {
-        OrderedList::Base* base = (OrderedList::Base*)_ol;
-        DM_CHECK(_idx < _ol->max(), "olGetObjFromIdx | %d, %d", _idx, _ol->max());
-
-        const uint16_t handle = _ol->m_handleArray.getVal(_idx);
-        return base->getObjFromHandle(handle);
-    }
-
-    template <typename OrderedList>
-    DM_INLINE uint16_t olGetHandleFromIdx(OrderedList* _ol, uint16_t _idx)
-    {
-        DM_CHECK(_idx < _ol->max(), "olGetHandleFromIdx | %d, %d", _idx, _ol->max());
-
-        return _ol->m_handleArray.getVal(_idx);
-    }
-
-    template <typename OrderedList>
-    DM_INLINE void olRemove(OrderedList* _ol, uint16_t _idx)
-    {
-        OrderedList::Base* base = (OrderedList::Base*)_ol;
-        DM_CHECK(_idx < _ol->max(), "olRemove | %d, %d", _idx, _ol->max());
-
-        const uint16_t handle = _ol->m_handleArray.getVal(_idx);
-        base->remove(handle);
-        _ol->m_handleArray.remove(_idx);
-    }
-
-    template <typename OrderedList>
-    DM_INLINE void olRemove(OrderedList* _ol, typename OrderedList::ElemTy* _obj)
-    {
-        OrderedList::Base* base = (OrderedList::Base*)_ol;
-
-        const uint16_t handle = base->getHandleOf(_obj);
-        const uint16_t idx = olGetIdxFromHandle(_ol, handle);
-        if (idx != Base::Invalid)
-        {
-            remove(idx);
-        }
-    }
-
-    template <typename OrderedList>
-    DM_INLINE void olRemoveAll(OrderedList* _ol)
-    {
-        OrderedList::Base* base = (OrderedList::Base*)_ol;
-
-        base->removeAll();
-        _ol->m_handleArray.reset();
-    }
-
     template <typename Ty/*obj type*/, uint16_t MaxT>
     struct OrderedListT : public ListT<Ty, MaxT>
     {
-        typedef typename OrderedListT::Ty ElemTy;
         typedef typename ListT<Ty, MaxT> Base;
 
-        Ty* addNew()
-        {
-            return olAddNew(this);
-        }
+        #include "orderedlist_inline_impl.h"
 
-        Ty* getObjFromIdx(uint16_t _idx)
-        {
-            return olGetObjFromIdx(this, _idx);
-        }
-
-        // Avoid using this, it's O(n).
-        uint16_t getIdxFromHandle(uint16_t _handle)
-        {
-            return olGetIdxFromHandle(this, _handle);
-        }
-
-        uint16_t getHandleFromIdx(uint16_t _idx)
-        {
-            return olGetHandleFromIdx(this, _idx);
-        }
-
-        void remove(uint16_t _idx)
-        {
-            olRemove(this, _idx);
-        }
-
-        // Avoid using this, it's O(n).
-        void removeObj(Ty* _obj)
-        {
-            olRemove(this, _obj);
-        }
-
-        void removeAll()
-        {
-            return olRemoveAll(_idx);
-        }
-
-    public:
+    private:
         ArrayT<uint16_t, MaxT> m_handleArray;
     };
 
     template <typename Ty/*obj type*/>
     struct OrderedList : public List<Ty>
     {
-        typedef typename OrderedList::Ty Ty;
         typedef typename List<Ty> Base;
 
         // Uninitialized state, init() needs to be called !
@@ -182,7 +56,6 @@ namespace dm
         // Allocates memory internally.
         void init(uint16_t _max)
         {
-            m_max = _max;
             m_memoryBlock = DM_ALLOC(sizeFor(_max));
             m_cleanup = true;
 
@@ -198,7 +71,6 @@ namespace dm
         // Uses externaly allocated memory.
         void* init(uint16_t _max, void* _mem)
         {
-            m_max = _max;
             m_memoryBlock = _mem;
             m_cleanup = false;
 
@@ -223,45 +95,9 @@ namespace dm
             }
         }
 
-        Ty* addNew()
-        {
-            return olAddNew(this);
-        }
+        #include "orderedlist_inline_impl.h"
 
-        Ty* getObjFromIdx(uint16_t _idx)
-        {
-            return olGetObjFromIdx(this, _idx);
-        }
-
-        // Avoid using this, it's O(n).
-        uint16_t getIdxFromHandle(uint16_t _handle)
-        {
-            return olGetIdxFromHandle(this, _handle);
-        }
-
-        uint16_t getHandleFromIdx(uint16_t _idx)
-        {
-            return olGetHandleFromIdx(this, _idx);
-        }
-
-        void remove(uint16_t _idx)
-        {
-            olRemove(this, _idx);
-        }
-
-        // Avoid using this, it's O(n).
-        void removeObj(Ty* _obj)
-        {
-            olRemove(this, _obj);
-        }
-
-        void removeAll()
-        {
-            return olRemoveAll(_idx);
-        }
-
-    public:
-        uint16_t m_max;
+    private:
         Array<uint16_t> m_handleArray;
     };
 

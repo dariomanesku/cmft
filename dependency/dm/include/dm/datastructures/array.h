@@ -15,94 +15,6 @@
 
 namespace dm
 {
-    template <typename Array>
-    DM_INLINE void arrayAddVal(Array* _ar, typename Array::ElemTy _value)
-    {
-        DM_CHECK(_ar->m_count < _ar->max(), "arrayAddVal | %d, %d", _ar->m_count, _ar->max());
-
-        _ar->m_values[_ar->m_count++] = _value;
-    }
-
-    template <typename Array>
-    DM_INLINE uint32_t arrayAddObj(Array* _ar, const typename Array::ElemTy& _obj)
-    {
-        typedef typename Array::ElemTy Ty;
-        DM_CHECK(_ar->m_count < _ar->max(), "arrayAddObj | %d, %d", _ar->m_count, _ar->max());
-
-        Ty* dst = &_ar->m_values[_ar->m_count++];
-        dst = ::new (dst) Ty(_obj);
-
-        return (_ar->m_count-1);
-    }
-
-    template <typename Array>
-    DM_INLINE typename Array::ElemTy* arrayAddNew(Array* _ar)
-    {
-        DM_CHECK(_ar->m_count < _ar->max(), "arrayAddNew | %d, %d", _ar->m_count, _ar->max());
-
-        return &_ar->m_values[_ar->m_count++];
-    }
-
-    template <typename Array>
-    DM_INLINE void arrayRemove(Array* _ar, uint32_t _idx)
-    {
-        typedef typename Array::ElemTy Ty;
-        DM_CHECK(_ar->m_count <= _ar->max(), "arrayRemove - 0 | %d, %d", _ar->m_count, _ar->max());
-        DM_CHECK(_idx < _ar->max(), "arrayRemove - 1 | %d, %d", _idx, _ar->max());
-
-        Ty* elem = &_ar->m_values[_idx];
-        Ty* next = &_ar->m_values[_idx+1];
-
-        elem->~Ty();
-        memmove(elem, next, (_ar->m_count-_idx-1)*sizeof(Ty));
-
-        _ar->m_count--;
-    }
-
-    template <typename Array>
-    DM_INLINE void arrayRemoveSwap(Array* _ar, uint32_t _idx)
-    {
-        typedef typename Array::ElemTy Ty;
-        DM_CHECK(_ar->m_count <= _ar->max(), "arrayRemoveSwap - 0 | %d, %d", _ar->m_count, _ar->max());
-        DM_CHECK(_idx < _ar->max(), "arrayRemoveSwap - 1 | %d, %d", _idx, _ar->max());
-
-        Ty* elem = &_ar->m_values[_idx];
-        Ty* last = &_ar->m_values[_ar->m_count-1];
-
-        elem->~Ty();
-        elem->Ty(*last);
-
-        _ar->m_count--;
-    }
-
-    template <typename Array>
-    DM_INLINE typename Array::ElemTy arrayGetVal(Array* _ar, uint32_t _idx)
-    {
-        DM_CHECK(_idx < _ar->max(), "arrayGetVal | %d, %d", _idx, _ar->max());
-
-        return _ar->m_values[_idx];
-    }
-
-    template <typename Array>
-    DM_INLINE typename Array::ElemTy& arrayGetRef(Array* _ar, uint32_t _idx)
-    {
-        DM_CHECK(_idx < _ar->max(), "arrayGetRef | %d, %d", _idx, _ar->max());
-
-        return const_cast<typename Array::ElemTy&>(_ar->m_values[_idx]);
-    }
-
-    template <typename Array>
-    DM_INLINE void arrayZero(Array* _ar)
-    {
-        memset(_ar->m_values, 0, _ar->max()*sizeof(typename Array::ElemTy));
-    }
-
-    template <typename Array>
-    DM_INLINE void arrayReset(Array* _ar)
-    {
-        _ar->m_count = 0;
-    }
-
     template <typename Ty, uint32_t MaxT>
     struct ArrayT
     {
@@ -110,69 +22,10 @@ namespace dm
 
         ArrayT()
         {
-            arrayReset(this);
+            m_count = 0;
         }
 
-        void add(Ty _value)
-        {
-            arrayAddVal(this, _value);
-        }
-
-        uint32_t addObj(const Ty& _obj)
-        {
-            return arrayAddObj(this, _obj);
-        }
-
-        Ty* addNew()
-        {
-            return arrayAddNew(this);
-        }
-
-        void remove(uint32_t _idx)
-        {
-            arrayRemove(this, _idx);
-        }
-
-        // Uses swap instead of memmove. Order is not preserved!
-        void removeSwap(uint32_t _idx)
-        {
-            arrayRemoveSwap(this, _idx);
-        }
-
-        Ty getVal(uint32_t _idx) const
-        {
-            return arrayGetVal(this, _idx);
-        }
-
-        Ty* getPtr(uint32_t _idx)
-        {
-            return &arrayGetRef(this, _idx);
-        }
-
-        const Ty* getPtr(uint32_t _idx) const
-        {
-            return &arrayGetRef(this, _idx);
-        }
-
-        Ty operator[](uint32_t _idx) const
-        {
-            return arrayGetVal(this, _idx);
-        }
-
-        Ty& operator[](uint32_t _idx)
-        {
-            return arrayGetRef(this, _idx);
-        }
-
-        void zero()
-        {
-            arrayZero(this);
-        }
-
-        void reset()
-        {
-            arrayReset(this);
-        }
+        #include "array_inline_impl.h"
 
         uint32_t count() const
         {
@@ -249,66 +102,7 @@ namespace dm
             }
         }
 
-        void add(Ty _value)
-        {
-            arrayAddVal(this, _value);
-        }
-
-        uint32_t addObj(const Ty& _obj)
-        {
-            return arrayAddObj(this, _obj);
-        }
-
-        Ty* addNew()
-        {
-            return arrayAddNew(this);
-        }
-
-        void remove(uint32_t _idx)
-        {
-            arrayRemove(this, _idx);
-        }
-
-        // Uses swap instead of memmove. Order is not preserved!
-        void removeSwap(uint32_t _idx)
-        {
-            arrayRemoveSwap(this, _idx);
-        }
-
-        Ty getVal(uint32_t _idx) const
-        {
-            return arrayGetVal(this, _idx);
-        }
-
-        Ty* getPtr(uint32_t _idx)
-        {
-            return &arrayGetRef(this, _idx);
-        }
-
-        const Ty* getPtr(uint32_t _idx) const
-        {
-            return &arrayGetRef(this, _idx);
-        }
-
-        Ty operator[](uint32_t _idx) const
-        {
-            return arrayGetVal(this, _idx);
-        }
-
-        Ty& operator[](uint32_t _idx)
-        {
-            return arrayGetRef(this, _idx);
-        }
-
-        void zero()
-        {
-            arrayZero(this);
-        }
-
-        void reset()
-        {
-            arrayReset(this);
-        }
+        #include "array_inline_impl.h"
 
         uint32_t count() const
         {

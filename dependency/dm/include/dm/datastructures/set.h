@@ -17,136 +17,15 @@ namespace dm
 {
     // Based on: http://research.swtch.com/sparse
 
-    template <typename Set>
-    DM_INLINE bool setContains(Set* _set, uint16_t _val)
-    {
-        DM_CHECK(_val < _set->max(), "setContains - 0 | %d, %d", _val, _set->max());
-
-        const uint16_t* sparse = &_set->m_values[_set->max()];
-        const uint16_t index = sparse[_val];
-
-        return (index < _set->m_num && _set->m_values[index] == _val);
-    }
-
-    template <typename Set>
-    DM_INLINE uint16_t setIndexOf(Set* _set, uint16_t _val)
-    {
-        DM_CHECK(_val < _set->max(), "setIndexOf | %d, %d", _val, _set->max());
-
-        const uint16_t* sparse = &_set->m_values[_set->max()];
-        return sparse[_val];
-    }
-
-    template <typename Set>
-    DM_INLINE uint16_t setInsert(Set* _set, uint16_t _val)
-    {
-        DM_CHECK(_set->m_num < _set->max(), "setInsert - 0 | %d, %d", _set->m_num, _set->max());
-        DM_CHECK(_val < _set->max(),  "setInsert - 1 | %d, %d", _val,  _set->max());
-
-        if (setContains(_set, _val))
-        {
-            return setIndexOf(_set, _val);
-        }
-
-        _set->m_values[_set->m_num] = _val;
-        uint16_t* sparse = &_set->m_values[_set->max()];
-        sparse[_val] = _set->m_num;
-
-        const uint16_t index = _set->m_num;
-        ++_set->m_num;
-
-        return index;
-    }
-
-    template <typename Set>
-    DM_INLINE uint16_t setSafeInsert(Set* _set, uint16_t _val)
-    {
-        if (_val < _set->max())
-        {
-            return setInsert(_set, _val);
-        }
-
-        return UINT16_MAX;
-    }
-
-    template <typename Set>
-    DM_INLINE uint16_t setGetValueAt(Set* _set, uint16_t _idx)
-    {
-        DM_CHECK(_idx < _set->max(), "setGetValueAt | %d, %d", _idx, _set->max());
-
-        return _set->m_values[_idx];
-    }
-
-    template <typename Set>
-    DM_INLINE void setRemove(Set* _set, uint16_t _val)
-    {
-        DM_CHECK(_val < _set->max(), "setRemove - 0 | %d, %d", _val, _set->max());
-        DM_CHECK(_set->m_num < _set->max(), "setRemove - 1 | %d, %d", _set->m_num, _set->max());
-
-        if (!setContains(_set, _val))
-        {
-            return;
-        }
-
-        uint16_t* sparse = &_set->m_values[_set->max()];
-
-        const uint16_t index = sparse[_val];
-        const uint16_t last = _set->m_values[--_set->m_num];
-
-        DM_CHECK(index < _set->max(), "setRemove - 2 | %d, %d", index, _set->max());
-        DM_CHECK(last < _set->max(), "setRemove - 3 | %d, %d", last, _set->max());
-
-        _set->m_values[index] = last;
-        sparse[last] = index;
-    }
-
-    template <typename Set>
-    DM_INLINE void setReset(Set* _set)
-    {
-        _set->m_num = 0;
-    }
-
     template <uint16_t MaxValueT>
     struct SetT
     {
-        SetT() : m_num(0)
+        SetT()
         {
+            m_num = 0;
         }
 
-        uint16_t insert(uint16_t _val)
-        {
-            return setInsert(this, _val);
-        }
-
-        uint16_t safeInsert(uint16_t _val)
-        {
-            return setSafeInsert(this, _val);
-        }
-
-        bool contains(uint16_t _val)
-        {
-            return setContains(this, _val);
-        }
-
-        uint16_t indexOf(uint16_t _val)
-        {
-            return setIndexOf(this, _val);
-        }
-
-        uint16_t getValueAt(uint16_t _at)
-        {
-            return setGetValueAt(this, _at);
-        }
-
-        void remove(uint16_t _val)
-        {
-            setRemove(this, _val);
-        }
-
-        void reset()
-        {
-            setReset(this);
-        }
+        #include "set_inline_impl.h"
 
         uint16_t count() const
         {
@@ -158,7 +37,7 @@ namespace dm
             return MaxValueT;
         }
 
-    public:
+    private:
         uint16_t m_num;
         uint16_t m_values[MaxValueT*2];
     };
@@ -220,40 +99,7 @@ namespace dm
             }
         }
 
-        uint16_t insert(uint16_t _val)
-        {
-            return setInsert(this, _val);
-        }
-
-        uint16_t safeInsert(uint16_t _val)
-        {
-            return setSafeInsert(this, _val);
-        }
-
-        bool contains(uint16_t _val)
-        {
-            return setContains(this, _val);
-        }
-
-        uint16_t indexOf(uint16_t _val)
-        {
-            return setIndexOf(this, _val);
-        }
-
-        uint16_t getValueAt(uint16_t _at)
-        {
-            return setGetValueAt(this, _at);
-        }
-
-        void remove(uint16_t _val)
-        {
-            setRemove(this, _val);
-        }
-
-        void reset()
-        {
-            setReset(this);
-        }
+        #include "set_inline_impl.h"
 
         uint16_t count() const
         {
@@ -265,7 +111,7 @@ namespace dm
             return m_max;
         }
 
-    public:
+    private:
         uint16_t m_max;
         uint16_t m_num;
         uint16_t* m_values;

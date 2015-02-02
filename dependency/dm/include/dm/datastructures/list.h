@@ -17,182 +17,16 @@
 
 namespace dm
 {
-    template <typename List>
-    DM_INLINE void listFillWith(List* _li, const typename List::ElemTy* _obj)
-    {
-        typedef typename List::ElemTy Ty;
-
-        Ty* elem = _li->m_elements;
-        for (uint16_t ii = _li->count(); ii--; )
-        {
-            dst = ::new (&elem[ii]) Ty(*_obj);
-        }
-    }
-
-    template <typename List>
-    DM_INLINE uint16_t listAdd(List* _li, const typename List::ElemTy* _obj)
-    {
-        typedef typename List::ElemTy Ty;
-
-        const uint16_t idx = _li->m_handles.alloc();
-        DM_CHECK(idx < _li->max(), "listAdd | %d, %d", idx, _li->max());
-
-        Ty* dst = &_li->m_elements[idx];
-        dst = ::new (dst) Ty(*_obj);
-        return idx;
-    }
-
-    template <typename List>
-    DM_INLINE typename List::ElemTy* listAddNew(List* _li)
-    {
-        typedef typename List::ElemTy Ty;
-
-        const uint16_t idx = _li->m_handles.alloc();
-        DM_CHECK(idx < _li->max(), "listAddNew | %d, %d", idx, _li->max());
-
-        Ty* dst = &_li->m_elements[idx];
-        dst = ::new (dst) Ty();
-        return dst;
-    }
-
-    template <typename List>
-    DM_INLINE bool listContains(List* _li, uint16_t _handle)
-    {
-        return _li->m_handles.contains(_handle);
-    }
-
-    template <typename List>
-    DM_INLINE uint16_t listGetHandleOf(List* _li, const typename List::ElemTy* _obj)
-    {
-        DM_CHECK(&_li->m_elements[0] <= _obj && _obj < &_li->m_elements[_li->max()], "listGetHandleOf | Object not from the list.");
-
-        return uint16_t(_obj - _li->m_elements);
-    }
-
-    template <typename List>
-    DM_INLINE typename List::ElemTy* listGetObjFromHandle(List* _li, uint16_t _handle)
-    {
-        typedef typename List::ElemTy Ty;
-        DM_CHECK(_handle < _li->max(), "listGetObjFromHandle | %d, %d", _handle, _li->max());
-
-        return const_cast<Ty*>(&_li->m_elements[_handle]);
-    }
-
-    template <typename List>
-    DM_INLINE typename List::ElemTy* listGetObjAt(List* _li, uint16_t _idx)
-    {
-        typedef typename List::ElemTy Ty;
-        DM_CHECK(_idx < _li->max(), "listGetObjAt | %d, %d", _idx, _li->max());
-
-        const uint16_t handle = _li->m_handles.getHandleAt(_idx);
-        return const_cast<Ty*>(listGetObjFromHandle(_li, handle));
-    }
-
-    template <typename List>
-    DM_INLINE void listRemove(List* _li, uint16_t _handle)
-    {
-        typedef typename List::ElemTy Ty;
-        DM_CHECK(_handle < _li->max(), "listRemove | %d, %d", _handle, _li->max());
-
-        _li->m_elements[_handle].~Ty();
-
-        _li->m_handles.free(_handle);
-    }
-
-    template <typename List>
-    DM_INLINE void listRemoveAt(List* _li, uint16_t _idx)
-    {
-        DM_CHECK(_idx < _li->max(), "listRemoveAt | %d, %d", _idx, _li->max());
-
-        const uint16_t handle = _li->m_handles.getHandleAt(_idx);
-        listRemove(_li, handle);
-    }
-
-    template <typename List>
-    DM_INLINE void listRemoveAll(List* _li)
-    {
-        for (uint16_t ii = _li->count(); ii--; )
-        {
-            listRemoveAt(_li, 0);
-        }
-    }
-
     template <typename Ty/*obj type*/, uint16_t MaxT>
     struct ListT
     {
-        typedef typename ListT::Ty ElemTy;
+        typedef typename ListT<Ty,MaxT> This;
 
-        enum { Invalid = UINT16_MAX };
-
-        void fillWith(const Ty* _obj)
+        ListT()
         {
-            listFillWith(this, _obj);
         }
 
-        uint16_t add(const Ty& _obj)
-        {
-            return listAdd(this, &_obj);
-        }
-
-        Ty* addNew()
-        {
-            return listAddNew(this);
-        }
-
-        bool contains(uint16_t _handle)
-        {
-            return listContains(this, _handle);
-        }
-
-        uint16_t getHandleOf(const Ty* _obj) const
-        {
-            return listGetHandleOf(this, _obj);
-        }
-
-        uint16_t getHandleAt(uint16_t _idx) const
-        {
-            return m_handles.getHandleAt(_idx);
-        }
-
-        Ty* getObjFromHandle(uint16_t _handle)
-        {
-            return listGetObjFromHandle(this, _handle);
-        }
-
-        Ty* getObjAt(uint16_t _idx)
-        {
-            return listGetObjAt(this, _idx);
-        }
-
-        const Ty* getObjAt(uint16_t _idx) const
-        {
-            return listGetObjAt(this, _idx);
-        }
-
-        Ty& operator[](uint16_t _idx)
-        {
-            return *listGetObjAt(this, _idx);
-        }
-
-        const Ty& operator[](uint16_t _idx) const
-        {
-            return *listGetObjAt(this, _idx);
-        }
-
-        void remove(uint16_t _handle)
-        {
-            listRemove(this, _handle);
-        }
-
-        void removeAt(uint16_t _idx)
-        {
-            listRemoveAt(this, _idx);
-        }
-
-        void removeAll()
-        {
-            listRemoveAll(this);
-        }
+        #include "list_inline_impl.h"
 
         uint16_t count() const
         {
@@ -204,7 +38,7 @@ namespace dm
             return MaxT;
         }
 
-    public:
+    private:
         HandleAllocT<MaxT> m_handles;
         Ty m_elements[MaxT];
     };
@@ -212,9 +46,7 @@ namespace dm
     template <typename Ty/*obj type*/>
     struct List
     {
-        typedef typename List::Ty ElemTy;
-
-        enum { Invalid = UINT16_MAX };
+        typedef typename List<Ty> This;
 
         // Uninitialized state, init() needs to be called !
         List()
@@ -277,75 +109,7 @@ namespace dm
             }
         }
 
-        void fillWith(const Ty* _obj)
-        {
-            listFillWith(this, _obj);
-        }
-
-        uint16_t add(const Ty& _obj)
-        {
-            return listAdd(this, &_obj);
-        }
-
-        Ty* addNew()
-        {
-            return listAddNew(this);
-        }
-
-        bool contains(uint16_t _handle)
-        {
-            return listContains(this, _handle);
-        }
-
-        uint16_t getHandleOf(const Ty* _obj) const
-        {
-            return listGetHandleOf(this, _obj);
-        }
-
-        uint16_t getHandleAt(uint16_t _idx) const
-        {
-            return m_handles.getHandleAt(_idx);
-        }
-
-        Ty* getObjFromHandle(uint16_t _handle)
-        {
-            return listGetObjFromHandle(this, _handle);
-        }
-
-        Ty* getObjAt(uint16_t _idx)
-        {
-            return listGetObjAt(this, _idx);
-        }
-
-        const Ty* getObjAt(uint16_t _idx) const
-        {
-            return listGetObjAt(this, _idx);
-        }
-
-        Ty& operator[](uint16_t _idx)
-        {
-            return *listGetObjAt(this, _idx);
-        }
-
-        const Ty& operator[](uint16_t _idx) const
-        {
-            return *listGetObjAt(this, _idx);
-        }
-
-        void remove(uint16_t _handle)
-        {
-            listRemove(this, _handle);
-        }
-
-        void removeAt(uint16_t _idx)
-        {
-            listRemoveAt(this, _idx);
-        }
-
-        void removeAll()
-        {
-            listRemoveAll(this);
-        }
+        #include "list_inline_impl.h"
 
         uint16_t count() const
         {
@@ -357,7 +121,7 @@ namespace dm
             return m_handles.max();
         }
 
-    public:
+    private:
         HandleAlloc m_handles;
         Ty* m_elements;
         void* m_memoryBlock;

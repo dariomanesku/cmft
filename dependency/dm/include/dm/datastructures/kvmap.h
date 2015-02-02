@@ -17,105 +17,16 @@
 
 namespace dm
 {
-    template <typename Kvmap>
-    DM_INLINE void kvmapInsert(Kvmap* _kvm, uint16_t _key, typename Kvmap::ValTy _value)
-    {
-        DM_CHECK(_key < _kvm->max(), "kvmapInsert - 0 | %d, %d", _key, _kvm->max());
-
-        if (_key < _kvm->max())
-        {
-            const uint16_t index = _kvm->m_set.insert(_key);
-
-            DM_CHECK(index < _kvm->max(), "kvmapInsert - 1 | %d, %d", _key, _kvm->max());
-            _kvm->m_values[index] = _value;
-        }
-    }
-
-    template <typename Kvmap>
-    DM_INLINE bool kvmapContains(Kvmap* _kvm, uint16_t _key)
-    {
-        DM_CHECK(_key < _kvm->max(), "kvmapContains | %d, %d", _key, _kvm->max());
-
-        return _kvm->m_set.contains(_key);
-    }
-
-    template <typename Kvmap>
-    DM_INLINE typename Kvmap::ValTy kvmapValueOf(Kvmap* _kvm, uint16_t _key)
-    {
-        DM_CHECK(_kvm->m_set.indexOf(_key) < _kvm->max(), "kvmapValueOf | %d, %d, %d", _key, _kvm->m_set.indexOf(_key), _kvm->max());
-
-        return _kvm->m_values[_kvm->m_set.indexOf(_key)];
-    }
-
-    template <typename Kvmap>
-    DM_INLINE uint16_t kvmapGetKeyAt(Kvmap* _kvm, uint16_t _idx)
-    {
-        DM_CHECK(_idx < _kvm->max(), "kvmapGetKeyAt | %d, %d", _idx, _kvm->max());
-
-        return _kvm->m_set.getValueAt(_idx);
-    }
-
-    template <typename Kvmap>
-    DM_INLINE typename Kvmap::ValTy kvmapGetValueAt(Kvmap* _kvm, uint16_t _idx)
-    {
-        DM_CHECK(_idx < _kvm->max(), "kvmapGetKeyAt | %d, %d", _idx, _kvm->max());
-
-        return _kvm->m_set.getValueAt(_idx);
-    }
-
-    template <typename Kvmap>
-    DM_INLINE void kvmapRemove(Kvmap* _kvm, uint16_t _key)
-    {
-        DM_CHECK(_key < _kvm->max(), "kvmapRemove | %d, %d", _key, _kvm->max());
-
-        _kvm->m_set.remove(_key);
-    }
-
-    template <typename Kvmap>
-    DM_INLINE void kvmapReset(Kvmap* _kvm)
-    {
-        _kvm->m_set.reset();
-    }
-
     template <typename Ty/*arithmetic type*/, uint16_t MaxKeyT>
     struct KeyValueMapT
     {
         typedef typename KeyValueMapT::Ty ValTy;
 
-        void insert(uint16_t _key, Ty _value)
+        KeyValueMapT()
         {
-            kvmapInsert(this, _key, _value);
         }
 
-        bool contains(uint16_t _key)
-        {
-            return kvmapContains(this, _key);
-        }
-
-        Ty valueOf(uint16_t _key)
-        {
-            return kvmapValueOf(this, _key);
-        }
-
-        uint16_t getKeyAt(uint16_t _idx)
-        {
-            return kvmapGetKeyAt(this, _idx);
-        }
-
-        Ty getValueAt(uint16_t _idx)
-        {
-            return kvmapGetValueAt(this, _idx);
-        }
-
-        void remove(uint16_t _key)
-        {
-            kvmapRemove(this, _key);
-        }
-
-        void reset()
-        {
-            kvmapReset(this);
-        }
+        #include "kvmap_inline_impl.h"
 
         uint16_t count()
         {
@@ -127,7 +38,7 @@ namespace dm
             return MaxKeyT;
         }
 
-    public:
+    private:
         SetT<MaxKeyT> m_set;
         Ty m_values[MaxKeyT];
     };
@@ -200,40 +111,7 @@ namespace dm
             }
         }
 
-        void insert(uint16_t _key, Ty _value)
-        {
-            kvmapInsert(this, _key, _value);
-        }
-
-        bool contains(uint16_t _key)
-        {
-            return kvmapContains(this, _key);
-        }
-
-        Ty valueOf(uint16_t _key)
-        {
-            return kvmapValueOf(this, _key);
-        }
-
-        uint16_t getKeyAt(uint16_t _idx)
-        {
-            return kvmapGetKeyAt(this, _idx);
-        }
-
-        Ty getValueAt(uint16_t _idx)
-        {
-            return kvmapGetValueAt(this, _idx);
-        }
-
-        void remove(uint16_t _key)
-        {
-            kvmapRemove(this, _key);
-        }
-
-        void reset()
-        {
-            kvmapReset(this);
-        }
+        #include "kvmap_inline_impl.h"
 
         uint16_t count()
         {
@@ -245,7 +123,7 @@ namespace dm
             return m_max;
         }
 
-    public:
+    private:
         Set m_set;
         Ty* m_values;
         uint16_t m_max;

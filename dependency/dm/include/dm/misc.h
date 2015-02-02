@@ -284,6 +284,30 @@ namespace dm
         }
     }
 
+    /// Notice: do NOT use return value of this function for memory deallocation!
+    DM_INLINE char* trim(char* _str)
+    {
+        char* beg = _str;
+        char* end = _str + strlen(_str)-1;
+
+        // Point to the first non-whitespace character.
+        while (isspace(*beg)) { ++beg; }
+
+        // If end is reached (_str contained all spaces), return.
+        if ('\0' == *beg)
+        {
+            return beg;
+        }
+
+        // Point to the last non-whitespace character.
+        while (isspace(*end)) { --end; }
+
+        // Add string terminator after non-whitespace character.
+        end[1] = '\0';
+
+        return beg;
+    }
+
     // File system.
     //-----
 
