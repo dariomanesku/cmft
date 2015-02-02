@@ -149,8 +149,8 @@ namespace cmft
         }
 
         // Fill structure.
-        dm::strscpya(m_deviceVendor, deviceVendor);
-        dm::strscpya(m_deviceName, deviceName);
+        dm::strscpya(m_deviceVendor, dm::trim(deviceVendor));
+        dm::strscpya(m_deviceName, dm::trim(deviceName));
         m_device = chosenDevice;
         m_context = context;
         m_commandQueue = commandQueue;
@@ -171,34 +171,6 @@ namespace cmft
             clReleaseContext(m_context);
             m_context = NULL;
         }
-    }
-
-    /// Notice: do NOT use return value of this function for memory deallocation!
-    char* trimWhitespace(char* _str)
-    {
-        // Advance ptr until a non-space character is reached.
-        while(isspace(*_str))
-        {
-            ++_str;
-        }
-
-        // If end is reached (_str contained all spaces), return.
-        if ('\0' == *_str)
-        {
-            return _str;
-        }
-
-        // Point to the last non-whitespace character.
-        char* end = _str + strlen(_str)-1;
-        while (isspace(*end--) && end > _str)
-        {
-            // Empty body.
-        }
-
-        // Add string terminator.
-        end[1] = '\0';
-
-        return _str;
     }
 
     void clPrintDevices()
@@ -232,7 +204,7 @@ namespace cmft
             }
             else
             {
-                dm::strscpya(platformOutputStr, trimWhitespace(vendor));
+                dm::strscpya(platformOutputStr, dm::trim(vendor));
             }
 
             // Enumerate current platform devices.
@@ -272,7 +244,7 @@ namespace cmft
 
                     // Print device info.
                     INFO("%-40s --clVendor %-6s --deviceIndex %u --deviceType %s"
-                        , trimWhitespace(deviceName)
+                        , dm::trim(deviceName)
                         , platformOutputStr
                         , uint32_t(jj)
                         , deviceTypeOutputStr
