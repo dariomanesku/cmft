@@ -18,13 +18,13 @@ namespace cmft
     void cubemapShCoeffs(double _shCoeffs[SH_COEFF_NUM][3], void* _data, uint32_t _faceSize, uint32_t _faceOffsets[6]);
 
     /// Computes spherical harominics coefficients for given cubemap image.
-    bool imageShCoeffs(double _shCoeffs[SH_COEFF_NUM][3], const Image& _image);
+    bool imageShCoeffs(double _shCoeffs[SH_COEFF_NUM][3], const Image& _image, bx::AllocatorI* _allocator = g_allocator);
 
     /// Creates irradiance cubemap. Uses fast spherical harmonics implementation.
-    bool imageIrradianceFilterSh(Image& _dst, uint32_t _dstFaceSize, const Image& _src);
+    bool imageIrradianceFilterSh(Image& _dst, uint32_t _dstFaceSize, const Image& _src, bx::AllocatorI* _allocator = g_allocator);
 
     /// Converts cubemap image into irradiance cubemap. Uses fast spherical harmonics implementation.
-    void imageIrradianceFilterSh(Image& _image, uint32_t _faceSize);
+    void imageIrradianceFilterSh(Image& _image, uint32_t _faceSize, bx::AllocatorI* _allocator = g_allocator);
 
     struct LightingModel
     {
@@ -84,6 +84,7 @@ namespace cmft
                            , EdgeFixup::Enum _edgeFixup = EdgeFixup::None
                            , int8_t _numCpuProcessingThreads = -1
                            , const ClContext* _clContext = NULL
+                           , bx::AllocatorI* _allocator = g_allocator
                            );
 
     /// Converts cubemap image into radiance cubemap.
@@ -97,6 +98,7 @@ namespace cmft
                            , EdgeFixup::Enum _edgeFixup = EdgeFixup::None
                            , int8_t _numCpuProcessingThreads = -1
                            , const ClContext* _clContext = NULL
+                           , bx::AllocatorI* _allocator = g_allocator
                            );
 
 } // namespace cmft

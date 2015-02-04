@@ -30,27 +30,6 @@
     #define CMFT_COMPUTE_FILTER_AREA_ON_CPU 0
 #endif //CMFT_COMPUTE_FILTER_AREA_ON_CPU
 
-// TODO:
-#ifndef CMFT_FREE
-    #define CMFT_FREE(_ptr) ::free(_ptr)
-#endif
-
-struct ScopeFree : dm::NoCopyNoAssign
-{
-    ScopeFree(void* _ptr) : m_ptr(_ptr) { }
-
-    ~ScopeFree()
-    {
-        if (m_ptr)
-        {
-            CMFT_FREE(m_ptr);
-        }
-    }
-
-private:
-    void* m_ptr;
-};
-
 namespace cmft
 {
 
@@ -133,10 +112,10 @@ namespace cmft
         return (uint8_t*)_mem + _size;
     }
 
-    float* buildCubemapNormalSolidAngle(uint32_t _cubemapFaceSize, EdgeFixup::Enum _fixup = EdgeFixup::None)
+    float* buildCubemapNormalSolidAngle(uint32_t _cubemapFaceSize, EdgeFixup::Enum _fixup = EdgeFixup::None, bx::AllocatorI* _allocator = g_allocator)
     {
         const size_t size = cubemapNormalSolidAngleSize(_cubemapFaceSize);
-        float* mem = (float*)CMFT_ALLOC(size);
+        float* mem = (float*)BX_ALLOC(_allocator, size);
         MALLOC_CHECK(mem);
 
         buildCubemapNormalSolidAngle(mem, size, _cubemapFaceSize, _fixup);
@@ -202,8 +181,8 @@ namespace cmft
         double weightAccum = 0.0;
 
         // Build cubemap vectors.
-        float* cubemapVectors = buildCubemapNormalSolidAngle(_faceSize);
-        ScopeFree cleanup(cubemapVectors);
+        CMFT_STACK_PUSH();
+        float* cubemapVectors = buildCubemapNormalSolidAngle(_faceSize, EdgeFixup::None, g_stackAllocator);
         const uint32_t bytesPerPixel = 4 /*numChannels*/ * 4 /*bytesPerChannel*/;
         const uint32_t vectorPitch = _faceSize * bytesPerPixel;
         const uint32_t vectorFaceDataSize = vectorPitch * _faceSize;
@@ -238,7 +217,7 @@ namespace cmft
 
         // Normalization.
         // This is not really necesarry because usually PI*4 - weightAccum ~= 0.000003
-        // so it doesn't change almost anything, but it doesn't cost much to have more corectness.
+        // so it doesn't change almost anything, but it doesn't cost much be more correct.
         const double norm = PI4 / weightAccum;
         for (uint8_t ii = 0; ii < SH_COEFF_NUM; ++ii)
         {
@@ -246,9 +225,12 @@ namespace cmft
             _shCoeffs[ii][1] *= norm;
             _shCoeffs[ii][2] *= norm;
         }
+
+        BX_FREE(g_stackAllocator, cubemapVectors);
+        CMFT_STACK_POP();
     }
 
-    bool imageShCoeffs(double _shCoeffs[SH_COEFF_NUM][3], const Image& _image)
+    bool imageShCoeffs(double _shCoeffs[SH_COEFF_NUM][3], const Image& _image, bx::AllocatorI* _allocator)
     {
         // Input image must be a cubemap.
         if (!imageIsCubemap(_image))
@@ -258,7 +240,7 @@ namespace cmft
 
         // Processing is done in Rgba32f format.
         ImageSoftRef imageRgba32f;
-        imageRefOrConvert(imageRgba32f, TextureFormat::RGBA32F, _image);
+        imageRefOrConvert(imageRgba32f, TextureFormat::RGBA32F, _image, _allocator);
 
         // Get face data offsets.
         uint32_t faceOffsets[6];
@@ -268,12 +250,12 @@ namespace cmft
         cubemapShCoeffs(_shCoeffs, imageRgba32f.m_data, imageRgba32f.m_width, faceOffsets);
 
         // Cleanup.
-        imageUnload(imageRgba32f);
+        imageUnload(imageRgba32f, _allocator);
 
         return true;
     }
 
-    bool imageIrradianceFilterSh(Image& _dst, uint32_t _dstFaceSize, const Image& _src)
+    bool imageIrradianceFilterSh(Image& _dst, uint32_t _dstFaceSize, const Image& _src, bx::AllocatorI* _allocator)
     {
         // Input image must be a cubemap.
         if (!imageIsCubemap(_src))
@@ -283,7 +265,7 @@ namespace cmft
 
         // Processing is done in Rgba32f format.
         ImageSoftRef imageRgba32f;
-        imageRefOrConvert(imageRgba32f, TextureFormat::RGBA32F, _src);
+        imageRefOrConvert(imageRgba32f, TextureFormat::RGBA32F, _src, _allocator);
 
         // Get face data offsets.
         uint32_t faceOffsets[6];
@@ -299,12 +281,12 @@ namespace cmft
         const uint32_t dstPitch = dstFaceSize*dstBytesPerPixel;
         const uint32_t dstFaceDataSize = dstPitch * dstFaceSize;
         const uint32_t dstDataSize = dstFaceDataSize * 6 /*numFaces*/;
-        void* dstData = CMFT_ALLOC(dstDataSize);
+        void* dstData = BX_ALLOC(_allocator, dstDataSize);
         MALLOC_CHECK(dstData);
 
         // Build cubemap texel vectors.
-        float* cubemapVectors = buildCubemapNormalSolidAngle(dstFaceSize);
-        ScopeFree cleanup(cubemapVectors);
+        CMFT_STACK_PUSH();
+        float* cubemapVectors = buildCubemapNormalSolidAngle(dstFaceSize, EdgeFixup::None, g_stackAllocator);
         const uint8_t vectorBytesPerPixel = 4 /*numChannels*/ * 4 /*bytesPerChannel*/;
         const uint32_t vectorPitch = dstFaceSize * vectorBytesPerPixel;
         const uint32_t vectorFaceDataSize = vectorPitch * dstFaceSize;
@@ -397,26 +379,29 @@ namespace cmft
         // Convert back to source format.
         if (TextureFormat::RGBA32F == _src.m_format)
         {
-            imageMove(_dst, result);
+            imageMove(_dst, result, _allocator);
         }
         else
         {
-            imageConvert(_dst, (TextureFormat::Enum)_src.m_format, result);
-            imageUnload(result);
+            imageConvert(_dst, (TextureFormat::Enum)_src.m_format, result, _allocator);
+            imageUnload(result, _allocator);
         }
 
         // Cleanup.
-        imageUnload(imageRgba32f);
+        imageUnload(imageRgba32f, _allocator);
+
+        BX_FREE(g_stackAllocator, cubemapVectors);
+        CMFT_STACK_POP();
 
         return true;
     }
 
-    void imageIrradianceFilterSh(Image& _image, uint32_t _faceSize)
+    void imageIrradianceFilterSh(Image& _image, uint32_t _faceSize, bx::AllocatorI* _allocator)
     {
         Image tmp;
-        if (imageIrradianceFilterSh(tmp, _faceSize, _image))
+        if (imageIrradianceFilterSh(tmp, _faceSize, _image, _allocator))
         {
-            imageMove(_image, tmp);
+            imageMove(_image, tmp, _allocator);
         }
     }
 
@@ -782,10 +767,10 @@ namespace cmft
         return (uint8_t*)_mem + _size;
     }
 
-    float* buildCubemapFilterArea(uint8_t _faceIdx, uint32_t _cubemapFaceSize, float _filterSize, EdgeFixup::Enum _fixup = EdgeFixup::None)
+    float* buildCubemapFilterArea(uint8_t _faceIdx, uint32_t _cubemapFaceSize, float _filterSize, EdgeFixup::Enum _fixup = EdgeFixup::None, bx::AllocatorI* _allocator = g_allocator)
     {
         const size_t size = cubemapFilterAreaSize(_cubemapFaceSize);
-        float* mem = (float*)CMFT_ALLOC(size);
+        float* mem = (float*)BX_ALLOC(_allocator, size);
         MALLOC_CHECK(mem);
 
         buildCubemapFilterArea(mem, size, _faceIdx, _cubemapFaceSize, _filterSize, _fixup);
@@ -1271,23 +1256,29 @@ namespace cmft
             dm::ScopeFclose cleanup0(fp);
 
             // Alloc data for string.
+            CMFT_STACK_PUSH();
             const size_t fileSize = dm::fsize(fp);
-            char* sourceData = (char*)CMFT_ALLOC(fileSize);
-            ScopeFree cleanup1(sourceData);
+            char* sourceData = (char*)BX_ALLOC(g_stackAllocator, fileSize);
 
             // Read opencl source file.
             read = fread(sourceData, fileSize, 1, fp);
             DEBUG_CHECK(read == 1, "Could not read from file.");
             FERROR_CHECK(fp);
 
+            bool result;
             if (NULL != _header)
             {
-                return createFromStr(sourceData, fileSize, _header, _headerSize);
+                result = createFromStr(sourceData, fileSize, _header, _headerSize);
             }
             else
             {
-                return createFromStr(sourceData, fileSize);
+                result = createFromStr(sourceData, fileSize);
             }
+
+            BX_FREE(g_stackAllocator, sourceData);
+            CMFT_STACK_POP();
+
+            return result;
         }
 
         void initDeviceMemory(const Image& _image, float* _cubemapNormalSolidAngle)
@@ -1334,6 +1325,7 @@ namespace cmft
                             , float _specularPower
                             , float _specularAngle
                             , float _filterSize
+                            , EdgeFixup::Enum _edgeFixup = EdgeFixup::None
                             )
         {
             cl_int err;
@@ -1366,8 +1358,8 @@ namespace cmft
 
             #if CMFT_COMPUTE_FILTER_AREA_ON_CPU
                 // Build filter area info.
-                float* filterArea = buildCubemapFilterArea(_faceIdx, _dstFaceSize, _filterSize);
-                ScopeFree cleanup(filterArea);
+                CMFT_STACK_PUSH();
+                float* filterArea = buildCubemapFilterArea(_faceIdx, _dstFaceSize, _filterSize, _edgeFixup, g_stackAllocator);
                 const size_t width = _dstFaceSize*6;
                 const size_t height = _dstFaceSize;
                 cl_mem area = clCreateImage2D(m_clContext->m_context
@@ -1425,6 +1417,8 @@ namespace cmft
 
             #if CMFT_COMPUTE_FILTER_AREA_ON_CPU
                 clReleaseMemObject(area);
+                BX_FREE(g_stackAllocator, filterArea);
+                CMFT_STACK_POP();
             #endif //CMFT_COMPUTE_FILTER_AREA_ON_CPU
         }
 
@@ -1434,6 +1428,7 @@ namespace cmft
                                    , float _specularPower
                                    , float _specularAngle
                                    , float _filterSize
+                                   , EdgeFixup::Enum _edgeFixup = EdgeFixup::None
                                    )
         {
             cl_int err;
@@ -1445,8 +1440,8 @@ namespace cmft
 
             #if CMFT_COMPUTE_FILTER_AREA_ON_CPU
                 // Build filter area info.
-                float* filterArea = buildCubemapFilterArea(_faceIdx, _dstFaceSize, _filterSize);
-                ScopeFree cleanup(filterArea);
+                CMFT_STACK_PUSH();
+                float* filterArea = buildCubemapFilterArea(_faceIdx, _dstFaceSize, _filterSize, _edgeFixup, g_stackAllocator);
                 const size_t width = _dstFaceSize*6;
                 const size_t height = _dstFaceSize;
                 cl_mem area = clCreateImage2D(m_clContext->m_context
@@ -1544,19 +1539,21 @@ namespace cmft
 
             #if CMFT_COMPUTE_FILTER_AREA_ON_CPU
                 clReleaseMemObject(area);
+                BX_FREE(g_stackAllocator, filterArea);
+                CMFT_STACK_POP();
             #endif //CMFT_COMPUTE_FILTER_AREA_ON_CPU
         }
 
-        void run(void* _out, uint8_t _faceIdx, uint32_t _dstFaceSize, float _specularPower, float _specularAngle, float _filterSize)
+        void run(void* _out, uint8_t _faceIdx, uint32_t _dstFaceSize, float _specularPower, float _specularAngle, float _filterSize, EdgeFixup::Enum _edgeFixup = EdgeFixup::None)
         {
             if (_filterSize > 0.1f && (_dstFaceSize > 256 || m_srcFaceSize > 256))
             {
                 // Prevents driver crash by running 6+1 smaller kernels instead of a big one.
-                processFaceByFaceAndSum(_out, _faceIdx, _dstFaceSize, _specularPower, _specularAngle, _filterSize);
+                processFaceByFaceAndSum(_out, _faceIdx, _dstFaceSize, _specularPower, _specularAngle, _filterSize, _edgeFixup);
             }
             else
             {
-                processAllAtOnce(_out, _faceIdx, _dstFaceSize, _specularPower, _specularAngle, _filterSize);
+                processAllAtOnce(_out, _faceIdx, _dstFaceSize, _specularPower, _specularAngle, _filterSize, _edgeFixup);
             }
         }
 
@@ -1644,6 +1641,7 @@ namespace cmft
                                 , params->m_specularPower
                                 , params->m_specularAngle
                                 , params->m_filterSize
+                                , params->m_edgeFixup
                                 );
 
             // Determine task duration.
@@ -1749,6 +1747,7 @@ namespace cmft
                            , EdgeFixup::Enum _edgeFixup
                            , int8_t _numCpuProcessingThreads
                            , const ClContext* _clContext
+                           , bx::AllocatorI* _allocator
                            )
     {
         // Input image must be a cubemap.
@@ -1820,7 +1819,7 @@ namespace cmft
 
         // Processing is done in Rgba32f format.
         ImageSoftRef imageRgba32f;
-        imageRefOrConvert(imageRgba32f, TextureFormat::RGBA32F, _src);
+        imageRefOrConvert(imageRgba32f, TextureFormat::RGBA32F, _src, _allocator);
 
         // Alloc dst data.
         const uint32_t dstFaceSize = (0 == _dstFaceSize) ? _src.m_width : _dstFaceSize;
@@ -1839,7 +1838,7 @@ namespace cmft
                 dstDataSize += faceSize * faceSize * bytesPerPixel;
             }
         }
-        void* dstData = CMFT_ALLOC(dstDataSize);
+        void* dstData = BX_ALLOC(_allocator, dstDataSize);
         MALLOC_CHECK(dstData);
 
         // Get source image offsets.
@@ -1929,8 +1928,8 @@ namespace cmft
         else
         {
             // Build cubemap vectors.
-            float* cubemapVectors = buildCubemapNormalSolidAngle(imageRgba32f.m_width, _edgeFixup);
-            ScopeFree cleanup0(cubemapVectors);
+            CMFT_STACK_PUSH();
+            float* cubemapVectors = buildCubemapNormalSolidAngle(imageRgba32f.m_width, _edgeFixup, g_stackAllocator);
 
             // Enqueue memory transfer for cl device.
             if (s_radianceProgram.isValid())
@@ -2067,6 +2066,9 @@ namespace cmft
                 s_radianceProgram.releaseDeviceMemory();
                 s_radianceProgram.destroy();
             }
+
+            BX_FREE(g_stackAllocator, cubemapVectors);
+            CMFT_STACK_POP();
         }
 
         // Fill result structure.
@@ -2082,16 +2084,16 @@ namespace cmft
         // Convert back to source format.
         if (TextureFormat::RGBA32F == _src.m_format)
         {
-            imageMove(_dst, result);
+            imageMove(_dst, result, _allocator);
         }
         else
         {
-            imageConvert(_dst, (TextureFormat::Enum)_src.m_format, result);
-            imageUnload(result);
+            imageConvert(_dst, (TextureFormat::Enum)_src.m_format, result, _allocator);
+            imageUnload(result, _allocator);
         }
 
         // Cleanup.
-        imageUnload(imageRgba32f);
+        imageUnload(imageRgba32f, _allocator);
 
         return true;
     }
@@ -2106,12 +2108,13 @@ namespace cmft
                            , EdgeFixup::Enum _edgeFixup
                            , int8_t _numCpuProcessingThreads
                            , const ClContext* _clContext
+                           , bx::AllocatorI* _allocator
                            )
     {
         Image tmp;
-        if (imageRadianceFilter(tmp, _dstFaceSize, _lightingModel, _excludeBase, _mipCount, _glossScale, _glossBias, _image, _edgeFixup, _numCpuProcessingThreads, _clContext))
+        if (imageRadianceFilter(tmp, _dstFaceSize, _lightingModel, _excludeBase, _mipCount, _glossScale, _glossBias, _image, _edgeFixup, _numCpuProcessingThreads, _clContext, _allocator))
         {
-            imageMove(_image, tmp);
+            imageMove(_image, tmp, _allocator);
         }
     }
 
