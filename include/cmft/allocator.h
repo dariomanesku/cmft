@@ -9,6 +9,12 @@
 #include <stdlib.h>
 #include <bx/allocator.h>
 
+#if    defined(CMFT_STACK_PUSH) &&  defined(CMFT_STACK_POP)
+#elif !defined(CMFT_STACK_PUSH) && !defined(CMFT_STACK_POP)
+#else
+#error "Either define both stack push and pop or none of them!"
+#endif
+
 #if !defined(CMFT_STACK_PUSH)
     #define CMFT_STACK_PUSH()
     #define CMFT_STACK_POP()
@@ -16,15 +22,15 @@
 
 namespace cmft
 {
-    extern bx::ReallocatorI* g_allocator;
-    extern bx::ReallocatorI* g_stackAllocator;
+    extern bx::AllocatorI* g_allocator;
+    extern bx::AllocatorI* g_stackAllocator;
 
-    static inline void setAllocator(bx::ReallocatorI* _allocator)
+    static inline void setAllocator(bx::AllocatorI* _allocator)
     {
         g_allocator = _allocator;
     }
 
-    static inline void setStackAllocator(bx::ReallocatorI* _allocator)
+    static inline void setStackAllocator(bx::AllocatorI* _allocator)
     {
         g_stackAllocator = _allocator;
     }

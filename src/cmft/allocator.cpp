@@ -9,8 +9,8 @@ namespace cmft
 {
     bx::CrtAllocator crtAllocator;
 
-    bx::ReallocatorI* g_allocator      = &crtAllocator;
-    bx::ReallocatorI* g_stackAllocator = &crtAllocator;
+    bx::AllocatorI* g_allocator      = &crtAllocator;
+    bx::AllocatorI* g_stackAllocator = &crtAllocator;
 } // namespace cmft
 
 /* vim: set sw=4 ts=4 expandtab: */
