@@ -1373,6 +1373,7 @@ namespace cmft
                                             );
                 CL_CHECK_ERR(err);
             #endif //CMFT_COMPUTE_FILTER_AREA_ON_CPU
+            BX_UNUSED(_edgeFixup);
 
             CL_CHECK(clSetKernelArg(m_radFilter,  0, sizeof(cl_mem),  (const void*)&m_memOut));
             CL_CHECK(clSetKernelArg(m_radFilter,  1, sizeof(int32_t), (const void*)&_dstFaceSize));
@@ -1455,6 +1456,7 @@ namespace cmft
                                             );
                 CL_CHECK_ERR(err);
             #endif //CMFT_COMPUTE_FILTER_AREA_ON_CPU
+            BX_UNUSED(_edgeFixup);
 
             // Set arguments that do not change for the entire task.
             CL_CHECK(clSetKernelArg(m_radFilterSingle,  4, sizeof(int32_t), (const void*)&_dstFaceSize));
