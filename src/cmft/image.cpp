@@ -2315,7 +2315,7 @@ namespace cmft
     void imageApplyGamma(Image& _image, float _gammaPow, bx::AllocatorI* _allocator)
     {
         // Do nothing if _gammaPow is ~= 1.0f.
-        if (0.0001f > fabsf(_gammaPow-1.0f))
+        if (dm::equals(_gammaPow, 1.0, 0.0001f))
         {
             return;
         }
@@ -2412,7 +2412,7 @@ namespace cmft
     bool imageIsLatLong(const Image& _image)
     {
         const float aspect = (float)(int32_t)_image.m_width/(float)(int32_t)_image.m_height;
-        return (0.00001f > fabsf(aspect-2.0f));
+        return dm::equals(aspect, 2.0f, 0.00001f);
     }
 
     bool imageIsHStrip(const Image& _image)
