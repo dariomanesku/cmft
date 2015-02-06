@@ -3727,7 +3727,7 @@ namespace cmft
                 }
             }
 
-            WARN("DDS data format unknown. Guessing... Got %s.", getTextureFormatStr(format));
+            WARN("DDS data format unknown. Guessing...");
 
             if (TextureFormat::Null == format)
             {
