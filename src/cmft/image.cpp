@@ -3793,7 +3793,7 @@ namespace cmft
         // Read magic.
         uint8_t magic[12];
         read = bx::read(&_reader, &magic, KTX_MAGIC_LEN);
-        DEBUG_CHECK(read == 1, "Could not read from file.");
+        DEBUG_CHECK(read == 12, "Could not read from file.");
 
         const uint8_t ktxMagic[12] = KTX_MAGIC;
         if (0 != memcmp(magic, ktxMagic, KTX_MAGIC_LEN))
