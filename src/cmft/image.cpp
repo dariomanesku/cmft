@@ -2890,7 +2890,7 @@ namespace cmft
     bool imageLatLongFromCubemap(Image& _dst, const Image& _src, bool _useBilinearInterpolation, bx::AllocatorI* _allocator)
     {
         // Input check.
-        if(!imageIsCubemap(_src))
+        if (!imageIsCubemap(_src))
         {
             return false;
         }
@@ -2928,11 +2928,9 @@ namespace cmft
             const float invDstWidthf  = 1.0f/float(dstMipWidth-1);
             const float invDstHeightf = 1.0f/float(dstMipHeight-1);
 
-            const uint32_t srcMipWidth  = dm::max(UINT32_C(1), imageRgba32f.m_width  >> mip);
-            const uint32_t srcMipHeight = dm::max(UINT32_C(1), imageRgba32f.m_height >> mip);
-            const uint32_t srcPitch = srcMipWidth * bytesPerPixel;
-            const float srcWidthMinusOne  = float(int32_t(srcMipWidth-1));
-            const float srcHeightMinusOne = float(int32_t(srcMipHeight-1));
+            const uint32_t srcMipSize = dm::max(UINT32_C(1), imageRgba32f.m_width  >> mip);
+            const uint32_t srcPitch = srcMipSize * bytesPerPixel;
+            const float srcSizeMinusOne  = float(int32_t(srcMipSize-1));
 
             uint8_t* dstMipData = (uint8_t*)dstData + dstMipOffsets[mip];
             for (uint32_t yy = 0; yy < dstMipHeight; ++yy)
@@ -2957,16 +2955,16 @@ namespace cmft
                     vecToTexelCoord(xSrc, ySrc, faceIdx, vec);
 
                     // Convert from [0..1] to [0..(size-1)] range.
-                    xSrc *= srcWidthMinusOne;
-                    ySrc *= srcHeightMinusOne;
+                    xSrc *= srcSizeMinusOne;
+                    ySrc *= srcSizeMinusOne;
 
                     // Sample from cubemap (u,v, faceIdx).
                     if (_useBilinearInterpolation)
                     {
                         const uint32_t x0 = uint32_t(xSrc);
                         const uint32_t y0 = uint32_t(ySrc);
-                        const uint32_t x1 = dm::min(x0+1, srcMipWidth-1);
-                        const uint32_t y1 = dm::min(y0+1, srcMipHeight-1);
+                        const uint32_t x1 = dm::min(x0+1, srcMipSize-1);
+                        const uint32_t y1 = dm::min(y0+1, srcMipSize-1);
 
                         const uint8_t* srcFaceData = (const uint8_t*)imageRgba32f.m_data + srcOffsets[faceIdx][mip];
                         const float *src0 = (const float*)((const uint8_t*)srcFaceData + y0*srcPitch + x0*bytesPerPixel);
