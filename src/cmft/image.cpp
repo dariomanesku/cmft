@@ -1764,7 +1764,7 @@ namespace cmft
         }
     }
 
-    void imageGetPixel(void* _out, TextureFormat::Enum _format, uint32_t _x, uint32_t _y, uint8_t _mip, uint8_t _face, const Image& _image)
+    void imageGetPixel(void* _out, TextureFormat::Enum _format, uint32_t _x, uint32_t _y, uint8_t _face, uint8_t _mip, const Image& _image)
     {
         // Input check.
         DEBUG_CHECK(_x < _image.m_width,       "Invalid input parameters. X coord bigger than image width.");
@@ -1779,7 +1779,7 @@ namespace cmft
         uint32_t offset = 0;
         for (uint8_t face = 0; face < _face; ++face)
         {
-            for (uint8_t mip = 0; mip < _mip; ++mip)
+            for (uint8_t mip = 0, end = _mip+1; mip < end; ++mip)
             {
                 const uint32_t width  = dm::max(UINT32_C(1), _image.m_width  >> mip);
                 const uint32_t height = dm::max(UINT32_C(1), _image.m_height >> mip);
@@ -1808,6 +1808,20 @@ namespace cmft
             toRgba32f(buf, _image.m_format, src);
             fromRgba32f(_out, _format, buf);
         }
+    }
+
+    void imageCubemapGetPixel(void* _out, TextureFormat::Enum _format, float _dir[3], uint8_t _mip, const Image& _image)
+    {
+        float uu;
+        float vv;
+        uint8_t face;
+        vecToTexelCoord(uu, vv, face, _dir);
+
+        const float sizeMinusOne = float(int32_t(_image.m_width-1));
+        const int32_t xx = int32_t(uu*sizeMinusOne);
+        const int32_t yy = int32_t(vv*sizeMinusOne);
+
+        imageGetPixel(_out, _format, xx, yy, face, _mip, _image);
     }
 
     void imageResize(Image& _dst, uint32_t _width, uint32_t _height, const Image& _src, bx::AllocatorI* _allocator)

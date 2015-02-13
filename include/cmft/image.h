@@ -206,7 +206,10 @@ namespace cmft
     void imageConvert(Image& _image, TextureFormat::Enum _format, bx::AllocatorI* _allocator = g_allocator);
 
     ///
-    void imageGetPixel(void* _out, TextureFormat::Enum _format, uint32_t _x, uint32_t _y, uint8_t _mip, uint8_t _face, const Image& _image);
+    void imageGetPixel(void* _out, TextureFormat::Enum _format, uint32_t _x, uint32_t _y, uint8_t _face, uint8_t _mip, const Image& _image);
+
+    ///
+    void imageCubemapGetPixel(void* _out, TextureFormat::Enum _format, float _dir[3], uint8_t _mip, const Image& _image);
 
     ///
     void imageResize(Image& _dst, uint32_t _width, uint32_t _height, const Image& _src, bx::AllocatorI* _allocator = g_allocator);
