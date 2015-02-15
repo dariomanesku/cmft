@@ -51,7 +51,7 @@
 #if BX_COMPILER_GCC || BX_COMPILER_CLANG
 #	define BX_ALIGN_DECL(_align, _decl) _decl __attribute__( (aligned(_align) ) )
 #	define BX_ALLOW_UNUSED __attribute__( (unused) )
-#	define BX_FORCE_INLINE __extension__ static __inline __attribute__( (__always_inline__) )
+#	define BX_FORCE_INLINE static __inline __attribute__( (__always_inline__) )
 #	define BX_FUNCTION __PRETTY_FUNCTION__
 #	define BX_NO_INLINE __attribute__( (noinline) )
 #	define BX_NO_RETURN __attribute__( (noreturn) )

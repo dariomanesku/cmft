@@ -7,6 +7,7 @@
 #define DM_MISC_H_HEADER_GUARD
 
 #include <stdint.h>
+#include <ctype.h>
 #include <math.h> // logf()
 #include <stdio.h> // FILE
 #include <float.h> // FLT_EPSILON
@@ -219,7 +220,6 @@ namespace dm
         return _x*_x;
     }
 
-    #if defined(_MSC_VER)
     DM_INLINE float fminf(float _a, float _b)
     {
         return _a < _b ? _a : _b;
@@ -230,10 +230,16 @@ namespace dm
         return _a > _b ? _a : _b;
     }
 
+    #if defined(_MSC_VER)
     DM_INLINE float log2f(float _val)
     {
         static const float invLog2 = 1.4426950408889634f;
         return logf(_val)*invLog2;
+    }
+    #else
+    DM_INLINE float log2f(float _val)
+    {
+        return ::log2f(_val);
     }
     #endif //defined(_MSC_VER)
 

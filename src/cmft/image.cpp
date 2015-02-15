@@ -20,6 +20,10 @@
 
 #include <string.h>
 
+#ifndef _MSC_VER
+#define sscanf_s    sscanf
+#endif
+
 namespace cmft
 {
     // Texture format string.
