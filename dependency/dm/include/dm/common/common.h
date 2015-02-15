@@ -6,7 +6,7 @@
 #ifndef DM_COMMON_H_HEADER_GUARD
 #define DM_COMMON_H_HEADER_GUARD
 
-#include "..\..\..\3rdparty\bx\macros.h" //BX_FORCE_INLINE
+#include "../../../3rdparty/bx/macros.h" //BX_FORCE_INLINE
 
 #define DM_INLINE BX_FORCE_INLINE
 
