@@ -10,7 +10,7 @@
 #include <stdio.h> //stderr
 
 #ifndef CMFT_CONFIG_DEBUG
-    #define CMFT_CONFIG_DEBUG 1
+    #define CMFT_CONFIG_DEBUG 0
 #endif // CMFT_CONFIG_DEBUG
 
 #define CMFT_ENABLE_INFO_MESSAGES      1
