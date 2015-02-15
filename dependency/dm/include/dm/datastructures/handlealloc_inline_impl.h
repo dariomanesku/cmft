@@ -35,11 +35,15 @@ void free(uint16_t _handle)
 
     uint16_t* sparse = &m_handles[max()];
     uint16_t index = sparse[_handle];
-    --m_numHandles;
-    uint16_t temp = m_handles[m_numHandles];
-    m_handles[m_numHandles] = _handle;
-    sparse[temp] = index;
-    m_handles[index] = temp;
+
+    if (index < m_numHandles && m_handles[index] == _handle)
+    {
+        --m_numHandles;
+        uint16_t temp = m_handles[m_numHandles];
+        m_handles[m_numHandles] = _handle;
+        sparse[temp] = index;
+        m_handles[index] = temp;
+    }
 }
 
 const uint16_t* getHandles() const

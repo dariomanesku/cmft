@@ -7,14 +7,14 @@
 #define DM_MISC_H_HEADER_GUARD
 
 #include <stdint.h>
-#include <ctype.h>
-#include <math.h> // logf()
-#include <stdio.h> // FILE
-#include <float.h> // FLT_EPSILON
-#include <malloc.h> //alloca
+#include <ctype.h>  // toupper()
+#include <math.h>   // logf()
+#include <stdio.h>  // FILE
+#include <float.h>  // FLT_EPSILON
+#include <malloc.h> // alloca()
 
 #include "common/common.h" // DM_INLINE()
-#include "check.h" // DM_CHECK()
+#include "check.h"         // DM_CHECK()
 
 #include "../../3rdparty/bx/os.h" //bx::pwd()
 
@@ -124,6 +124,15 @@ namespace dm
         return (_dataSize-(mb<<20))>>10;
     }
 
+    /// Used for formatted print. Example: printf("Size: %u.%uMB", U_UMB(size));
+    #define U_UKB(_size) asKBInt(_size), asKBDec(_size)
+    #define U_UMB(_size) asMBInt(_size), asMBDec(_size)
+
+    DM_INLINE bool toBool(int32_t _v)
+    {
+        return (0 != _v);
+    }
+
     DM_INLINE bool inside(int32_t _px, int32_t _py, int32_t _minx, int32_t _miny, int32_t _width, int32_t _height)
     {
         return (_px > _minx)
@@ -208,6 +217,11 @@ namespace dm
     DM_INLINE float decimalPart(float _val)
     {
         return _val - integerPart(_val);
+    }
+
+    DM_INLINE bool set(float _flag)
+    {
+        return (0.0f != _flag);
     }
 
     DM_INLINE float signf(float _val)
@@ -322,8 +336,8 @@ namespace dm
     DM_INLINE void realpath(char _abs[DM_PATH_LEN], const char _rel[DM_PATH_LEN])
     {
         // TODO:
-        //realpath(_state.m_directory, path); //Linux
-        //_fullpath(path, _state.m_directory, DM_PATH_LEN); //Windows
+        //realpath(_dir, path); //Linux
+        //_fullpath(path, _dir, DM_PATH_LEN); //Windows
         char currentDir[DM_PATH_LEN];
         bx::pwd(currentDir, DM_PATH_LEN);
 
