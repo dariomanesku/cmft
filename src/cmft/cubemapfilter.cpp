@@ -1871,7 +1871,7 @@ namespace cmft
             INFO("Radiance -> Excluding base image.");
 
             const float    dstToSrcRatiof = dm::utof(imageRgba32f.m_width)/dm::utof(dstFaceSize);
-            const uint32_t dstToSrcRatio  = uint32_t(int32_t(dstToSrcRatiof));
+            const uint32_t dstToSrcRatio  = dm::max(UINT32_C(1), dm::ftou(dstToSrcRatiof));
             const uint32_t dstFacePitch   = dstFaceSize * bytesPerPixel;
             const uint32_t srcFacePitch   = imageRgba32f.m_width * bytesPerPixel;
 
@@ -1882,10 +1882,13 @@ namespace cmft
                 uint8_t* dstFaceData = (uint8_t*)dstData + dstOffsets[face][0];
 
                 // Iterate through destination pixels.
-                for (uint32_t yDst = 0; yDst < dstFaceSize; ++yDst)
+                float yDstf = 0.0f;
+                for (uint32_t yDst = 0; yDst < dstFaceSize; ++yDst, yDstf+=1.0f)
                 {
                     uint8_t* dstFaceRow = (uint8_t*)dstFaceData + yDst*dstFacePitch;
-                    for (uint32_t xDst = 0; xDst < dstFaceSize; ++xDst)
+
+                    float xDstf = 0.0f;
+                    for (uint32_t xDst = 0; xDst < dstFaceSize; ++xDst, xDstf+=1.0f)
                     {
                         float* dstFaceColumn = (float*)((uint8_t*)dstFaceRow + xDst*bytesPerPixel);
 
@@ -1893,15 +1896,15 @@ namespace cmft
                         float color[3] = { 0.0f, 0.0f, 0.0f };
                         uint32_t weightAccum = 0;
 
-                        uint32_t ySrc = uint32_t(dm::utof(yDst)*dstToSrcRatiof);
-                        const uint32_t yEnd = ySrc + dm::max(UINT32_C(1), dstToSrcRatio);
-                        for ( ; ySrc < yEnd ; ++ySrc)
+                        for (uint32_t ySrc = dm::ftou(yDstf*dstToSrcRatiof)
+                            , yEnd = ySrc + dstToSrcRatio
+                            ; ySrc < yEnd ; ++ySrc)
                         {
                             const uint8_t* srcRowData = (const uint8_t*)srcFaceData + ySrc*srcFacePitch;
 
-                            uint32_t xSrc = uint32_t(dm::utof(xDst)*dstToSrcRatiof);
-                            const uint32_t xEnd = xSrc + dm::max(UINT32_C(1), dstToSrcRatio);
-                            for ( ; xSrc < xEnd ; ++xSrc)
+                            for (uint32_t xSrc = dm::ftou(xDstf*dstToSrcRatiof)
+                                , xEnd = xSrc + dstToSrcRatio
+                                ; xSrc < xEnd ; ++xSrc)
                             {
                                 const float* srcColumnData = (const float*)((const uint8_t*)srcRowData + xSrc*bytesPerPixel);
                                 color[0] += srcColumnData[0];
