@@ -1824,6 +1824,7 @@ namespace cmft
         imageGetPixel(_out, _format, xx, yy, face, _mip, _image);
     }
 
+    // TODO: fix imageResize !
     void imageResize(Image& _dst, uint32_t _width, uint32_t _height, const Image& _src, bx::AllocatorI* _allocator)
     {
         // Operation is done in rgba32f format.
@@ -2033,6 +2034,7 @@ namespace cmft
         va_end(argList);
     }
 
+    // TODO: fix image rotation !
     void imageTransformArg(Image& _image, va_list _argList)
     {
         uint32_t op = va_arg(_argList, uint32_t);
