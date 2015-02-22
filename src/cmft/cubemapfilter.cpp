@@ -181,8 +181,7 @@ namespace cmft
         double weightAccum = 0.0;
 
         // Build cubemap vectors.
-        CMFT_STACK_PUSH();
-        float* cubemapVectors = buildCubemapNormalSolidAngle(_faceSize, EdgeFixup::None, g_stackAllocator);
+        float* cubemapVectors = buildCubemapNormalSolidAngle(_faceSize, EdgeFixup::None, g_allocator);
         const uint32_t bytesPerPixel = 4 /*numChannels*/ * 4 /*bytesPerChannel*/;
         const uint32_t vectorPitch = _faceSize * bytesPerPixel;
         const uint32_t vectorFaceDataSize = vectorPitch * _faceSize;
@@ -226,8 +225,7 @@ namespace cmft
             _shCoeffs[ii][2] *= norm;
         }
 
-        BX_FREE(g_stackAllocator, cubemapVectors);
-        CMFT_STACK_POP();
+        BX_FREE(g_allocator, cubemapVectors);
     }
 
     bool imageShCoeffs(double _shCoeffs[SH_COEFF_NUM][3], const Image& _image, bx::AllocatorI* _allocator)
@@ -285,8 +283,7 @@ namespace cmft
         MALLOC_CHECK(dstData);
 
         // Build cubemap texel vectors.
-        CMFT_STACK_PUSH();
-        float* cubemapVectors = buildCubemapNormalSolidAngle(dstFaceSize, EdgeFixup::None, g_stackAllocator);
+        float* cubemapVectors = buildCubemapNormalSolidAngle(dstFaceSize, EdgeFixup::None, g_allocator);
         const uint8_t vectorBytesPerPixel = 4 /*numChannels*/ * 4 /*bytesPerChannel*/;
         const uint32_t vectorPitch = dstFaceSize * vectorBytesPerPixel;
         const uint32_t vectorFaceDataSize = vectorPitch * dstFaceSize;
@@ -390,8 +387,7 @@ namespace cmft
         // Cleanup.
         imageUnload(imageRgba32f, _allocator);
 
-        BX_FREE(g_stackAllocator, cubemapVectors);
-        CMFT_STACK_POP();
+        BX_FREE(g_allocator, cubemapVectors);
 
         return true;
     }
@@ -1256,9 +1252,8 @@ namespace cmft
             dm::ScopeFclose cleanup0(fp);
 
             // Alloc data for string.
-            CMFT_STACK_PUSH();
             const size_t fileSize = dm::fsize(fp);
-            char* sourceData = (char*)BX_ALLOC(g_stackAllocator, fileSize);
+            char* sourceData = (char*)BX_ALLOC(g_allocator, fileSize);
 
             // Read opencl source file.
             read = fread(sourceData, fileSize, 1, fp);
@@ -1275,8 +1270,7 @@ namespace cmft
                 result = createFromStr(sourceData, fileSize);
             }
 
-            BX_FREE(g_stackAllocator, sourceData);
-            CMFT_STACK_POP();
+            BX_FREE(g_allocator, sourceData);
 
             return result;
         }
@@ -1358,8 +1352,7 @@ namespace cmft
 
             #if CMFT_COMPUTE_FILTER_AREA_ON_CPU
                 // Build filter area info.
-                CMFT_STACK_PUSH();
-                float* filterArea = buildCubemapFilterArea(_faceIdx, _dstFaceSize, _filterSize, _edgeFixup, g_stackAllocator);
+                float* filterArea = buildCubemapFilterArea(_faceIdx, _dstFaceSize, _filterSize, _edgeFixup, g_allocator);
                 const size_t width = _dstFaceSize*6;
                 const size_t height = _dstFaceSize;
                 cl_mem area = clCreateImage2D(m_clContext->m_context
@@ -1418,8 +1411,7 @@ namespace cmft
 
             #if CMFT_COMPUTE_FILTER_AREA_ON_CPU
                 clReleaseMemObject(area);
-                BX_FREE(g_stackAllocator, filterArea);
-                CMFT_STACK_POP();
+                BX_FREE(g_allocator, filterArea);
             #endif //CMFT_COMPUTE_FILTER_AREA_ON_CPU
         }
 
@@ -1441,8 +1433,7 @@ namespace cmft
 
             #if CMFT_COMPUTE_FILTER_AREA_ON_CPU
                 // Build filter area info.
-                CMFT_STACK_PUSH();
-                float* filterArea = buildCubemapFilterArea(_faceIdx, _dstFaceSize, _filterSize, _edgeFixup, g_stackAllocator);
+                float* filterArea = buildCubemapFilterArea(_faceIdx, _dstFaceSize, _filterSize, _edgeFixup, g_allocator);
                 const size_t width = _dstFaceSize*6;
                 const size_t height = _dstFaceSize;
                 cl_mem area = clCreateImage2D(m_clContext->m_context
@@ -1541,8 +1532,7 @@ namespace cmft
 
             #if CMFT_COMPUTE_FILTER_AREA_ON_CPU
                 clReleaseMemObject(area);
-                BX_FREE(g_stackAllocator, filterArea);
-                CMFT_STACK_POP();
+                BX_FREE(g_allocator, filterArea);
             #endif //CMFT_COMPUTE_FILTER_AREA_ON_CPU
         }
 
@@ -1932,8 +1922,7 @@ namespace cmft
         else
         {
             // Build cubemap vectors.
-            CMFT_STACK_PUSH();
-            float* cubemapVectors = buildCubemapNormalSolidAngle(imageRgba32f.m_width, _edgeFixup, g_stackAllocator);
+            float* cubemapVectors = buildCubemapNormalSolidAngle(imageRgba32f.m_width, _edgeFixup, g_allocator);
 
             // Enqueue memory transfer for cl device.
             if (s_radianceProgram.isValid())
@@ -2071,8 +2060,7 @@ namespace cmft
                 s_radianceProgram.destroy();
             }
 
-            BX_FREE(g_stackAllocator, cubemapVectors);
-            CMFT_STACK_POP();
+            BX_FREE(g_allocator, cubemapVectors);
         }
 
         // Fill result structure.
