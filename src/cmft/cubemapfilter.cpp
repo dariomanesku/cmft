@@ -1870,9 +1870,10 @@ namespace cmft
         {
             INFO("Radiance -> Excluding base image.");
 
-            const float dstToSrcRatio = dm::utof(imageRgba32f.m_width)/dm::utof(dstFaceSize);
-            const uint32_t dstFacePitch = dstFaceSize * bytesPerPixel;
-            const uint32_t srcFacePitch = imageRgba32f.m_width * bytesPerPixel;
+            const float    dstToSrcRatiof = dm::utof(imageRgba32f.m_width)/dm::utof(dstFaceSize);
+            const uint32_t dstToSrcRatio  = uint32_t(int32_t(dstToSrcRatiof));
+            const uint32_t dstFacePitch   = dstFaceSize * bytesPerPixel;
+            const uint32_t srcFacePitch   = imageRgba32f.m_width * bytesPerPixel;
 
             // For all top level cubemap faces:
             for(uint8_t face = 0; face < 6; ++face)
@@ -1892,17 +1893,15 @@ namespace cmft
                         float color[3] = { 0.0f, 0.0f, 0.0f };
                         uint32_t weightAccum = 0;
 
-                        for (uint32_t ySrc = uint32_t(float(yDst)*dstToSrcRatio)
-                            , end = ySrc+DM_MAX(1, uint32_t(dstToSrcRatio))
-                            ; ySrc < end
-                            ; ++ySrc)
+                        uint32_t ySrc = uint32_t(dm::utof(yDst)*dstToSrcRatiof);
+                        const uint32_t yEnd = ySrc + dm::max(UINT32_C(1), dstToSrcRatio);
+                        for ( ; ySrc < yEnd ; ++ySrc)
                         {
                             const uint8_t* srcRowData = (const uint8_t*)srcFaceData + ySrc*srcFacePitch;
 
-                            for (uint32_t xSrc = uint32_t(float(xDst)*dstToSrcRatio)
-                                , end = xSrc+DM_MAX(1, uint32_t(dstToSrcRatio))
-                                ; xSrc < end
-                                ; ++xSrc)
+                            uint32_t xSrc = uint32_t(dm::utof(xDst)*dstToSrcRatiof);
+                            const uint32_t xEnd = xSrc + dm::max(UINT32_C(1), dstToSrcRatio);
+                            for ( ; xSrc < xEnd ; ++xSrc)
                             {
                                 const float* srcColumnData = (const float*)((const uint8_t*)srcRowData + xSrc*bytesPerPixel);
                                 color[0] += srcColumnData[0];
@@ -1913,7 +1912,7 @@ namespace cmft
                         }
 
                         // Divide by weight and save to destination pixel.
-                        const float invWeight = 1.0f/dm::utof(weightAccum);
+                        const float invWeight = 1.0f/dm::utof(dm::max(weightAccum, UINT32_C(1)));
                         dstFaceColumn[0] = color[0] * invWeight;
                         dstFaceColumn[1] = color[1] * invWeight;
                         dstFaceColumn[2] = color[2] * invWeight;
