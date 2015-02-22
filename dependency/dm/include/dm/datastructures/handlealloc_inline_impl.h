@@ -5,12 +5,12 @@
 
 uint16_t alloc()
 {
+    DM_CHECK(m_numHandles < max(), "handleAllocAlloc | %d, %d", m_numHandles, max());
+
     if (m_numHandles < max())
     {
-        uint16_t index = m_numHandles;
-        ++m_numHandles;
-
-        uint16_t handle = m_handles[index];
+        const uint16_t index = m_numHandles++;
+        const uint16_t handle = m_handles[index];
         uint16_t* sparse = &m_handles[max()];
         sparse[handle] = index;
         return handle;
