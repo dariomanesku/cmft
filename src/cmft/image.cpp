@@ -1864,31 +1864,33 @@ namespace cmft
                 const uint32_t dstMipHeight = dm::max(UINT32_C(1), _height >> mip);
                 const uint32_t dstMipPitch  = dstMipWidth * bytesPerPixel;
 
-                const float dstToSrcRatioX = float(int32_t(srcMipWidth)) /float(int32_t(dstMipWidth));
-                const float dstToSrcRatioY = float(int32_t(srcMipHeight))/float(int32_t(dstMipHeight));
+                const float    dstToSrcRatioXf = float(int32_t(srcMipWidth)) /float(int32_t(dstMipWidth));
+                const float    dstToSrcRatioYf = float(int32_t(srcMipHeight))/float(int32_t(dstMipHeight));
+                const uint32_t dstToSrcRatioX  = uint32_t(int32_t(dstToSrcRatioXf));
+                const uint32_t dstToSrcRatioY  = uint32_t(int32_t(dstToSrcRatioYf));
 
                 uint8_t* dstMipData = (uint8_t*)dstData + dstOffsets[face][mip];
                 const uint8_t* srcMipData = (const uint8_t*)imageRgba32f.m_data + srcOffsets[face][mip];
 
-                for (uint32_t yDst = 0; yDst < dstMipHeight; ++yDst)
+                for (int32_t yDst = 0; yDst < int32_t(dstMipHeight); ++yDst)
                 {
                     uint8_t* dstFaceRow = (uint8_t*)dstMipData + yDst*dstMipPitch;
 
-                    for (uint32_t xDst = 0; xDst < dstMipWidth; ++xDst)
+                    for (int32_t xDst = 0; xDst < int32_t(dstMipWidth); ++xDst)
                     {
                         float* dstFaceColumn = (float*)((uint8_t*)dstFaceRow + xDst*bytesPerPixel);
 
                         float color[3] = { 0.0f, 0.0f, 0.0f };
                         uint32_t weight = 0;
 
-                        uint32_t ySrc = uint32_t(float(yDst)*dstToSrcRatioY);
-                        uint32_t ySrcEnd = ySrc + dm::max(uint32_t(1), uint32_t(dstToSrcRatioY));
+                        uint32_t ySrc = uint32_t(float(yDst)*dstToSrcRatioYf);
+                        uint32_t ySrcEnd = ySrc + dm::max(UINT32_C(1), dstToSrcRatioY);
                         for (; ySrc < ySrcEnd; ++ySrc)
                         {
                             const uint8_t* srcRowData = (const uint8_t*)srcMipData + ySrc*srcMipPitch;
 
-                            uint32_t xSrc = uint32_t(float(xDst)*dstToSrcRatioX);
-                            uint32_t xSrcEnd = xSrc + dm::max(uint32_t(1), uint32_t(dstToSrcRatioX));
+                            uint32_t xSrc = uint32_t(float(xDst)*dstToSrcRatioXf);
+                            uint32_t xSrcEnd = xSrc + dm::max(UINT32_C(1), dstToSrcRatioX);
                             for (; xSrc < xSrcEnd; ++xSrc)
                             {
                                 const float* srcColumnData = (const float*)((const uint8_t*)srcRowData + xSrc*bytesPerPixel);
@@ -1899,7 +1901,7 @@ namespace cmft
                             }
                         }
 
-                        const float invWeight = 1.0f/float(dm::max(weight, UINT32_C(1)));
+                        const float invWeight = 1.0f/dm::utof(dm::max(weight, UINT32_C(1)));
                         dstFaceColumn[0] = color[0] * invWeight;
                         dstFaceColumn[1] = color[1] * invWeight;
                         dstFaceColumn[2] = color[2] * invWeight;
