@@ -213,27 +213,23 @@ namespace cmft
         _v = (vec3Dot(s_faceUvVectors[_faceIdx][1], faceVec) + 1.0f) * 0.5f;
     }
 
-    /// For right-handed coordinate system.
-    /// _u, _v are in [0.0-1.0] range.
     static inline void latLongFromVec(float& _u, float& _v, const float _vec[3])
     {
-        const float phi = atan2f(_vec[2], -_vec[0]);
+        const float phi = atan2f(_vec[0], _vec[2]);
         const float theta = acosf(_vec[1]);
 
         _u = (dm::pi + phi)*dm::invPiHalf;
         _v = theta*dm::invPi;
     }
 
-    /// For right-handed coordinate system.
-    /// _u, _v are in [0.0-1.0] range.
     static inline void vecFromLatLong(float _vec[3], float _u, float _v)
     {
-        const float phi = _u * dm::twoPi;
+        const float phi   = _u * dm::twoPi;
         const float theta = _v * dm::pi;
 
-        _vec[0] = sinf(theta)*cosf(phi);
+        _vec[0] = -sinf(theta)*sinf(phi);
         _vec[1] = cosf(theta);
-        _vec[2] = -sinf(theta)*sinf(phi);
+        _vec[2] = -sinf(theta)*cosf(phi);
     }
 
     /// http://www.mpia-hd.mpg.de/~mathar/public/mathar20051002.pdf
