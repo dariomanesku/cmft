@@ -21,7 +21,7 @@ Download
 ![cmft-cover](https://github.com/dariomanesku/cmft/raw/master/res/cmft_cover.jpg)
 
 - Supported input/output formats: \*.dds, \*.ktx, \*.hdr, \*.tga.
-- Supported input/output types: cubemap, cube cross, latlong, face list, horizontal strip.
+- Supported input/output types: cubemap, cube cross, latlong, face list, horizontal and vertical strip.
 
 
 See it in action - [here](https://github.com/dariomanesku/cmftStudio)
@@ -51,12 +51,12 @@ Building
 	cd cmft
 	make
 
-- After calling `make`, '\_projects' folder will be created with all supported project files. Deleting '\_projects' folder is safe at any time.<br \>
-- All compiler generated files will be in '\_build' folder. Again, deleting '\_build' folder is safe at any time.<br \>
+- After calling `make`, *\_projects* folder will be created with all supported project files. Deleting *\_projects* folder is safe at any time.<br \>
+- All compiler generated files will be in *\_build* folder. Again, deleting *\_build* folder is safe at any time.<br \>
 
 ### Windows
 
-- Visual Studio solutions can be found in *\_projects/vs20**/*.<br \>
+- Visual Studio solutions can be found in *\_projects/vs20XX/*.<br \>
 
 ### Linux
 
