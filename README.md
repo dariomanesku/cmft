@@ -1,8 +1,9 @@
 [cmft](https://github.com/dariomanesku/cmft) - cubemap filtering tool
 =====================================================================
 
-* Cross-platform open-source command-line cubemap filtering tool.<br \>
-* It reaches very fast processing speeds by utilizing both multi-core CPU and OpenCL GPU at the same time! (check [perfomance charts](https://github.com/dariomanesku/cmft#performance)) <br \>
+Cross-platform open-source command-line cubemap filtering tool.
+
+It reaches very fast processing speeds by utilizing both multi-core CPU and OpenCL GPU at the same time! (check [perfomance charts](https://github.com/dariomanesku/cmft#performance))
 
 Download
 --------
