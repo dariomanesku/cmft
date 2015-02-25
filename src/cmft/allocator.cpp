@@ -3,6 +3,7 @@
  * License: http://www.opensource.org/licenses/BSD-2-Clause
  */
 
+#include <bx/allocator.h>
 #include <cmft/allocator.h>
 
 namespace cmft

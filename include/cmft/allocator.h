@@ -7,7 +7,8 @@
 #define CMFT_ALLOCATOR_H_HEADER_GUARD
 
 #include <stdlib.h>
-#include <bx/allocator.h>
+
+namespace bx { struct AllocatorI; }
 
 namespace cmft
 {
