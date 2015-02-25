@@ -174,12 +174,18 @@ function cmft_toolchain(_buildDir, _projectsDir)
         }
 
     configuration { "vs*", "Debug" }
-        buildoptions { "/Oy-" }
-
-    configuration { "vs*", "Release" }
         buildoptions
         {
-            "/Oy", -- Suppresses creation of frame pointers on the call stack.
+            "/Oy-"
+        }
+
+    configuration { "vs*", "Release" }
+        flags
+        {
+            "NoFramePointer"
+        }
+        buildoptions
+        {
             "/Ob2", -- The Inline Function Expansion.
             "/Ox",  -- Full optimization.
             "/Oi",  -- Enable intrinsics.
