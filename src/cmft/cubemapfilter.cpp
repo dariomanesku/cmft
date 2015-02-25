@@ -13,16 +13,16 @@
 #include "cubemaputils.h"
 #include "radiance.h"
 
-#include <string.h> //memset
-#include <math.h> //pow, sqrt
-#include <float.h> //FLT_MAX
+#include <string.h>    //memset
+#include <math.h>      //pow, sqrt
+#include <float.h>     //FLT_MAX
 
-#include <dm/misc.h> //dm::min/max,dm::fsize
+#include <dm/misc.h>   //dm::min/max,dm::fsize
 
-#include <bx/timer.h> //bx::getHPFrequency
-#include <bx/os.h> //bx::sleep
+#include <bx/timer.h>  //bx::getHPFrequency
+#include <bx/os.h>     //bx::sleep
 #include <bx/thread.h> //bx::thread
-#include <bx/mutex.h> //bx::mutex
+#include <bx/mutex.h>  //bx::mutex
 
 #define CMFT_COMPUTE_FILTER_AREA_ON_CPU 1
 
