@@ -1,13 +1,12 @@
 [cmft](https://github.com/dariomanesku/cmft) - cubemap filtering tool
 =====================================================================
 
-Cross-platform open-source command-line cubemap filtering tool.<br \>
-It reaches very fast processing speeds by utilizing both multi-core CPU and OpenCL GPU at the same time! (check [perfomance charts](https://github.com/dariomanesku/cmft#performance)) <br \>
+* Cross-platform open-source command-line cubemap filtering tool.<br \>
+* It reaches very fast processing speeds by utilizing both multi-core CPU and OpenCL GPU at the same time! (check [perfomance charts](https://github.com/dariomanesku/cmft#performance)) <br \>
 
 Download
 --------
 
-Download binaries here: <br \>
  * [cmft - Windows 32bit](https://github.com/dariomanesku/cmft-bin/raw/master/cmft_win32.zip)<br />
  * [cmft - Windows 64bit](https://github.com/dariomanesku/cmft-bin/raw/master/cmft_win64.zip)<br />
  * [cmft - Linux 32bit](https://github.com/dariomanesku/cmft-bin/raw/master/cmft_lin32.zip)<br />
@@ -16,7 +15,7 @@ Download binaries here: <br \>
  * [cmft - OSX 64bit](https://github.com/dariomanesku/cmft-bin/raw/master/cmft_osx64.zip)<br />
 
 *Notice: Linux binaries are outdated. For now, on Linux, compile from source.*
-
+ <br />
 
 ![cmft-cover](https://github.com/dariomanesku/cmft/raw/master/res/cmft_cover.jpg)
 
@@ -25,7 +24,7 @@ Download binaries here: <br \>
 
 
 See it in action - [here](https://github.com/dariomanesku/cmftStudio)
-----------------
+------------
 Screenshot from [cmftStudio](https://github.com/dariomanesku/cmftStudio):
 ![cmftStudioScreenshot](https://raw.githubusercontent.com/dariomanesku/cmftStudio/master/screenshots/cmftStudio3.jpg)
 
@@ -132,14 +131,14 @@ Test case #4:
 
 
 Environment maps
-----------------
+------------
 
-- [Noemotion hdrs](http://noemotionhdrs.net/).<br />
-- [Hdrlabs.com archive](http://www.hdrlabs.com/sibl/archive.html).<br />
+- [NoEmotion HDRs](http://noemotionhdrs.net/).<br />
+- [sIBL Archive - Hdrlabs.com](http://www.hdrlabs.com/sibl/archive.html).<br />
 
 
 Recommended tools
------------------
+------------
 
 - [PVRTexTool](http://community.imgtec.com/developers/powervr/) - for opening \*.dds and \*.ktx files.<br />
 - [GIMP](http://www.gimp.org) - for opening \*.tga files.<br />
@@ -147,9 +146,9 @@ Recommended tools
 
 
 Similar projects
-----------------
+------------
 
-- [CubeMapGen](http://developer.amd.com/tools-and-sdks/archive/legacy-cpu-gpu-tools/cubemapgen/) - A well known for cubemap filtering from AMD.<br \>
+- [CubeMapGen](http://developer.amd.com/tools-and-sdks/archive/legacy-cpu-gpu-tools/cubemapgen/) - A well known tool for cubemap filtering from AMD.<br \>
 - [Marmoset Skyshop](http://www.marmoset.co/skyshop) - Commercial plugin for Unity3D Game engine.
 - [Knald Lys](https://www.knaldtech.com/lys-open-beta/) - Commercial tool from KnaldTech.
 
