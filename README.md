@@ -8,12 +8,12 @@ It reaches very fast processing speeds by utilizing both multi-core CPU and Open
 Download
 --------
 
- * [cmft - Windows 32bit](https://github.com/dariomanesku/cmft-bin/raw/master/cmft_win32.zip)<br />
  * [cmft - Windows 64bit](https://github.com/dariomanesku/cmft-bin/raw/master/cmft_win64.zip)<br />
- * [cmft - Linux 32bit](https://github.com/dariomanesku/cmft-bin/raw/master/cmft_lin32.zip)<br />
+ * [cmft - Windows 32bit](https://github.com/dariomanesku/cmft-bin/raw/master/cmft_win32.zip)<br />
  * [cmft - Linux 64bit](https://github.com/dariomanesku/cmft-bin/raw/master/cmft_lin64.zip)<br />
- * [cmft - OSX 32bit](https://github.com/dariomanesku/cmft-bin/raw/master/cmft_osx32.zip)<br />
+ * [cmft - Linux 32bit](https://github.com/dariomanesku/cmft-bin/raw/master/cmft_lin32.zip)<br />
  * [cmft - OSX 64bit](https://github.com/dariomanesku/cmft-bin/raw/master/cmft_osx64.zip)<br />
+ * [cmft - OSX 32bit](https://github.com/dariomanesku/cmft-bin/raw/master/cmft_osx32.zip)<br />
 
 *Notice: Linux and OSX binaries are outdated. For now, on Linux and OSX, compile from source.*
  <br />
