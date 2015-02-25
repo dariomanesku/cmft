@@ -629,7 +629,7 @@ namespace bx
 	{
 #if BX_COMPILER_GCC || BX_COMPILER_CLANG
 		return __builtin_popcountll(_val);
-#elif BX_COMPILER_MSVC && BX_PLATFORM_WINDOWS
+#elif BX_COMPILER_MSVC && BX_ARCH_64BIT
 		return __popcnt64(_val);
 #else
 		return uint64_cntbits_ref(_val);
