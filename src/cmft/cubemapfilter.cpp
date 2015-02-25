@@ -1326,7 +1326,6 @@ namespace cmft
             static const cl_image_format sc_imageFormat = { CL_RGBA, CL_FLOAT };
 
             const float warp = warpFixupFactor(float(int32_t(_dstFaceSize)));
-            const size_t workSize[2] = { _dstFaceSize, _dstFaceSize };
             const size_t bytesPerPixel = 4 /*numChannels*/ * 4 /*bytesPerChannel*/;
 
             // Create output image.
@@ -1368,6 +1367,7 @@ namespace cmft
             #endif //CMFT_COMPUTE_FILTER_AREA_ON_CPU
             BX_UNUSED(_edgeFixup);
 
+            // Set arguments.
             CL_CHECK(clSetKernelArg(m_radFilter,  0, sizeof(cl_mem),  (const void*)&m_memOut));
             CL_CHECK(clSetKernelArg(m_radFilter,  1, sizeof(int32_t), (const void*)&_dstFaceSize));
             CL_CHECK(clSetKernelArg(m_radFilter,  2, sizeof(float),   (const void*)&_specularPower));
@@ -1392,7 +1392,31 @@ namespace cmft
                 CL_CHECK(clSetKernelArg(m_radFilter, 20, sizeof(cl_mem),  (const void*)&area));
             #endif //CMFT_COMPUTE_FILTER_AREA_ON_CPU
 
-            CL_CHECK(clEnqueueNDRangeKernel(m_clContext->m_commandQueue, m_radFilter, 2, NULL, workSize, NULL, 0, NULL, &m_event));
+            // Process in tiles of 64x64.
+            enum { TileSize = 64 };
+            const uint32_t count = ((_dstFaceSize-1)/TileSize)+1;
+            for (uint32_t yy = 0; yy < count; ++yy)
+            {
+                for (uint32_t xx = 0; xx < count; ++xx)
+                {
+                    const size_t tileOffset[2] = { xx*TileSize, yy*TileSize };
+                    const size_t tileSize[2] =
+                    {
+                        DM_MIN(TileSize, _dstFaceSize-tileOffset[0]),
+                        DM_MIN(TileSize, _dstFaceSize-tileOffset[1]),
+                    };
+                    CL_CHECK(clEnqueueNDRangeKernel(m_clContext->m_commandQueue
+                                                  , m_radFilter
+                                                  , 2
+                                                  , tileOffset
+                                                  , tileSize
+                                                  , NULL
+                                                  , 0
+                                                  , NULL
+                                                  , &m_event
+                                                  ));
+                }
+            }
 
             const size_t origin[3] = { 0, 0, 0 };
             const size_t region[3] = { _dstFaceSize, _dstFaceSize, 1 };
@@ -1461,7 +1485,9 @@ namespace cmft
             CL_CHECK(clSetKernelArg(m_radFilterSingle, 11, sizeof(cl_mem),  (const void*)&area));
             #endif //CMFT_COMPUTE_FILTER_AREA_ON_CPU
 
-            // Process each face separately.
+            // Process each face separately in tiles of 64x64.
+            enum { TileSize = 64 };
+            const uint32_t count = ((_dstFaceSize-1)/TileSize)+1;
             cl_mem faces[6];
             for (uint8_t ii = 0; ii < 6; ++ii)
             {
@@ -1481,7 +1507,28 @@ namespace cmft
                 CL_CHECK(clSetKernelArg(m_radFilterSingle, 2, sizeof(cl_mem), (const void*)&m_memNormalSolidAngle[ii]));
                 CL_CHECK(clSetKernelArg(m_radFilterSingle, 3, sizeof(int8_t), (const void*)&faceIdx));
 
-                CL_CHECK(clEnqueueNDRangeKernel(m_clContext->m_commandQueue, m_radFilterSingle, 2, NULL, workSize, NULL, 0, NULL, &m_event));
+                for (uint32_t yy = 0; yy < count; ++yy)
+                {
+                    for (uint32_t xx = 0; xx < count; ++xx)
+                    {
+                        const size_t tileOffset[2] = { xx*TileSize, yy*TileSize };
+                        const size_t tileSize[2] =
+                        {
+                            DM_MIN(TileSize, _dstFaceSize-tileOffset[0]),
+                            DM_MIN(TileSize, _dstFaceSize-tileOffset[1]),
+                        };
+                        CL_CHECK(clEnqueueNDRangeKernel(m_clContext->m_commandQueue
+                                                      , m_radFilterSingle
+                                                      , 2
+                                                      , tileOffset
+                                                      , tileSize
+                                                      , NULL
+                                                      , 0
+                                                      , NULL
+                                                      , &m_event
+                                                      ));
+                    }
+                }
             }
 
             // Sum partial results.
@@ -1538,7 +1585,7 @@ namespace cmft
 
         void run(void* _out, uint8_t _faceIdx, uint32_t _dstFaceSize, float _specularPower, float _specularAngle, float _filterSize, EdgeFixup::Enum _edgeFixup = EdgeFixup::None)
         {
-            if (_filterSize > 0.1f && (_dstFaceSize > 256 || m_srcFaceSize > 256))
+            if (m_srcFaceSize > 512)
             {
                 // Prevents driver crash by running 6+1 smaller kernels instead of a big one.
                 processFaceByFaceAndSum(_out, _faceIdx, _dstFaceSize, _specularPower, _specularAngle, _filterSize, _edgeFixup);
