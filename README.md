@@ -34,7 +34,7 @@ Remark !
 --------
 
 - If you are running OpenCL procesing on the same GPU that it connected to your monitor you may experience the following problem: when you are processing big cubemaps (~1024 face size) with small 'glossScale' parameter (<7 for example), OpenCL kernels may take a long time to execute and that may cause the operative system to step in and kill the display/gpu driver in the middle of processing! To avoid this you can:
-    - Use smaller input and ouput sizes ('srcFaceSize' and 'dstFaceSize').
+    - Use smaller input size. (this is crucial!)
     - Choose a bigger 'glossScale' parameter.
     - Use a workaround on Windows: increase the TdrDelay or modify the TdrLevel in the registry and restart the machine. More details here: http://msdn.microsoft.com/en-us/library/windows/hardware/ff569918%28v=vs.85%29.aspx
     - Run cmft on a faster GPU.
