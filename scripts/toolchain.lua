@@ -155,7 +155,6 @@ function cmft_toolchain(_buildDir, _projectsDir)
 
     -- VS
     configuration { "vs*" }
-        flags { "EnableSSE2", }
         defines
         {
             "WIN32",
@@ -193,6 +192,7 @@ function cmft_toolchain(_buildDir, _projectsDir)
         }
 
     configuration { "x32", "vs*" }
+        flags { "EnableSSE2", }
         targetdir (_buildDir .. "win32_" .. _ACTION .. "/bin")
         objdir    (_buildDir .. "win32_" .. _ACTION .. "/obj")
 
