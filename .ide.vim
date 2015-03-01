@@ -1,19 +1,23 @@
 if has("unix")
     set makeprg=make
 
-    let s:proj_root     = expand("<sfile>:p:h")
-    let s:log_file      = s:proj_root."/make.log"
-    let s:make_action   = "linux-debug64"
+    let s:proj_root   = expand("<sfile>:p:h")
+    let s:log_file    = s:proj_root."/make.log"
+    let s:make_action = "linux-debug64"
 
-    " Build
-    let s:make_command  = "make ".s:proj_root." ".s:make_action
-    let s:build_action  = "!".s:proj_root."/.makebg.sh ".v:servername." \"".s:make_command."\" ".s:log_file
+    function! SetDebug()
+        let s:make_action  = "linux-debug64"
+    endfunc
+    command! -nargs=0 SetDebug :call SetDebug()
 
-    " Execute
-    let s:runtime_dir = s:proj_root."/runtime"
-    let s:exec_action = "!../_build/linux64_gcc/bin/cmftDebug"
+    function! SetRelease()
+        let s:make_action  = "linux-release64"
+    endfunc
+    command! -nargs=0 SetRelease :call SetRelease()
 
     function! Build()
+        let s:make_command = "make ".s:proj_root." ".s:make_action
+        let s:build_action = "!".s:proj_root."/.makebg.sh ".v:servername." \"".s:make_command."\" ".s:log_file
         let curr_dir = getcwd()
         exec 'cd' s:proj_root
         exec s:build_action
@@ -21,6 +25,8 @@ if has("unix")
     endfunc
 
     function! Execute()
+        let s:runtime_dir = s:proj_root."/runtime"
+        let s:exec_action = "!../_build/linux64_gcc/bin/cmftDebug"
         let curr_dir = getcwd()
         exec 'cd' s:runtime_dir
         exec s:exec_action
