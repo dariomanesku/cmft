@@ -21,71 +21,54 @@ local LIN_CLANG_DIR = addTrailingStr(os.getenv("CMFT_LIN_CLANG_DIR_"), "/")
 local WIN_MINGW_DIR = addTrailingStr(os.getenv("CMFT_WIN_MINGW_DIR_"), "\\\\")
 local WIN_CLANG_DIR = addTrailingStr(os.getenv("CMFT_WIN_CLANG_DIR_"), "\\\\")
 
-function cmft_toolchain(_buildDir, _projectsDir)
+function cmft_toolchain(_buildDir, _projDir)
 
     configuration {}
 
     newoption
     {
-        trigger = "compiler",
+        trigger = "gcc",
+        value = "GCC",
         description = "Choose compiler",
         allowed =
         {
-            { "osx-gcc",     "OSX"                      },
-            { "linux-gcc",   "Linux (GCC compiler)"     },
---          { "linux-clang", "Linux (Clang compiler)"   },
---          { "win-clang",   "Windows (Clang compiler)" },
---          { "win-mingw",   "Windows (Mingw compiler)" },
-        }
+            { "osx",         "OSX"                    },
+            { "linux-gcc",   "Linux (GCC compiler)"   },
+            { "linux-clang", "Linux (Clang compiler)" },
+        },
     }
 
     -- Avoid error when invoking premake4 --help.
     if (_ACTION == nil) then return end
 
-    location (_projectsDir .. _ACTION)
+    location (path.join(_projDir, _ACTION))
 
     if _ACTION == "gmake" then
-
-        if nil == _OPTIONS["compiler"] then
+        if nil == _OPTIONS["gcc"] then
             print("Compiler must be specified!")
             os.exit(1)
         end
 
-        if "osx-gcc" == _OPTIONS["compiler"] then
+        if "osx" == _OPTIONS["gcc"] then
             premake.gcc.cc  = OSX_GCC_DIR .. "gcc"
             premake.gcc.cxx = OSX_GCC_DIR .. "g++"
             premake.gcc.ar  = OSX_GCC_DIR .. "ar"
-            location (_projectsDir .. _ACTION .. "-osx-gcc")
+            location (path.join(_projDir, _ACTION .. "-osx"))
         end
 
-        if "linux-gcc" == _OPTIONS["compiler"] then
+        if "linux-gcc" == _OPTIONS["gcc"] then
             premake.gcc.cc  = LIN_GCC_DIR .. "gcc"
             premake.gcc.cxx = LIN_GCC_DIR .. "g++"
             premake.gcc.ar  = LIN_GCC_DIR .. "ar"
-            location (_projectsDir .. _ACTION .. "-linux-gcc")
+            location (path.join(_projDir, _ACTION .. "-linux"))
         end
 
---      if "linux-clang" == _OPTIONS["compiler"] then
---          premake.gcc.cc  = LIN_CLANG_DIR .. "clang"
---          premake.gcc.cxx = LIN_CLANG_DIR .. "clang++"
---          premake.gcc.ar  = LIN_CLANG_DIR .. "ar"
---          location (_projectsDir .. _ACTION .. "-linux-clang")
---      end
---
---      if "win-mingw" == _OPTIONS["compiler"] then
---          premake.gcc.cc  = WIN_MINGW_DIR .. "x86_64-w64-mingw32-gcc"
---          premake.gcc.cxx = WIN_MINGW_DIR .. "x86_64-w64-mingw32-g++"
---          premake.gcc.ar  = WIN_MINGW_DIR .. "ar"
---          location (_projectsDir .. _ACTION .. "-win-mingw")
---      end
---
---      if "win-clang" == _OPTIONS["compiler"] then
---          premake.gcc.cc  = WIN_CLANG_DIR .. "clang"
---          premake.gcc.cxx = WIN_CLANG_DIR .. "clang++"
---          premake.gcc.ar  = WIN_CLANG_DIR .. "ar"
---          location (_projectsDir .. _ACTION .. "-win-clang")
---      end
-
+        if "linux-clang" == _OPTIONS["gcc"] then
+            premake.gcc.cc  = LIN_CLANG_DIR .. "clang"
+            premake.gcc.cxx = LIN_CLANG_DIR .. "clang++"
+            premake.gcc.ar  = LIN_CLANG_DIR .. "ar"
+            location (path.join(_projDir, _ACTION .. "-linux-clang"))
+        end
     end
 
     flags
@@ -114,15 +97,45 @@ function cmft_toolchain(_buildDir, _projectsDir)
         flags { "OptimizeSpeed", "NoPCH" }
 
     configuration { "*gcc* or *mingw" }
-        --TODO
         buildoptions
         {
-           "-Wall"
-        .. " -Wextra"
-        .. " -Wno-cast-align"
-        .. " -Wno-unused-function"
-        .. " -Wno-variadic-macros"
-        .. " -Wno-missing-format-attribute"
+        -- Wall
+            "-Waddress"
+        .. " -Wc++11-compat"
+        .. " -Wchar-subscripts"
+        .. " -Wcomment"
+        .. " -Wformat"
+        .. " -Wmaybe-uninitialized"
+        .. " -Wmissing-braces"
+        .. " -Wnonnull"
+        .. " -Wparentheses"
+        .. " -Wreorder"
+        .. " -Wreturn-type"
+        .. " -Wsequence-point"
+        .. " -Wsign-compare"
+        .. " -Wstrict-aliasing"
+        .. " -Wstrict-overflow=1"
+        .. " -Wswitch"
+        .. " -Wtrigraphs"
+        .. " -Wuninitialized"
+        .. " -Wunknown-pragmas"
+        .. " -Wunused-function"
+        .. " -Wunused-label"
+        .. " -Wunused-value"
+        .. " -Wunused-variable"
+        .. " -Wvolatile-register-var"
+        -- Wextra
+        .. " -Wclobbered"
+        .. " -Wempty-body"
+        .. " -Wignored-qualifiers"
+        .. " -Wmissing-field-initializers"
+        .. " -Wsign-compare"
+        .. " -Wtype-limits"
+        .. " -Wuninitialized"
+        .. " -Wunused-parameter"
+        .. " -Wunused-but-set-parameter"
+        -- Other
+        .. " -Wcast-align"
         .. " -Wcast-qual"
         .. " -Wdisabled-optimization"
         .. " -Wdiv-by-zero"
@@ -132,7 +145,6 @@ function cmft_toolchain(_buildDir, _projectsDir)
         .. " -Wformat-y2k"
         .. " -Wimport"
         .. " -Winit-self"
-        .. " -Winline"
         .. " -Winvalid-pch"
         .. " -Werror=missing-braces"
         .. " -Wmissing-include-dirs"
@@ -151,6 +163,18 @@ function cmft_toolchain(_buildDir, _projectsDir)
         .. " -Werror=nested-externs"
         .. " -Werror=old-style-definition"
         .. " -Werror=strict-prototypes"
+        -- Disable
+        .. " -Wno-enum-compare"
+        .. " -Wno-unused-function"
+        .. " -Wno-variadic-macros"
+        .. " -Wno-missing-format-attribute"
+        .. " -Wno-inline"
+        }
+
+    configuration { "Release", "*gcc* or *mingw" }
+        buildoptions
+        {
+            " -Warray-bounds=1"
         }
 
     -- VS
@@ -193,13 +217,13 @@ function cmft_toolchain(_buildDir, _projectsDir)
 
     configuration { "x32", "vs*" }
         flags { "EnableSSE2", }
-        targetdir (_buildDir .. "win32_" .. _ACTION .. "/bin")
-        objdir    (_buildDir .. "win32_" .. _ACTION .. "/obj")
+        targetdir (path.join(_buildDir, "win32_" .. _ACTION, "/bin"))
+        objdir    (path.join(_buildDir, "win32_" .. _ACTION, "/obj"))
 
     configuration { "x64", "vs*" }
         defines { "_WIN64" }
-        targetdir (_buildDir .. "win64_" .. _ACTION .. "/bin")
-        objdir    (_buildDir .. "win64_" .. _ACTION .. "/obj")
+        targetdir (path.join(_buildDir, "win64_" .. _ACTION, "/bin"))
+        objdir    (path.join(_buildDir, "win64_" .. _ACTION, "/obj"))
 
     -- MinGW
     configuration { "*mingw*" }
@@ -218,13 +242,13 @@ function cmft_toolchain(_buildDir, _projectsDir)
         linkoptions { "-Wl,--gc-sections", }
 
     configuration { "x32", "*mingw" }
-        targetdir (_buildDir .. "win32_mingw" .. "/bin")
-        objdir    (_buildDir .. "win32_mingw" .. "/obj")
+        targetdir (path.join(_buildDir, "win32_mingw/bin"))
+        objdir    (path.join(_buildDir, "win32_mingw/obj"))
         buildoptions { "-m32" }
 
     configuration { "x64", "*mingw" }
-        targetdir (_buildDir .. "win64_mingw" .. "/bin")
-        objdir    (_buildDir .. "win64_mingw" .. "/obj")
+        targetdir (path.join(_buildDir, "win64_mingw/bin"))
+        objdir    (path.join(_buildDir, "win64_mingw/obj"))
         buildoptions { "-m64" }
 
     -- Linux
@@ -253,13 +277,13 @@ function cmft_toolchain(_buildDir, _projectsDir)
         }
 
     configuration { "linux-gcc", "x32" }
-        targetdir (_buildDir .. "linux32_gcc" .. "/bin")
-        objdir    (_buildDir .. "linux32_gcc" .. "/obj")
+        targetdir (path.join(_buildDir, "linux32_gcc/bin"))
+        objdir    (path.join(_buildDir, "linux32_gcc/obj"))
         buildoptions { "-m32", }
 
     configuration { "linux-gcc", "x64" }
-        targetdir (_buildDir .. "linux64_gcc" .. "/bin")
-        objdir    (_buildDir .. "linux64_gcc" .. "/obj")
+        targetdir (path.join(_buildDir, "linux64_gcc/bin"))
+        objdir    (path.join(_buildDir, "linux64_gcc/obj"))
         buildoptions { "-m64 -Ofast", }
 
     -- Linux Clang
@@ -268,38 +292,19 @@ function cmft_toolchain(_buildDir, _projectsDir)
         buildoptions { "--analyze", }
 
     configuration { "linux-clang", "x32" }
-        targetdir (_buildDir .. "linux32_clang" .. "/bin")
-        objdir    (_buildDir .. "linux32_clang" .. "/obj")
+        targetdir (path.join(_buildDir, "linux32_clang/bin"))
+        objdir    (path.join(_buildDir, "linux32_clang/obj"))
         buildoptions
         {
             "-m32",
         }
 
     configuration { "linux-clang", "x64" }
-        targetdir (_buildDir .. "linux64_clang" .. "/bin")
-        objdir    (_buildDir .. "linux64_clang" .. "/obj")
+        targetdir (path.join(_buildDir, "linux64_clang/bin"))
+        objdir    (path.join(_buildDir, "linux64_clang/obj"))
         buildoptions
         {
             "-m64",
-        }
-
-    -- Windows Clang
-    configuration { "win-clang", "x32" }
-        targetdir (_buildDir .. "win32_clang" .. "/bin")
-        objdir    (_buildDir .. "win32_clang" .. "/obj")
-        buildoptions
-        {
-            "-m32",
-            "-std=c++11",
-        }
-
-    configuration { "win-clang", "x64" }
-        targetdir (_buildDir .. "win64_clang" .. "/bin")
-        objdir    (_buildDir .. "win64_clang" .. "/obj")
-        buildoptions
-        {
-            "-m64",
-            "-std=c++11",
         }
 
     -- OSX
@@ -314,8 +319,8 @@ function cmft_toolchain(_buildDir, _projectsDir)
         }
 
     configuration { "osx*", "x32" }
-        targetdir (_buildDir .. "osx32_gcc" .. "/bin")
-        objdir    (_buildDir .. "osx32_gcc" .. "/obj")
+        targetdir (path.join(_buildDir, "osx32_gcc/bin"))
+        objdir    (path.join(_buildDir, "osx32_gcc/obj"))
         buildoptions
         {
             "-m32",
@@ -323,8 +328,8 @@ function cmft_toolchain(_buildDir, _projectsDir)
         }
 
     configuration { "osx*", "x64" }
-        targetdir (_buildDir .. "osx64_gcc" .. "/bin")
-        objdir    (_buildDir .. "osx64_gcc" .. "/obj")
+        targetdir (path.join(_buildDir, "osx64_gcc/bin"))
+        objdir    (path.join(_buildDir, "osx64_gcc/obj"))
         buildoptions
         {
             "-m64",
@@ -332,8 +337,8 @@ function cmft_toolchain(_buildDir, _projectsDir)
         }
 
     configuration { "xcode*", "x32" }
-        targetdir (_buildDir .. "osx32_" .. _ACTION .. "/bin")
-        objdir    (_buildDir .. "osx32_" .. _ACTION .. "/obj")
+        targetdir (path.join(_buildDir, "osx32_", _ACTION .. "/bin"))
+        objdir    (path.join(_buildDir, "osx32_", _ACTION .. "/obj"))
         buildoptions
         {
             "-m32",
@@ -341,8 +346,8 @@ function cmft_toolchain(_buildDir, _projectsDir)
         }
 
     configuration { "xcode*", "x64" }
-        targetdir (_buildDir .. "osx64_" .. _ACTION .. "/bin")
-        objdir    (_buildDir .. "osx64_" .. _ACTION .. "/obj")
+        targetdir (path.join(_buildDir, "osx64_", _ACTION .. "/bin"))
+        objdir    (path.join(_buildDir, "osx64_", _ACTION .. "/obj"))
         buildoptions
         {
             "-m64",
@@ -355,18 +360,18 @@ end
 function compat(_bxDir)
     -- VS
     configuration { "vs*" }
-        includedirs { _bxDir .. "include/compat/msvc" }
+        includedirs { path.join(_bxDir, "include/compat/msvc") }
 
     configuration { "vs2008" }
-        includedirs { _bxDir .. "include/compat/msvc/pre1600" }
+        includedirs { path.join(_bxDir, "include/compat/msvc/pre1600") }
 
     -- MinGW
     configuration { "*mingw*" }
-        includedirs { _bxDir .. "include/compat/mingw" }
+        includedirs { path.join(_bxDir, "include/compat/mingw") }
 
     -- OSX
     configuration { "osx* or xcode*" }
-        includedirs { _bxDir .. "include/compat/osx" }
+        includedirs { path.join(_bxDir, "include/compat/osx") }
 
     configuration {} -- reset configuration
 end

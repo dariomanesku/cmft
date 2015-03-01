@@ -34,16 +34,6 @@ struct FilterType
     };
 };
 
-static const char* s_cubemapFaceIdNames[6] =
-{
-    "posx",
-    "negx",
-    "posy",
-    "negy",
-    "posz",
-    "negz",
-};
-
 struct CliOptionMap
 {
     char m_str[64];

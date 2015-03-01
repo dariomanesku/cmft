@@ -3,6 +3,5 @@ _projects/
 .svn/
 tags
 .DS_Store
-.ide.vim
-.vim_proj_root
+.vim
 make.log

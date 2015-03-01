@@ -1394,23 +1394,23 @@ namespace cmft
             #endif //CMFT_COMPUTE_FILTER_AREA_ON_CPU
 
             // Process in tiles of 64x64.
-            enum { TileSize = 64 };
-            const uint32_t count = ((_dstFaceSize-1)/TileSize)+1;
+            const uint32_t tileSize = 64;
+            const uint32_t count = ((_dstFaceSize-1)/tileSize)+1;
             for (uint32_t yy = 0; yy < count; ++yy)
             {
                 for (uint32_t xx = 0; xx < count; ++xx)
                 {
-                    const size_t tileOffset[2] = { xx*TileSize, yy*TileSize };
-                    const size_t tileSize[2] =
+                    const size_t workOffset[2] = { xx*tileSize, yy*tileSize };
+                    const size_t workSize[2] =
                     {
-                        DM_MIN(TileSize, _dstFaceSize-tileOffset[0]),
-                        DM_MIN(TileSize, _dstFaceSize-tileOffset[1]),
+                        DM_MIN(tileSize, _dstFaceSize-workOffset[0]),
+                        DM_MIN(tileSize, _dstFaceSize-workOffset[1]),
                     };
                     CL_CHECK(clEnqueueNDRangeKernel(m_clContext->m_commandQueue
                                                   , m_radFilter
                                                   , 2
-                                                  , tileOffset
-                                                  , tileSize
+                                                  , workOffset
+                                                  , workSize
                                                   , NULL
                                                   , 0
                                                   , NULL
@@ -1487,8 +1487,8 @@ namespace cmft
             #endif //CMFT_COMPUTE_FILTER_AREA_ON_CPU
 
             // Process each face separately in tiles of 64x64.
-            enum { TileSize = 64 };
-            const uint32_t count = ((_dstFaceSize-1)/TileSize)+1;
+            const uint32_t tileSize = 64;
+            const uint32_t count = ((_dstFaceSize-1)/tileSize)+1;
             cl_mem faces[6];
             for (uint8_t ii = 0; ii < 6; ++ii)
             {
@@ -1512,17 +1512,17 @@ namespace cmft
                 {
                     for (uint32_t xx = 0; xx < count; ++xx)
                     {
-                        const size_t tileOffset[2] = { xx*TileSize, yy*TileSize };
-                        const size_t tileSize[2] =
+                        const size_t workOffset[2] = { xx*tileSize, yy*tileSize };
+                        const size_t workSize[2] =
                         {
-                            DM_MIN(TileSize, _dstFaceSize-tileOffset[0]),
-                            DM_MIN(TileSize, _dstFaceSize-tileOffset[1]),
+                            DM_MIN(tileSize, _dstFaceSize-workOffset[0]),
+                            DM_MIN(tileSize, _dstFaceSize-workOffset[1]),
                         };
                         CL_CHECK(clEnqueueNDRangeKernel(m_clContext->m_commandQueue
                                                       , m_radFilterSingle
                                                       , 2
-                                                      , tileOffset
-                                                      , tileSize
+                                                      , workOffset
+                                                      , workSize
                                                       , NULL
                                                       , 0
                                                       , NULL
@@ -1818,7 +1818,7 @@ namespace cmft
                                           "#define WARP_FIXUP\n";
                 #endif //CMFT_COMPUTE_FILTER_AREA_ON_CPU
 
-                s_radianceProgram.createFromStr((char*)sc_radianceSource, sizeof(sc_radianceSource), header, sizeof(header));
+                s_radianceProgram.createFromStr((const char*)sc_radianceSource, sizeof(sc_radianceSource), header, sizeof(header));
                 //s_radianceProgram.createFromFile("radiance.cl", header, sizeof(header));
             }
             else
@@ -1829,7 +1829,7 @@ namespace cmft
                     const char header[] = "#define CMFT_COMPUTE_FILTER_AREA_ON_CPU 0\n";
                 #endif //CMFT_COMPUTE_FILTER_AREA_ON_CPU
 
-                s_radianceProgram.createFromStr((char*)sc_radianceSource, sizeof(sc_radianceSource), header, sizeof(header));
+                s_radianceProgram.createFromStr((const char*)sc_radianceSource, sizeof(sc_radianceSource), header, sizeof(header));
                 //s_radianceProgram.createFromFile("radiance.cl", header, sizeof(header));
             }
         }

@@ -1264,17 +1264,17 @@ namespace cmft
     {
         switch(_srcFormat)
         {
-        case TextureFormat::BGR8:     bgr8ToRgba32f(_rgba32f,     (uint8_t*)_src); break;
-        case TextureFormat::RGB8:     rgb8ToRgba32f(_rgba32f,     (uint8_t*)_src); break;
-        case TextureFormat::RGB16:    rgb16ToRgba32f(_rgba32f,   (uint16_t*)_src); break;
-        case TextureFormat::RGB16F:   rgb16fToRgba32f(_rgba32f,  (uint16_t*)_src); break;
-        case TextureFormat::RGB32F:   rgb32fToRgba32f(_rgba32f,     (float*)_src); break;
-        case TextureFormat::RGBE:     rgbeToRgba32f(_rgba32f,     (uint8_t*)_src); break;
-        case TextureFormat::BGRA8:    bgra8ToRgba32f(_rgba32f,    (uint8_t*)_src); break;
-        case TextureFormat::RGBA8:    rgba8ToRgba32f(_rgba32f,    (uint8_t*)_src); break;
-        case TextureFormat::RGBA16:   rgba16ToRgba32f(_rgba32f,  (uint16_t*)_src); break;
-        case TextureFormat::RGBA16F:  rgba16fToRgba32f(_rgba32f, (uint16_t*)_src); break;
-        case TextureFormat::RGBA32F:  rgba32fToRgba32f(_rgba32f,    (float*)_src); break;
+        case TextureFormat::BGR8:     bgr8ToRgba32f(_rgba32f,    (const  uint8_t*)_src); break;
+        case TextureFormat::RGB8:     rgb8ToRgba32f(_rgba32f,    (const  uint8_t*)_src); break;
+        case TextureFormat::RGB16:    rgb16ToRgba32f(_rgba32f,   (const uint16_t*)_src); break;
+        case TextureFormat::RGB16F:   rgb16fToRgba32f(_rgba32f,  (const uint16_t*)_src); break;
+        case TextureFormat::RGB32F:   rgb32fToRgba32f(_rgba32f,  (const    float*)_src); break;
+        case TextureFormat::RGBE:     rgbeToRgba32f(_rgba32f,    (const  uint8_t*)_src); break;
+        case TextureFormat::BGRA8:    bgra8ToRgba32f(_rgba32f,   (const  uint8_t*)_src); break;
+        case TextureFormat::RGBA8:    rgba8ToRgba32f(_rgba32f,   (const  uint8_t*)_src); break;
+        case TextureFormat::RGBA16:   rgba16ToRgba32f(_rgba32f,  (const uint16_t*)_src); break;
+        case TextureFormat::RGBA16F:  rgba16fToRgba32f(_rgba32f, (const uint16_t*)_src); break;
+        case TextureFormat::RGBA32F:  rgba32fToRgba32f(_rgba32f, (const    float*)_src); break;
         default: DEBUG_CHECK(false, "Unknown image format.");
         };
     }

@@ -125,7 +125,8 @@ int testsMain(int /*_argc*/, char const* const* /*_argv*/)
     //test(s_test1);
 
     char c;
-    scanf("%c", &c);
+    const int unused = scanf("%c", &c);
+    BX_UNUSED(unused, c);
 
     return 0;
 }

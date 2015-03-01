@@ -8,7 +8,7 @@
 
 #include "../../../3rdparty/bx/macros.h" //BX_FORCE_INLINE
 
-#define DM_INLINE BX_FORCE_INLINE
+#define DM_INLINE inline
 
 #endif // DM_COMMON_H_HEADER_GUARD
 
