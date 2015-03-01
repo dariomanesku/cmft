@@ -60,8 +60,9 @@ Building
 
 ### Linux
 
-- Makefile can be found in *\_projects/gmake-linux-gcc/*.<br \>
-- Project can be build from the root directory by running `make linux-gcc-release64` (or similar).<br \>
+- Makefile can be found in *\_projects/gmake-linux/*.<br \>
+- Project can be build from the root directory by running `make linux-release64` (or similar).<br \>
+- Vim users can source *.ide.vim* and make use of Build() and Execute() functions from inside Vim.<br \>
 
 ### OS X
 
