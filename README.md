@@ -39,7 +39,7 @@ Remark !
     - Use a workaround on Windows: increase the TdrDelay or modify the TdrLevel in the registry and restart the machine. More details here: http://msdn.microsoft.com/en-us/library/windows/hardware/ff569918%28v=vs.85%29.aspx
     - Run cmft on a faster GPU.
     - Run cmft on a GPU that is not connected to the monitor.
-    - Run cmft only on CPU only.
+    - Run cmft on CPU only.
 
 This problem has been carefully tackled: cmft now does tile processing and is optimized for fast execution so this show rarely happen again! However, if it does, please open an issue and tell me about your case.
 
