@@ -15,7 +15,7 @@ Download
  * [cmft - OSX 64bit](https://github.com/dariomanesku/cmft-bin/raw/master/cmft_osx64.zip)<br />
  * [cmft - OSX 32bit](https://github.com/dariomanesku/cmft-bin/raw/master/cmft_osx32.zip)<br />
 
-*Notice: Linux and OSX binaries are outdated. For now, on Linux and OSX, compile from source.*
+*Notice: OSX binaries are outdated. For now, on OSX, compile from source.*
  <br />
 
 ![cmft-cover](https://github.com/dariomanesku/cmft/raw/master/res/cmft_cover.jpg)
