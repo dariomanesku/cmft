@@ -121,7 +121,7 @@ do                                                                              
     #define CL_CHECK_ERR        _CL_CHECK_ERR
 #else
     #define CL_CHECK(_expr)     _expr
-    #define CL_CHECK_ERR(_expr) _expr
+    #define CL_CHECK_ERR(_expr) BX_UNUSED(_expr)
 #endif
 
 #define _CL_CHECK(_expr)                                                                 \

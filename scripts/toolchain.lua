@@ -171,12 +171,6 @@ function cmft_toolchain(_buildDir, _projDir)
         .. " -Wno-inline"
         }
 
-    configuration { "Release", "*gcc* or *mingw" }
-        buildoptions
-        {
-            " -Warray-bounds=1"
-        }
-
     -- VS
     configuration { "vs*" }
         defines
