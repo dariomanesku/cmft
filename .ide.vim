@@ -4,14 +4,17 @@ if has("unix")
     let s:proj_root   = expand("<sfile>:p:h")
     let s:log_file    = s:proj_root."/make.log"
     let s:make_action = "linux-debug64"
+    let s:exec_action = "!../_build/linux64_gcc/bin/cmftDebug"
 
     function! SetDebug()
-        let s:make_action  = "linux-debug64"
+        let s:make_action = "linux-debug64"
+        let s:exec_action = "!../_build/linux64_gcc/bin/cmftDebug"
     endfunc
     command! -nargs=0 SetDebug :call SetDebug()
 
     function! SetRelease()
-        let s:make_action  = "linux-release64"
+        let s:make_action = "linux-release64"
+        let s:exec_action = "!../_build/linux64_gcc/bin/cmftRelease"
     endfunc
     command! -nargs=0 SetRelease :call SetRelease()
 
@@ -26,7 +29,6 @@ if has("unix")
 
     function! Execute()
         let s:runtime_dir = s:proj_root."/runtime"
-        let s:exec_action = "!../_build/linux64_gcc/bin/cmftDebug"
         let curr_dir = getcwd()
         exec 'cd' s:runtime_dir
         exec s:exec_action
