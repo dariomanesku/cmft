@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #
-# Copyright 2014 Dario Manesku. All rights reserved.
+# Copyright 2014-2015 Dario Manesku. All rights reserved.
 # License: http://www.opensource.org/licenses/BSD-2-Clause
 #
 
