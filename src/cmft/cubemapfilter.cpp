@@ -521,7 +521,7 @@ namespace cmft
             Top,
             Bottom,
 
-            Count,
+            NeighbourSidesCount,
         };
 
         struct NeighourFaceBleed
@@ -529,7 +529,7 @@ namespace cmft
             float m_amount;
             float m_bbMin;
             float m_bbMax;
-        } bleed[NeighbourSides::Count] =
+        } bleed[NeighbourSidesCount] =
         {
             { // Left
                 _filterSize - uu,
