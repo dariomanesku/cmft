@@ -20,7 +20,7 @@ namespace dm
     template <typename Ty/*obj type*/, uint16_t MaxT>
     struct ListT
     {
-        typedef typename ListT<Ty,MaxT> This;
+        typedef ListT<Ty,MaxT> This;
 
         ListT()
         {
@@ -46,7 +46,7 @@ namespace dm
     template <typename Ty/*obj type*/>
     struct List
     {
-        typedef typename List<Ty> This;
+        typedef List<Ty> This;
 
         // Uninitialized state, init() needs to be called !
         List()
@@ -138,13 +138,13 @@ namespace dm
     DM_INLINE List<Ty>* createList(uint16_t _max)
     {
         uint8_t* ptr = (uint8_t*)DM_ALLOC(sizeof(List<Ty>) + List<Ty>::sizeFor(_max));
-        return createList(_max, ptr);
+        return createList<Ty>(_max, ptr);
     }
 
     template <typename Ty/*obj type*/>
     DM_INLINE void destroyList(List<Ty>* _list)
     {
-        _list->~ListT<Ty>();
+        _list->~List<Ty>();
         delete _list;
     }
 

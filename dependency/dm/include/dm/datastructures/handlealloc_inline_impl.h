@@ -3,6 +3,11 @@
  * License: http://www.opensource.org/licenses/BSD-2-Clause
  */
 
+enum
+{
+    Invalid = 0xffff,
+};
+
 uint16_t alloc()
 {
     DM_CHECK(m_numHandles < max(), "handleAllocAlloc | %d, %d", m_numHandles, max());
@@ -16,7 +21,7 @@ uint16_t alloc()
         return handle;
     }
 
-    return HandleAlloc::Invalid;
+    return Invalid;
 }
 
 bool contains(uint16_t _handle)

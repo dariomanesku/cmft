@@ -18,8 +18,6 @@ namespace dm
     template <typename Ty, uint32_t MaxT>
     struct ObjArrayT
     {
-        typedef typename ObjArrayT::Ty ElemTy;
-
         ObjArrayT()
         {
             m_count = 0;
@@ -45,8 +43,6 @@ namespace dm
     template <typename Ty>
     struct ObjArray
     {
-        typedef typename ObjArray::Ty ElemTy;
-
         // Uninitialized state, init() needs to be called !
         ObjArray()
         {
@@ -131,13 +127,13 @@ namespace dm
     DM_INLINE ObjArray<Ty>* createObjArray(uint32_t _max)
     {
         uint8_t* ptr = (uint8_t*)DM_ALLOC(sizeof(ObjArray<Ty>) + ObjArray<Ty>::sizeFor(_max));
-        return createObjArray(_max, ptr);
+        return createObjArray<Ty>(_max, ptr);
     }
 
     template <typename Ty>
     DM_INLINE void destroyObjArray(ObjArray<Ty>* _objarray)
     {
-        _objarray->~ObjArrayT<Ty>();
+        _objarray->~ObjArray<Ty>();
         delete _objarray;
     }
 

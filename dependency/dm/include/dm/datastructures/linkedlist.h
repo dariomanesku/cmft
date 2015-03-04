@@ -18,7 +18,7 @@ namespace dm
     template <typename Ty/*obj type*/, uint16_t MaxT>
     struct LinkedListT
     {
-        typedef typename LinkedListT<Ty, MaxT> This;
+        typedef LinkedListT<Ty, MaxT> This;
 
         LinkedListT()
         {
@@ -48,7 +48,7 @@ namespace dm
     template <typename Ty/*obj type*/>
     struct LinkedList
     {
-        typedef typename LinkedList<Ty> This;
+        typedef LinkedList<Ty> This;
 
         // Uninitialized state, init() needs to be called !
         LinkedList()
@@ -139,6 +139,26 @@ namespace dm
         bool m_cleanup;
         Elem* m_elements;
     };
+
+    template <typename Ty/*obj type*/>
+    DM_INLINE LinkedList<Ty>* createLinkedList(uint16_t _max, void* _mem)
+    {
+        return ::new (_mem) LinkedList<Ty>(_max, (uint8_t*)_mem + sizeof(LinkedList<Ty>));
+    }
+
+    template <typename Ty/*obj type*/>
+    DM_INLINE LinkedList<Ty>* createLinkedList(uint16_t _max)
+    {
+        uint8_t* ptr = (uint8_t*)DM_ALLOC(sizeof(LinkedList<Ty>) + LinkedList<Ty>::sizeFor(_max));
+        return createLinkedList<Ty>(_max, ptr);
+    }
+
+    template <typename Ty/*obj type*/>
+    DM_INLINE void destroyLinkedList(LinkedList<Ty>* _ll)
+    {
+        _ll->~LinkedList<Ty>();
+        delete _ll;
+    }
 
 } // namespace dm
 

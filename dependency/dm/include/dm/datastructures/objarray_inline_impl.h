@@ -54,7 +54,7 @@ void removeAll()
 {
     for (uint32_t ii = m_count; ii--; )
     {
-        Ty* obj = &m_values[_idx];
+        Ty* obj = &m_values[ii];
         obj->~Ty();
         BX_UNUSED(obj);
     }

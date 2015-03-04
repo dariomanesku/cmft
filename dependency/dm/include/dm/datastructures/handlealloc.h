@@ -20,11 +20,6 @@ namespace dm
     template <uint16_t MaxHandlesT>
     struct HandleAllocT
     {
-        enum
-        {
-            Invalid = 0xffff,
-        };
-
         HandleAllocT()
         {
             reset();
@@ -49,11 +44,6 @@ namespace dm
 
     struct HandleAlloc
     {
-        enum
-        {
-            Invalid = 0xffff,
-        };
-
         // Uninitialized state, init() needs to be called !
         HandleAlloc()
         {

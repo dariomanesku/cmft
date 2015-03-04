@@ -20,8 +20,6 @@ namespace dm
     template <typename Ty/*arithmetic type*/, uint16_t MaxKeyT>
     struct KeyValueMapT
     {
-        typedef typename KeyValueMapT::Ty ValTy;
-
         KeyValueMapT()
         {
         }
@@ -46,8 +44,6 @@ namespace dm
     template <typename Ty/*arithmetic type*/>
     struct KeyValueMap
     {
-        typedef typename KeyValueMap::Ty ValTy;
-
         // Uninitialized state, init() needs to be called !
         KeyValueMap()
         {
@@ -141,13 +137,13 @@ namespace dm
     DM_INLINE KeyValueMap<Ty>* createKeyValueMap(uint16_t _max)
     {
         uint8_t* ptr = (uint8_t*)DM_ALLOC(sizeof(KeyValueMap<Ty>) + KeyValueMap<Ty>::sizeFor(_max));
-        return createKeyValueMap(_max, ptr);
+        return createKeyValueMap<Ty>(_max, ptr);
     }
 
     template <typename Ty/*arithmetic type*/>
     DM_INLINE void destroyKeyValueMap(KeyValueMap<Ty>* _kvMap)
     {
-        _kvMap->~KeyValueMapT<Ty>();
+        _kvMap->~KeyValueMap<Ty>();
         delete _kvMap;
     }
 

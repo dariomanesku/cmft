@@ -38,19 +38,19 @@ namespace dm
     };
 
     template <typename Ty/*obj type*/>
-    struct OpList : public List<Ty>
+    struct OpList
     {
         // Uninitialized state, init() needs to be called !
         OpList()
         {
         }
 
-        OpList(uint16_t _max) : Base()
+        OpList(uint16_t _max)
         {
             init(_max);
         }
 
-        OpList(uint16_t _max, void* _mem) : Base()
+        OpList(uint16_t _max, void* _mem)
         {
             init(_max, _mem);
         }
@@ -114,6 +114,8 @@ namespace dm
         Array<uint16_t> m_handles;
         HandleAlloc m_handleAlloc;
         Ty* m_objects;
+        void* m_memoryBlock;
+        bool m_cleanup;
     };
 
     template <typename Ty/*obj type*/>
@@ -126,13 +128,13 @@ namespace dm
     DM_INLINE OpList<Ty>* createOpList(uint16_t _max)
     {
         uint8_t* ptr = (uint8_t*)DM_ALLOC(sizeof(OpList<Ty>) + OpList<Ty>::sizeFor(_max));
-        return createOpList(_max, ptr);
+        return createOpList<Ty>(_max, ptr);
     }
 
     template <typename Ty/*obj type*/>
     DM_INLINE void destroyOpList(OpList<Ty>* _opList)
     {
-        _opList->~OpListT<Ty>();
+        _opList->~OpList<Ty>();
         delete _opList;
     }
 

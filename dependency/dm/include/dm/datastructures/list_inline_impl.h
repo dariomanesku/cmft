@@ -10,7 +10,7 @@ void fillWith(const Ty* _obj)
     Ty* elem = m_elements;
     for (uint16_t ii = count(); ii--; )
     {
-        dst = ::new (&elem[ii]) Ty(*_obj);
+        ::new (&elem[ii]) Ty(*_obj);
     }
 }
 

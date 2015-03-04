@@ -18,8 +18,6 @@ namespace dm
     template <typename Ty, uint32_t MaxT>
     struct ArrayT
     {
-        typedef typename ArrayT::Ty ElemTy;
-
         ArrayT()
         {
             m_count = 0;
@@ -45,8 +43,6 @@ namespace dm
     template <typename Ty>
     struct Array
     {
-        typedef typename Array::Ty ElemTy;
-
         // Uninitialized state, init() needs to be called !
         Array()
         {
@@ -131,13 +127,13 @@ namespace dm
     DM_INLINE Array<Ty>* createArray(uint32_t _max)
     {
         uint8_t* ptr = (uint8_t*)DM_ALLOC(sizeof(Array<Ty>) + Array<Ty>::sizeFor(_max));
-        return createArray(_max, ptr);
+        return createArray<Ty>(_max, ptr);
     }
 
     template <typename Ty>
     DM_INLINE void destroyArray(Array<Ty>* _array)
     {
-        _array->~ArrayT<Ty>();
+        _array->~Array<Ty>();
         delete _array;
     }
 

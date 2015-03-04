@@ -26,7 +26,7 @@ namespace dm
         return bit;
     }
 
-    template <uint16_t MaxT>
+    template <uint32_t MaxT>
     struct BitArrayT
     {
         BitArrayT()
@@ -36,18 +36,19 @@ namespace dm
 
         #include "bitarray_inline_impl.h"
 
-        uint16_t max() const
+        uint32_t max() const
         {
             return MaxT;
         }
 
-        uint16_t numSlots() const
+        uint32_t numSlots() const
         {
             return NumSlots;
         }
 
     private:
         enum { NumSlots = ((MaxT-1)>>6)+1 };
+        uint32_t m_last;
         uint64_t m_bits[NumSlots];
     };
 
@@ -58,12 +59,12 @@ namespace dm
         {
         }
 
-        BitArray(uint16_t _max)
+        BitArray(uint32_t _max)
         {
             init(_max);
         }
 
-        BitArray(uint16_t _max, void* _mem)
+        BitArray(uint32_t _max, void* _mem)
         {
             init(_max, _mem);
         }
@@ -73,13 +74,13 @@ namespace dm
             destroy();
         }
 
-        static inline uint16_t numSlotsFor(uint16_t _max)
+        static inline uint32_t numSlotsFor(uint32_t _max)
         {
             return ((_max-1)>>6) + 1;
         }
 
         // Allocates memory internally.
-        void init(uint16_t _max)
+        void init(uint32_t _max)
         {
             m_max = _max;
             m_numSlots = numSlotsFor(_max);
@@ -89,13 +90,13 @@ namespace dm
             reset();
         }
 
-        static inline uint32_t sizeFor(uint16_t _max)
+        static inline uint32_t sizeFor(uint32_t _max)
         {
             return numSlotsFor(_max)*sizeof(uint64_t);
         }
 
         // Uses externaly allocated memory.
-        void* init(uint16_t _max, void* _mem)
+        void* init(uint32_t _max, void* _mem)
         {
             m_max = _max;
             m_numSlots = numSlotsFor(_max);
@@ -119,29 +120,30 @@ namespace dm
 
         #include "bitarray_inline_impl.h"
 
-        uint16_t max() const
+        uint32_t max() const
         {
             return m_max;
         }
 
-        uint16_t numSlots() const
+        uint32_t numSlots() const
         {
             return m_numSlots;
         }
 
     private:
-        uint16_t m_max;
-        uint16_t m_numSlots;
+        uint32_t m_last;
+        uint32_t m_max;
+        uint32_t m_numSlots;
         uint64_t* m_bits;
         bool m_cleanup;
     };
 
-    DM_INLINE BitArray* createBitArray(uint16_t _max, void* _mem)
+    DM_INLINE BitArray* createBitArray(uint32_t _max, void* _mem)
     {
         return ::new (_mem) BitArray(_max, (uint8_t*)_mem + sizeof(BitArray));
     }
 
-    DM_INLINE BitArray* createBitArray(uint16_t _max)
+    DM_INLINE BitArray* createBitArray(uint32_t _max)
     {
         uint8_t* ptr = (uint8_t*)DM_ALLOC(sizeof(BitArray) + BitArray::sizeFor(_max));
         return createBitArray(_max, ptr);
