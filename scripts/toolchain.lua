@@ -330,18 +330,18 @@ function cmft_toolchain(_buildDir, _projDir)
             "-std=c++11",
         }
 
-    configuration { "xcode*", "x32" }
-        targetdir (path.join(_buildDir, "osx32_", _ACTION .. "/bin"))
-        objdir    (path.join(_buildDir, "osx32_", _ACTION .. "/obj"))
+    configuration { "xcode4", "x32" }
+        targetdir (path.join(_buildDir, "xcode4/bin"))
+        objdir    (path.join(_buildDir, "xcode4/obj"))
         buildoptions
         {
             "-m32",
             "-std=c++11",
         }
 
-    configuration { "xcode*", "x64" }
-        targetdir (path.join(_buildDir, "osx64_", _ACTION .. "/bin"))
-        objdir    (path.join(_buildDir, "osx64_", _ACTION .. "/obj"))
+    configuration { "xcode4", "x64" }
+        targetdir (path.join(_buildDir, "xcode4/bin"))
+        objdir    (path.join(_buildDir, "xcode4/obj"))
         buildoptions
         {
             "-m64",
