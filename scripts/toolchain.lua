@@ -313,8 +313,8 @@ function cmft_toolchain(_buildDir, _projDir)
         }
 
     configuration { "osx*", "x32" }
-        targetdir (path.join(_buildDir, "osx32_gcc/bin"))
-        objdir    (path.join(_buildDir, "osx32_gcc/obj"))
+        targetdir (path.join(_buildDir, "osx32_clang/bin"))
+        objdir    (path.join(_buildDir, "osx32_clang/obj"))
         buildoptions
         {
             "-m32",
@@ -322,8 +322,8 @@ function cmft_toolchain(_buildDir, _projDir)
         }
 
     configuration { "osx*", "x64" }
-        targetdir (path.join(_buildDir, "osx64_gcc/bin"))
-        objdir    (path.join(_buildDir, "osx64_gcc/obj"))
+        targetdir (path.join(_buildDir, "osx64_clang/bin"))
+        objdir    (path.join(_buildDir, "osx64_clang/obj"))
         buildoptions
         {
             "-m64",
