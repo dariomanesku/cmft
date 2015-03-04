@@ -17,9 +17,12 @@ function cmftProject(_cmftDir)
         uuid("0809b9fb-eaf6-4e80-9d80-7b490e29f212")
         kind "StaticLib"
 
-        configuration { "*gcc*" }
-        links { "dl" }
-        links { "pthread" }
+        configuration { "linux-*" }
+            links
+            {
+                "dl",
+                "pthread",
+            }
 
         configuration { "vs*" }
         buildoptions

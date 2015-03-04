@@ -21,9 +21,12 @@ function cmftCliProject(_cmftDir)
 
         targetname ("cmft")
 
-        configuration { "*gcc*" }
-            links { "dl" }
-            links { "pthread" }
+        configuration { "linux-*" }
+            links
+            {
+                "dl",
+                "pthread",
+            }
 
         configuration { "vs*" }
             buildoptions

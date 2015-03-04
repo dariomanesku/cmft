@@ -4,11 +4,15 @@
 --
 
 local CMFT_DIR = (path.getabsolute("..") .. "/")
-local BX_DIR   = (CMFT_DIR .. "dependency/bx/")
-local DM_DIR   = (CMFT_DIR .. "dependency/dm/")
+local DEPENDENCY_DIR = (CMFT_DIR .. "dependency/")
+
+local BX_DIR = (DEPENDENCY_DIR .. "bx/")
+local DM_DIR = (DEPENDENCY_DIR .. "dm/")
 
 local CMFT_BUILD_DIR    = (CMFT_DIR .. "_build/")
 local CMFT_PROJECTS_DIR = (CMFT_DIR .. "_projects/")
+
+local DM_SCRIPTS_DIR = (DM_DIR .. "scripts/")
 
 --
 -- Solution.
@@ -19,19 +23,16 @@ configurations { "Debug", "Release" }
 platforms { "x32", "x64" }
 
 -- Toolchain.
-dofile "toolchain.lua"
-cmft_toolchain(CMFT_BUILD_DIR, CMFT_PROJECTS_DIR)
-compat(BX_DIR)
+dofile (DM_SCRIPTS_DIR .. "dm_toolchain.lua")
+dm_toolchain(CMFT_BUILD_DIR, CMFT_PROJECTS_DIR, DEPENDENCY_DIR, BX_DIR)
 
 -- cmft_cli project.
 dofile "cmft_cli.lua"
 cmftCliProject(CMFT_DIR)
-compat(BX_DIR)
 
 -- cmft project.
 dofile "cmft.lua"
 cmftProject(CMFT_DIR)
-compat(BX_DIR)
 
 strip()
 

@@ -96,7 +96,7 @@ function cmft_toolchain(_buildDir, _projDir)
         targetsuffix "Release"
         flags { "OptimizeSpeed", "NoPCH" }
 
-    configuration { "*gcc* or *mingw" }
+    configuration { "linux-* or mingw-* or osx or xcode4" }
         buildoptions
         {
         -- Wall
@@ -105,7 +105,6 @@ function cmft_toolchain(_buildDir, _projDir)
         .. " -Wchar-subscripts"
         .. " -Wcomment"
         .. " -Wformat"
-        .. " -Wmaybe-uninitialized"
         .. " -Wmissing-braces"
         .. " -Wnonnull"
         .. " -Wparentheses"
@@ -125,7 +124,6 @@ function cmft_toolchain(_buildDir, _projDir)
         .. " -Wunused-variable"
         .. " -Wvolatile-register-var"
         -- Wextra
-        .. " -Wclobbered"
         .. " -Wempty-body"
         .. " -Wignored-qualifiers"
         .. " -Wmissing-field-initializers"
@@ -133,9 +131,8 @@ function cmft_toolchain(_buildDir, _projDir)
         .. " -Wtype-limits"
         .. " -Wuninitialized"
         .. " -Wunused-parameter"
-        .. " -Wunused-but-set-parameter"
         -- Other
-        .. " -Wcast-align"
+        .. " -Wno-cast-align" --disabled!
         .. " -Wcast-qual"
         .. " -Wdisabled-optimization"
         .. " -Wdiv-by-zero"
@@ -169,6 +166,26 @@ function cmft_toolchain(_buildDir, _projDir)
         .. " -Wno-variadic-macros"
         .. " -Wno-missing-format-attribute"
         .. " -Wno-inline"
+        }
+
+    configuration { "linux-* or mingw-*" }
+        buildoptions
+        {
+            -- Wall
+                "-Wmaybe-uninitialized"
+            -- Wextra
+            .. " -Wclobbered"
+            .. " -Wunused-but-set-parameter"
+        }
+
+    configuration { "osx or xcode4" }
+        buildoptions
+        {
+            -- Wall
+                "-Wuninitialized"
+            -- Wextra
+            .. " -Wconsumed"
+            .. " -Wunused-parameter"
         }
 
     -- VS
@@ -230,7 +247,6 @@ function cmft_toolchain(_buildDir, _projDir)
             "-fdata-sections",
             "-ffunction-sections",
             "-msse2",
-
             "-shared-libstdc++",
         }
         linkoptions { "-Wl,--gc-sections", }
@@ -288,18 +304,12 @@ function cmft_toolchain(_buildDir, _projDir)
     configuration { "linux-clang", "x32" }
         targetdir (path.join(_buildDir, "linux32_clang/bin"))
         objdir    (path.join(_buildDir, "linux32_clang/obj"))
-        buildoptions
-        {
-            "-m32",
-        }
+        buildoptions { "-m32", }
 
     configuration { "linux-clang", "x64" }
         targetdir (path.join(_buildDir, "linux64_clang/bin"))
         objdir    (path.join(_buildDir, "linux64_clang/obj"))
-        buildoptions
-        {
-            "-m64",
-        }
+        buildoptions { "-m64", }
 
     -- OSX
     configuration { "osx*" }
@@ -315,38 +325,22 @@ function cmft_toolchain(_buildDir, _projDir)
     configuration { "osx*", "x32" }
         targetdir (path.join(_buildDir, "osx32_clang/bin"))
         objdir    (path.join(_buildDir, "osx32_clang/obj"))
-        buildoptions
-        {
-            "-m32",
-            "-std=c++11",
-        }
+        buildoptions { "-m32", "-std=c++11", }
 
     configuration { "osx*", "x64" }
         targetdir (path.join(_buildDir, "osx64_clang/bin"))
         objdir    (path.join(_buildDir, "osx64_clang/obj"))
-        buildoptions
-        {
-            "-m64",
-            "-std=c++11",
-        }
+        buildoptions { "-m64", "-std=c++11", }
 
     configuration { "xcode4", "x32" }
         targetdir (path.join(_buildDir, "xcode4/bin"))
         objdir    (path.join(_buildDir, "xcode4/obj"))
-        buildoptions
-        {
-            "-m32",
-            "-std=c++11",
-        }
+        buildoptions { "-m32", "-std=c++11", }
 
     configuration { "xcode4", "x64" }
         targetdir (path.join(_buildDir, "xcode4/bin"))
         objdir    (path.join(_buildDir, "xcode4/obj"))
-        buildoptions
-        {
-            "-m64",
-            "-std=c++11",
-        }
+        buildoptions { "-m64", "-std=c++11", }
 
     configuration {} -- reset configuration
 end
