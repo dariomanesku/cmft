@@ -34,10 +34,10 @@ eval $CMFT $@ --input "okretnica.tga"           \
               --filter radiance                 \
               --srcFaceSize 256                 \
               --excludeBase false               \
-              --mipCount 9                      \
+              --mipCount 7                      \
               --glossScale 10                   \
-              --glossBias 1                     \
-              --lightingModel phongbrdf         \
+              --glossBias 3                     \
+              --lightingModel blinnbrdf         \
               --edgeFixup none                  \
               --dstFaceSize 256                 \
               ::Processing devices              \
@@ -110,10 +110,10 @@ eval $CMFT $@ --input "okretnica.tga"           \
 #              --filter radiance             \
 #              --srcFaceSize 256             \
 #              --excludeBase false           \
-#              --mipCount 9                  \
+#              --mipCount 7                  \
 #              --glossScale 10               \
-#              --glossBias 1                 \
-#              --lightingModel phongbrdf     \
+#              --glossBias 3                 \
+#              --lightingModel blinnbrdf     \
 #              --edgeFixup none              \
 #              --dstFaceSize 256             \
 #              ::Processing devices          \
