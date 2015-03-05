@@ -844,15 +844,15 @@ function dm_toolchain(_buildDir, _projDir, _libDir, _bxDir)
         linkoptions { "-stdlib=libc++", }
 
     configuration { "xcode4", "x32" }
-        targetdir (path.join(CMFTSTUDIO_BUILD_DIR, "osx32_" .. _ACTION, "bin"))
-        objdir (path.join(CMFTSTUDIO_BUILD_DIR, "osx32_" .. _ACTION, "obj"))
-        libdirs { path.join(DEPENDENCY_DIR, "lib/osx32" .. _ACTION), }
+        targetdir (path.join(_buildDir, "osx32_" .. _ACTION, "bin"))
+        objdir (path.join(_buildDir, "osx32_" .. _ACTION, "obj"))
+        libdirs { path.join(_libDir, "lib/osx32_" .. _ACTION), }
         buildoptions { "-m32" }
 
     configuration { "xcode4", "x64" }
-        targetdir (path.join(CMFTSTUDIO_BUILD_DIR, "osx64_" .. _ACTION, "bin"))
-        objdir (path.join(CMFTSTUDIO_BUILD_DIR, "osx64_" .. _ACTION, "obj"))
-        libdirs { path.join(DEPENDENCY_DIR, "lib/osx64" .. _ACTION), }
+        targetdir (path.join(_buildDir, "osx64_" .. _ACTION, "bin"))
+        objdir (path.join(_buildDir, "osx64_" .. _ACTION, "obj"))
+        libdirs { path.join(_libDir, "lib/osx64_" .. _ACTION), }
         buildoptions { "-m64", }
 
     configuration { "ios*" }
