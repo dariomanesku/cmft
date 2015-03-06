@@ -6,7 +6,6 @@
 #include "cmft/callbacks.h"
 #include "printcallback.h"
 #include <bx/string.h>
-#include <alloca.h>
 
 namespace cmft
 {
@@ -41,15 +40,9 @@ namespace cmft
     char s_buffer[8192];
     static const char* printfVargs(const char* _format, va_list _argList)
     {
-        char* out = s_buffer;
-        int32_t len = bx::vsnprintf(out, sizeof(s_buffer), _format, _argList);
-        if ((int32_t)sizeof(s_buffer) < len)
-        {
-            out = (char*)alloca(len+1);
-            len = bx::vsnprintf(out, len, _format, _argList);
-        }
-        out[len] = '\0';
-        return out;
+        int32_t len = bx::vsnprintf(s_buffer, sizeof(s_buffer), _format, _argList);
+        s_buffer[len] = '\0';
+        return s_buffer;
     }
 
     void printInfo(const char* _format, ...)
