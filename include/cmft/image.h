@@ -131,6 +131,9 @@ namespace cmft
     const char* getOutputTypeStr(OutputType::Enum _ot);
 
     ///
+    const char* getCubemapFaceIdStr(uint8_t _face);
+
+    ///
     const char* getFilenameExtensionStr(ImageFileType::Enum _ft);
 
     ///

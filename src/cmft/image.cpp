@@ -13,7 +13,7 @@
 
 #include <bx/uint32_t.h>
 #include <bx/endian.h>
-#include <bx/string.h> //streol, strnl
+#include <bx/string.h> //streol, strnl, strlcat
 #include <bx/readerwriter.h>
 
 #include <dm/misc.h> //dm::min/max, dm::swap, dm::ScopeFclose
@@ -99,6 +99,26 @@ namespace cmft
         DEBUG_CHECK(_outputType < OutputType::Count, "Reading array out of bounds!");
         return s_outputTypeStr[uint8_t(_outputType)];
     }
+
+    // Cubemap faceId names.
+    //-----
+
+    static const char* s_cubemapFaceIdStr[6] =
+    {
+        "posx",
+        "negx",
+        "posy",
+        "negy",
+        "posz",
+        "negz",
+    };
+
+    const char* getCubemapFaceIdStr(uint8_t _face)
+    {
+        DEBUG_CHECK(_face < 6, "Reading array out of bounds!");
+        return s_cubemapFaceIdStr[_face];
+    }
+
 
     // Valid output types.
     //-----
@@ -947,7 +967,7 @@ namespace cmft
                );
     }
 
-    void tgaHeaderFromImage(TgaHeader& _tgaHeader, const Image& _image)
+    void tgaHeaderFromImage(TgaHeader& _tgaHeader, const Image& _image, uint8_t _mip)
     {
         memset(&_tgaHeader, 0, sizeof(TgaHeader));
         _tgaHeader.m_idLength = 0;
@@ -955,8 +975,8 @@ namespace cmft
         _tgaHeader.m_imageType = TGA_IT_RGB;
         _tgaHeader.m_xOrigin = 0;
         _tgaHeader.m_yOrigin = 0;
-        _tgaHeader.m_width = uint16_t(_image.m_width);
-        _tgaHeader.m_height = uint16_t(_image.m_height);
+        _tgaHeader.m_width  = uint16_t(DM_MAX(1, _image.m_width  >> _mip));
+        _tgaHeader.m_height = uint16_t(DM_MAX(1, _image.m_height >> _mip));
         _tgaHeader.m_bitsPerPixel = getImageDataInfo(_image.m_format).m_bytesPerPixel*8;
         _tgaHeader.m_imageDescriptor = (getImageDataInfo(_image.m_format).m_hasAlpha ? 0x8 : 0x0);
     }
@@ -4384,18 +4404,22 @@ namespace cmft
     {
         CMFT_UNUSED size_t write;
 
-        DdsHeader ddsHeader;
-        DdsHeaderDxt10 ddsHeaderDxt10;
-        ddsHeaderFromImage(ddsHeader, &ddsHeaderDxt10, _image);
+        char fileName[DM_PATH_LEN];
+        strcpy(fileName, _fileName);
+        bx::strlcat(fileName, getFilenameExtensionStr(ImageFileType::DDS), DM_PATH_LEN);
 
         // Open file.
-        FILE* fp = fopen(_fileName, "wb");
+        FILE* fp = fopen(fileName, "wb");
         if (NULL == fp)
         {
-            WARN("Could not open file %s for writing.", _fileName);
+            WARN("Could not open file %s for writing.", fileName);
             return false;
         }
         dm::ScopeFclose cleanup(fp);
+
+        DdsHeader ddsHeader;
+        DdsHeaderDxt10 ddsHeaderDxt10;
+        ddsHeaderFromImage(ddsHeader, &ddsHeaderDxt10, _image);
 
         // Write magic.
         const uint32_t magic = DDS_MAGIC;
@@ -4452,17 +4476,21 @@ namespace cmft
 
     bool imageSaveKtx(const char* _fileName, const Image& _image)
     {
-        KtxHeader ktxHeader;
-        ktxHeaderFromImage(ktxHeader, _image);
+        char fileName[DM_PATH_LEN];
+        strcpy(fileName, _fileName);
+        bx::strlcat(fileName, getFilenameExtensionStr(ImageFileType::KTX), DM_PATH_LEN);
 
         // Open file.
-        FILE* fp = fopen(_fileName, "wb");
+        FILE* fp = fopen(fileName, "wb");
         if (NULL == fp)
         {
-            WARN("Could not open file %s for writing.", _fileName);
+            WARN("Could not open file %s for writing.", fileName);
             return false;
         }
         dm::ScopeFclose cleanup(fp);
+
+        KtxHeader ktxHeader;
+        ktxHeaderFromImage(ktxHeader, _image);
 
         CMFT_UNUSED size_t write;
 
@@ -4568,18 +4596,22 @@ namespace cmft
 
     bool imageSaveHdr(const char* _fileName, const Image& _image, bx::AllocatorI* _allocator)
     {
-        // Hdr file type assumes rgbe image format.
-        ImageSoftRef imageRgbe;
-        imageRefOrConvert(imageRgbe, TextureFormat::RGBE, _image, _allocator);
+        char fileName[DM_PATH_LEN];
+        strcpy(fileName, _fileName);
+        bx::strlcat(fileName, getFilenameExtensionStr(ImageFileType::HDR), DM_PATH_LEN);
 
         // Open file.
-        FILE* fp = fopen(_fileName, "wb");
+        FILE* fp = fopen(fileName, "wb");
         if (NULL == fp)
         {
-            WARN("Could not open file %s for writing.", _fileName);
+            WARN("Could not open file %s for writing.", fileName);
             return false;
         }
         dm::ScopeFclose cleanup(fp);
+
+        // Hdr file type assumes rgbe image format.
+        ImageSoftRef imageRgbe;
+        imageRefOrConvert(imageRgbe, TextureFormat::RGBE, _image, _allocator);
 
         if (1 != imageRgbe.m_numFaces)
         {
@@ -4663,84 +4695,124 @@ namespace cmft
 
     bool imageSaveTga(const char* _fileName, const Image& _image, bool _yflip = true)
     {
-        // Open file.
-        FILE* fp = fopen(_fileName, "wb");
-        if (NULL == fp)
+        char fileName[DM_PATH_LEN];
+        char mipName[DM_PATH_LEN];
+
+        bool result = true;
+        const uint8_t bytesPerPixel = getImageDataInfo(_image.m_format).m_bytesPerPixel;
+
+        for (uint8_t face = 0, endFace = _image.m_numFaces; face < endFace; ++face)
         {
-            WARN("Could not open file %s for writing.", _fileName);
-            return false;
-        }
-        dm::ScopeFclose cleanup(fp);
+            dm::strscpya(fileName, _fileName);
 
-        if (1 != _image.m_numFaces)
-        {
-            WARN("Image seems to be containing more than one face. "
-                 "Only the first one will be saved due to the limits of TGA format."
-                );
-        }
-
-        if (1 != _image.m_numMips)
-        {
-            WARN("Image seems to be containing more than one mip map. "
-                 "Only the first one will be saved due to the limits of TGA format."
-                );
-        }
-
-        TgaHeader tgaHeader;
-        tgaHeaderFromImage(tgaHeader, _image);
-
-        // Write header.
-        CMFT_UNUSED size_t write = 0;
-        write += fwrite(&tgaHeader.m_idLength,        1, sizeof(tgaHeader.m_idLength),        fp);
-        write += fwrite(&tgaHeader.m_colorMapType,    1, sizeof(tgaHeader.m_colorMapType),    fp);
-        write += fwrite(&tgaHeader.m_imageType,       1, sizeof(tgaHeader.m_imageType),       fp);
-        write += fwrite(&tgaHeader.m_colorMapOrigin,  1, sizeof(tgaHeader.m_colorMapOrigin),  fp);
-        write += fwrite(&tgaHeader.m_colorMapLength,  1, sizeof(tgaHeader.m_colorMapLength),  fp);
-        write += fwrite(&tgaHeader.m_colorMapDepth,   1, sizeof(tgaHeader.m_colorMapDepth),   fp);
-        write += fwrite(&tgaHeader.m_xOrigin,         1, sizeof(tgaHeader.m_xOrigin),         fp);
-        write += fwrite(&tgaHeader.m_yOrigin,         1, sizeof(tgaHeader.m_yOrigin),         fp);
-        write += fwrite(&tgaHeader.m_width,           1, sizeof(tgaHeader.m_width),           fp);
-        write += fwrite(&tgaHeader.m_height,          1, sizeof(tgaHeader.m_height),          fp);
-        write += fwrite(&tgaHeader.m_bitsPerPixel,    1, sizeof(tgaHeader.m_bitsPerPixel),    fp);
-        write += fwrite(&tgaHeader.m_imageDescriptor, 1, sizeof(tgaHeader.m_imageDescriptor), fp);
-        DEBUG_CHECK(write == TGA_HEADER_SIZE, "Error writing Tga header.");
-        FERROR_CHECK(fp);
-
-        // Write data. //TODO: implement RLE option.
-        DEBUG_CHECK(NULL != _image.m_data, "Image data is null.");
-        const uint32_t pitch = _image.m_width * getImageDataInfo(_image.m_format).m_bytesPerPixel;
-        if (_yflip)
-        {
-            const uint8_t* src = (uint8_t*)_image.m_data + _image.m_height * pitch;
-            for (uint32_t yy = 0; yy < _image.m_height; ++yy)
+            if (_image.m_numFaces != 1)
             {
-                src-=pitch;
-                write = fwrite(src, 1, pitch, fp);
-                DEBUG_CHECK(write == pitch, "Error writing Tga data.");
-                FERROR_CHECK(fp);
+                bx::strlcat(fileName, "_", DM_PATH_LEN);
+                bx::strlcat(fileName, getCubemapFaceIdStr(face), DM_PATH_LEN);
             }
-        }
-        else
-        {
-            const uint8_t* src = (uint8_t*)_image.m_data;
-            for (uint32_t yy = 0; yy < _image.m_height; ++yy)
+
+            for (uint8_t mip = 0, endMip = _image.m_numMips; mip < endMip; ++mip)
             {
-                write = fwrite(src, 1, pitch, fp);
-                DEBUG_CHECK(write == pitch, "Error writing Tga data.");
+                dm::strscpya(mipName, fileName);
+
+                const uint32_t mipWidth  = dm::max(UINT32_C(1), _image.m_width  >> mip);
+                const uint32_t mipHeight = dm::max(UINT32_C(1), _image.m_height >> mip);
+                const uint32_t mipPitch  = mipWidth * bytesPerPixel;
+
+                if (_image.m_numMips != 1)
+                {
+                    char mipStr[8];
+                    _itoa(int32_t(mip), mipStr, 10);
+
+                    char mipWidthStr[8];
+                    _itoa(int32_t(mipWidth), mipWidthStr, 10);
+
+                    char mipHeightStr[8];
+                    _itoa(int32_t(mipHeight), mipHeightStr, 10);
+
+                    bx::strlcat(mipName, "_",          DM_PATH_LEN);
+                    bx::strlcat(mipName, mipStr,       DM_PATH_LEN);
+                    bx::strlcat(mipName, "_",          DM_PATH_LEN);
+                    bx::strlcat(mipName, mipWidthStr,  DM_PATH_LEN);
+                    bx::strlcat(mipName, "x",          DM_PATH_LEN);
+                    bx::strlcat(mipName, mipHeightStr, DM_PATH_LEN);
+                }
+
+                bx::strlcat(mipName, getFilenameExtensionStr(ImageFileType::TGA), DM_PATH_LEN);
+
+                // Open file.
+                FILE* fp = fopen(mipName, "wb");
+                if (NULL == fp)
+                {
+                    WARN("Could not open file %s for writing.", mipName);
+                    result = false;
+                }
+
+                TgaHeader tgaHeader;
+                tgaHeaderFromImage(tgaHeader, _image, mip);
+
+                // Write header.
+                CMFT_UNUSED size_t write = 0;
+                write += fwrite(&tgaHeader.m_idLength,        1, sizeof(tgaHeader.m_idLength),        fp);
+                write += fwrite(&tgaHeader.m_colorMapType,    1, sizeof(tgaHeader.m_colorMapType),    fp);
+                write += fwrite(&tgaHeader.m_imageType,       1, sizeof(tgaHeader.m_imageType),       fp);
+                write += fwrite(&tgaHeader.m_colorMapOrigin,  1, sizeof(tgaHeader.m_colorMapOrigin),  fp);
+                write += fwrite(&tgaHeader.m_colorMapLength,  1, sizeof(tgaHeader.m_colorMapLength),  fp);
+                write += fwrite(&tgaHeader.m_colorMapDepth,   1, sizeof(tgaHeader.m_colorMapDepth),   fp);
+                write += fwrite(&tgaHeader.m_xOrigin,         1, sizeof(tgaHeader.m_xOrigin),         fp);
+                write += fwrite(&tgaHeader.m_yOrigin,         1, sizeof(tgaHeader.m_yOrigin),         fp);
+                write += fwrite(&tgaHeader.m_width,           1, sizeof(tgaHeader.m_width),           fp);
+                write += fwrite(&tgaHeader.m_height,          1, sizeof(tgaHeader.m_height),          fp);
+                write += fwrite(&tgaHeader.m_bitsPerPixel,    1, sizeof(tgaHeader.m_bitsPerPixel),    fp);
+                write += fwrite(&tgaHeader.m_imageDescriptor, 1, sizeof(tgaHeader.m_imageDescriptor), fp);
+                DEBUG_CHECK(write == TGA_HEADER_SIZE, "Error writing Tga header.");
                 FERROR_CHECK(fp);
-                src+=pitch;
+
+                // Get image offsets.
+                uint32_t imageOffsets[CUBE_FACE_NUM][MAX_MIP_NUM];
+                imageGetMipOffsets(imageOffsets, _image);
+
+                // Write data. //TODO: implement RLE option.
+                DEBUG_CHECK(NULL != _image.m_data, "Image data is null.");
+                const uint8_t* mipData = (const uint8_t*)_image.m_data + imageOffsets[face][mip];
+                if (_yflip)
+                {
+                    const uint8_t* src = (uint8_t*)mipData + mipHeight * mipPitch;
+                    for (uint32_t yy = 0; yy < mipHeight; ++yy)
+                    {
+                        src-=mipPitch;
+                        write = fwrite(src, 1, mipPitch, fp);
+                        DEBUG_CHECK(write == mipPitch, "Error writing Tga data.");
+                        FERROR_CHECK(fp);
+                    }
+                }
+                else
+                {
+                    const uint8_t* src = (uint8_t*)mipData;
+                    for (uint32_t yy = 0; yy < mipHeight; ++yy)
+                    {
+                        write = fwrite(src, 1, mipPitch, fp);
+                        DEBUG_CHECK(write == mipPitch, "Error writing Tga data.");
+                        FERROR_CHECK(fp);
+                        src+=mipPitch;
+                    }
+                }
+
+                // Write footer.
+                TgaFooter tgaFooter = { 0, 0, TGA_ID };
+                write  = fwrite(&tgaFooter.m_extensionOffset, 1, sizeof(tgaFooter.m_extensionOffset), fp);
+                write += fwrite(&tgaFooter.m_developerOffset, 1, sizeof(tgaFooter.m_developerOffset), fp);
+                write += fwrite(&tgaFooter.m_signature,       1, sizeof(tgaFooter.m_signature),       fp);
+                DEBUG_CHECK(TGA_FOOTER_SIZE == write, "Error writing Tga footer.");
+                FERROR_CHECK(fp);
+
+                // Cleanup.
+                fclose(fp);
             }
+
         }
 
-        // Write footer.
-        TgaFooter tgaFooter = { 0, 0, TGA_ID };
-        write  = fwrite(&tgaFooter.m_extensionOffset, 1, sizeof(tgaFooter.m_extensionOffset), fp);
-        write += fwrite(&tgaFooter.m_developerOffset, 1, sizeof(tgaFooter.m_developerOffset), fp);
-        write += fwrite(&tgaFooter.m_signature,       1, sizeof(tgaFooter.m_signature),       fp);
-        DEBUG_CHECK(TGA_FOOTER_SIZE == write, "Error writing Tga footer.");
-        FERROR_CHECK(fp);
-
-        return true;
+        return result;
     }
 
     bool imageSave(const Image& _image, const char* _fileName, ImageFileType::Enum _ft, TextureFormat::Enum _convertTo, bx::AllocatorI* _allocator)
@@ -4756,30 +4828,25 @@ namespace cmft
             imageRef(image, _image);
         }
 
-        // Append appropriate extension to file name.
-        char filePath[512];
-        strcpy(filePath, _fileName);
-        strcat(filePath, getFilenameExtensionStr(_ft));
-
         // Check for valid texture format and save.
         bool result = false;
         if (checkValidTextureFormat(_ft, image.m_format))
         {
             if (ImageFileType::DDS == _ft)
             {
-                result = imageSaveDds(filePath, image);
+                result = imageSaveDds(_fileName, image);
             }
             else if (ImageFileType::KTX == _ft)
             {
-                result = imageSaveKtx(filePath, image);
+                result = imageSaveKtx(_fileName, image);
             }
             else if (ImageFileType::TGA == _ft)
             {
-                result = imageSaveTga(filePath, image);
+                result = imageSaveTga(_fileName, image);
             }
             else if (ImageFileType::HDR == _ft)
             {
-                result = imageSaveHdr(filePath, image, _allocator);
+                result = imageSaveHdr(_fileName, image, _allocator);
             }
         }
         else
@@ -4839,22 +4906,12 @@ namespace cmft
             Image outputFaceList[6];
             imageFaceListFromCubemap(outputFaceList, _image, _allocator);
 
-            static const char* s_cubemapFaceIdNames[6] =
-            {
-                "posx",
-                "negx",
-                "posy",
-                "negy",
-                "posz",
-                "negz",
-            };
-
             result = true;
 
             for (uint8_t face = 0; face < 6; ++face)
             {
                 char faceFileName[2048];
-                sprintf(faceFileName, "%s_%s", _fileName, s_cubemapFaceIdNames[face]);
+                sprintf(faceFileName, "%s_%s", _fileName, getCubemapFaceIdStr(face));
 
                 if (_printOutput)
                 {
