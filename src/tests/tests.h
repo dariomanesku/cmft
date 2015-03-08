@@ -31,8 +31,34 @@ static const char s_radianceTest[] =
     "--outputGammaDenominator 2.2        "
     "--generateMipChain false            "
     "--outputNum 1                       "
-    "--output0 \"okretnica_pmrem\"       "
+    "--output0 \"okretnicaPmrem\"        "
     "--output0params dds,bgra8,cubemap   "
+};
+
+static const char s_tgaRadianceTest[] =
+{
+    "--input \"okretnica.tga\"           "
+    "--filter radiance                   "
+    "--srcFaceSize 256                   "
+    "--excludeBase false                 "
+    "--mipCount 7                        "
+    "--glossScale 10                     "
+    "--glossBias 3                       "
+    "--lightingModel blinnbrdf           "
+    "--dstFaceSize 256                   "
+    "--numCpuProcessingThreads 4         "
+    "--useOpenCL true                    "
+    "--clVendor anyGpuVendor             "
+    "--deviceType gpu                    "
+    "--deviceIndex 0                     "
+    "--inputGammaNumerator 2.2           "
+    "--inputGammaDenominator 1.0         "
+    "--outputGammaNumerator 1.0          "
+    "--outputGammaDenominator 2.2        "
+    "--generateMipChain false            "
+    "--outputNum 1                       "
+    "--output0 \"okretnicaPmrem\"        "
+    "--output0params tga,bgra8,facelist  "
 };
 
 static const char s_outputTest[] =
@@ -118,7 +144,8 @@ int test(const char* _cmd)
 
 int testsMain(int /*_argc*/, char const* const* /*_argv*/)
 {
-    test(s_radianceTest);
+    //test(s_radianceTest);
+    test(s_tgaRadianceTest);
     //test(s_outputTest);
     //test(s_gpuTest);
     //test(s_test0);
