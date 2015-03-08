@@ -34,18 +34,6 @@ function cmftCliProject(_cmftDir)
                 "/wd 4127" -- disable 'conditional expression is constant' for do {} while(0)
             }
 
-        configuration { "Debug" }
-            defines
-            {
-                "CMFT_CONFIG_DEBUG=1",
-            }
-
-        configuration { "Release" }
-            defines
-            {
-                "CMFT_CONFIG_DEBUG=0",
-            }
-
         configuration {}
 
         debugdir (CMFT_RUNTIME_DIR)

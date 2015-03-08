@@ -7,36 +7,42 @@
 #define CMFT_CONFIG_H_HEADER_GUARD
 
 #include <stdlib.h> //abort()
-#include <stdio.h> //stderr
+#include <stdio.h>  //stderr
 
-#ifndef CMFT_CONFIG_DEBUG
-    #define CMFT_CONFIG_DEBUG 0
-#endif // CMFT_CONFIG_DEBUG
 
-#define CMFT_ENABLE_INFO_MESSAGES      1
-#define CMFT_ENABLE_WARNINGS           1
+// Config.
+//-----
 
-#if CMFT_CONFIG_DEBUG
-    #define CMFT_ENABLE_CL_CHECK           1
-    #define CMFT_ENABLE_DEBUG_CHECK        1
-    #define CMFT_ENABLE_FILE_ERROR_CHECK   1
-    #define CMFT_ENABLE_MEMORY_ALLOC_CHECK 1
-#else
+// This flags can also be specified in the build tool by defining CMFT_CUSTOM_CONFIG.
+#ifndef CMFT_CUSTOM_CONFIG
+    // Output messages.
+    #define CMFT_ENABLE_INFO_MESSAGES   1
+    #define CMFT_ENABLE_WARNINGS        1
+    #define CMFT_ENABLE_PROGRESS_REPORT 0
+
+    // Flush output.
+    #define CMFT_ALWAYS_FLUSH_OUTPUT 1
+
+    // Checks.
     #define CMFT_ENABLE_CL_CHECK           0
     #define CMFT_ENABLE_DEBUG_CHECK        0
     #define CMFT_ENABLE_FILE_ERROR_CHECK   0
     #define CMFT_ENABLE_MEMORY_ALLOC_CHECK 0
-#endif
+#endif // CMFT_CUSTOM_CONFIG
 
-// Cmft warning.
-#ifndef CMFT_ENABLE_WARNINGS
-    #define CMFT_ENABLE_WARNINGS 0
-#endif
 
-#if CMFT_ENABLE_WARNINGS
-    #define WARN _WARN
+// Implementation.
+//-----
+
+// Flush output.
+#ifndef CMFT_ALWAYS_FLUSH_OUTPUT
+    #define CMFT_ALWAYS_FLUSH_OUTPUT 0
+#endif //CMFT_ALWAYS_FLUSH_OUTPUT
+
+#if CMFT_ALWAYS_FLUSH_OUTPUT
+    #define CMFT_FLUSH_OUTPUT() do { fflush(stdout); fflush(stderr); } while(0)
 #else
-    #define WARN(...) do {} while(0)
+    #define CMFT_FLUSH_OUTPUT() do {} while(0)
 #endif
 
 // Cmft info.
@@ -48,6 +54,33 @@
     #define INFO _INFO
 #else
     #define INFO(...) do {} while(0)
+#endif
+
+// Cmft info.
+#ifndef CMFT_ENABLE_PROGRESS_REPORT
+    #define CMFT_ENABLE_PROGRESS_REPORT 0
+#endif
+
+#if CMFT_ENABLE_PROGRESS_REPORT
+    #define CMFT_PROGRESS(_format, ...)      \
+    do                                       \
+    {                                        \
+        printf(_format "\n", ##__VA_ARGS__); \
+        CMFT_FLUSH_OUTPUT();                 \
+    } while(0)
+#else
+    #define CMFT_PROGRESS(...) do {} while(0)
+#endif
+
+// Cmft warning.
+#ifndef CMFT_ENABLE_WARNINGS
+    #define CMFT_ENABLE_WARNINGS 0
+#endif
+
+#if CMFT_ENABLE_WARNINGS
+    #define WARN _WARN
+#else
+    #define WARN(...) do {} while(0)
 #endif
 
 // File error check.
@@ -67,6 +100,7 @@ do                                                                 \
     if (ferror(_fp))                                               \
     {                                                              \
         fprintf(stderr, "CMFT FILE I/O ERROR " _FILE_LINE_ ".\n"); \
+        CMFT_FLUSH_OUTPUT();                                       \
     }                                                              \
 } while(0)
 
@@ -87,6 +121,7 @@ do                                                                     \
     if (NULL == _ptr)                                                  \
     {                                                                  \
         fprintf(stderr, "CMFT MEMORY ALLOC ERROR " _FILE_LINE_ ".\n"); \
+        CMFT_FLUSH_OUTPUT();                                           \
     }                                                                  \
 } while(0)
 
@@ -107,6 +142,7 @@ do                                                                              
     if (!(_condition))                                                                      \
     {                                                                                       \
         fprintf(stderr, "CMFT DEBUG CHECK " _FILE_LINE_ ": "  _format "\n", ##__VA_ARGS__); \
+        CMFT_FLUSH_OUTPUT();                                                                \
         abort();                                                                            \
     }                                                                                       \
 } while(0)
@@ -131,6 +167,7 @@ do                                                                              
         if (CL_SUCCESS != err)                                                           \
         {                                                                                \
             fprintf(stderr, "CMFT OpenCL Error: '%s' returned %d!\n", #_expr, (int)err); \
+            CMFT_FLUSH_OUTPUT();                                                         \
             abort();                                                                     \
         }                                                                                \
     } while (0)
@@ -139,6 +176,7 @@ do                                                                              
     if (CL_SUCCESS != _err)                                     \
     {                                                           \
         fprintf(stderr, "CMFT OpenCL Error: %d!\n", (int)_err); \
+        CMFT_FLUSH_OUTPUT();                                    \
         abort();                                                \
     }
 

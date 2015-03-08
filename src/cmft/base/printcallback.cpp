@@ -3,6 +3,7 @@
  * License: http://www.opensource.org/licenses/BSD-2-Clause
  */
 
+#include <base/config.h>
 #include "cmft/callbacks.h"
 #include "printcallback.h"
 #include <bx/string.h>
@@ -21,11 +22,13 @@ namespace cmft
         virtual void printWarning(const char* _msg) const
         {
             fputs(_msg, stderr);
+            CMFT_FLUSH_OUTPUT();
         }
 
         virtual void printInfo(const char* _msg) const
         {
             fputs(_msg, stdout);
+            CMFT_FLUSH_OUTPUT();
         }
     };
     static PrintCallbackStub s_messageCallbackStub;

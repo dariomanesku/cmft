@@ -3,13 +3,14 @@
  * License: http://www.opensource.org/licenses/BSD-2-Clause
  */
 
+#include "base/config.h"
+#include "base/printcallback.h"
+#include "base/macros.h"
+
 #include <cmft/cubemapfilter.h>
 #include <cmft/clcontext.h>
 #include <cmft/allocator.h>
 
-#include "base/config.h"
-#include "base/printcallback.h"
-#include "base/macros.h"
 #include "cubemaputils.h"
 #include "radiance.h"
 
@@ -969,9 +970,15 @@ namespace cmft
     {
         RadianceFilterGlobalState()
         {
+            reset();
+        }
+
+        void reset()
+        {
             m_startTime         = 0;
             m_completedTasksGpu = 0;
             m_completedTasksCpu = 0;
+            m_totalTasks        = 0;
             m_threadId          = 0;
         }
 
@@ -983,28 +990,25 @@ namespace cmft
 
         void incrCompletedTasksGpu()
         {
-            bx::MutexScope lock(m_completedTasksGpuMutex);
+            bx::MutexScope lock(m_completedTasks);
             m_completedTasksGpu++;
+            CMFT_PROGRESS("%d %d", m_completedTasksCpu + m_completedTasksGpu, m_totalTasks);
         }
 
         void incrCompletedTasksCpu()
         {
-            bx::MutexScope lock(m_completedTasksCpuMutex);
+            bx::MutexScope lock(m_completedTasks);
             m_completedTasksCpu++;
-        }
-
-        void reset()
-        {
-            m_threadId = 0;
+            CMFT_PROGRESS("%d %d", m_completedTasksCpu + m_completedTasksGpu, m_totalTasks);
         }
 
         uint64_t m_startTime;
         uint16_t m_completedTasksGpu;
         uint16_t m_completedTasksCpu;
+        uint16_t m_totalTasks;
         uint8_t m_threadId;
         bx::Mutex m_threadIdMutex;
-        bx::Mutex m_completedTasksGpuMutex;
-        bx::Mutex m_completedTasksCpuMutex;
+        bx::Mutex m_completedTasks;
     };
     static RadianceFilterGlobalState s_globalState;
 
@@ -1127,8 +1131,6 @@ namespace cmft
             // Update task counter.
             s_globalState.incrCompletedTasksCpu();
         }
-
-        s_globalState.reset();
 
         return EXIT_SUCCESS;
     }
@@ -1979,7 +1981,9 @@ namespace cmft
             }
 
             // Start global timer.
+            s_globalState.reset();
             s_globalState.m_startTime = bx::getHPCounter();
+            s_globalState.m_totalTasks = mipCount*6;
             INFO("Radiance -> Starting filter...");
 
             INFO("Radiance -> Utilizing %u CPU processing thread%s%s%s."
@@ -2035,6 +2039,7 @@ namespace cmft
                     memcpy(&taskList.m_params[mip][face], &taskParams, sizeof(RadianceFilterParams));
                 }
             }
+
 
             // Output process header info.
             INFO("Radiance -> ------------------------------------");
@@ -2107,6 +2112,7 @@ namespace cmft
                 s_radianceProgram.releaseDeviceMemory();
                 s_radianceProgram.destroy();
             }
+            s_globalState.reset();
 
             BX_FREE(g_allocator, cubemapVectors);
         }

@@ -6,6 +6,10 @@
 #ifndef CMFT_CMFT_CLI_H_HEADER_GUARD
 #define CMFT_CMFT_CLI_H_HEADER_GUARD
 
+#include <base/config.h>        //INFO, WARN
+#include <base/printcallback.h> //_INFO, _WARN, g_printInfo, g_printWarnings
+#include <base/macros.h>        //countof
+
 #include <stdio.h>
 #include <stdint.h>
 
@@ -15,9 +19,6 @@
 #include <cmft/cubemapfilter.h>
 #include <cmft/clcontext.h>
 
-#include <base/config.h> //INFO, WARN
-#include <base/printcallback.h> //_INFO, _WARN, g_printInfo, g_printWarnings
-#include <base/macros.h> //countof
 
 #include <dm/misc.h> //DM_PATH_LEN, dm::min, dm::strscpya, dm::ScopeFclose
 
@@ -853,6 +854,11 @@ int cmftMain(int _argc, char const* const* _argv)
         WARN("ERROR! OpenCL is not set up properly on the machine.");
         return EXIT_FAILURE;
     }
+
+    #if CMFT_ALWAYS_FLUSH_OUTPUT
+        setvbuf(stdout, NULL, _IONBF, 0);
+        setvbuf(stderr, NULL, _IONBF, 0);
+    #endif
 
     InputParameters inputParameters;
     inputParametersDefault(inputParameters);
