@@ -3,10 +3,10 @@
  * License: http://www.opensource.org/licenses/BSD-2-Clause
  */
 
-#define CMFT_TEST_BUILD 0
+#include <base/config.h>
 
 #ifndef CMFT_TEST_BUILD
-    #define CMFT_TEST_BUILD 1
+    #define CMFT_TEST_BUILD 0
 #endif
 
 #if CMFT_TEST_BUILD

@@ -30,6 +30,9 @@
     #define CMFT_ENABLE_MEMORY_ALLOC_CHECK 0
 #endif // CMFT_CUSTOM_CONFIG
 
+// When CMFT_TEST_BUILD is 0, 'src/cmft_cli/cmft_cli.h' gets executed.
+// When CMFT_TEST_BUILD is 1, 'src/tests/test.h'        gets executed.
+#define CMFT_TEST_BUILD 0
 
 // Implementation.
 //-----
