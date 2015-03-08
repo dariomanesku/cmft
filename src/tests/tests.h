@@ -15,10 +15,10 @@ static const char s_radianceTest[] =
     "--filter radiance                   "
     "--srcFaceSize 256                   "
     "--excludeBase false                 "
-    "--mipCount 10                       "
+    "--mipCount 7                        "
     "--glossScale 10                     "
-    "--glossBias 1                       "
-    "--lightingModel phongbrdf           "
+    "--glossBias 3                       "
+    "--lightingModel blinnbrdf           "
     "--dstFaceSize 256                   "
     "--numCpuProcessingThreads 4         "
     "--useOpenCL true                    "
@@ -64,8 +64,8 @@ static const char s_gpuTest[] =
     "--excludeBase false                 "
     "--mipCount 7                        "
     "--glossScale 10                     "
-    "--glossBias 1                       "
-    "--lightingModel phongbrdf           "
+    "--glossBias 3                       "
+    "--lightingModel blinnbrdf           "
     "--edgeFixup none                    "
     "--dstFaceSize 256                   "
     "--numCpuProcessingThreads 0         "
@@ -118,9 +118,9 @@ int test(const char* _cmd)
 
 int testsMain(int /*_argc*/, char const* const* /*_argv*/)
 {
-    //test(s_radianceTest);
+    test(s_radianceTest);
     //test(s_outputTest);
-    test(s_gpuTest);
+    //test(s_gpuTest);
     //test(s_test0);
     //test(s_test1);
 

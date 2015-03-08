@@ -33,10 +33,10 @@ REM           --output0 "okretnica"
           --filter radiance                 ^
           --srcFaceSize 256                 ^
           --excludeBase false               ^
-          --mipCount 9                      ^
+          --mipCount 7                      ^
           --glossScale 10                   ^
-          --glossBias 1                     ^
-          --lightingModel phongbrdf         ^
+          --glossBias 3                     ^
+          --lightingModel blinnbrdf         ^
           --edgeFixup none                  ^
           --dstFaceSize 256                 ^
           ::Processing devices              ^
@@ -114,10 +114,10 @@ REM           ::Filter options              ^
 REM           --filter radiance             ^
 REM           --srcFaceSize 256             ^
 REM           --excludeBase false           ^
-REM           --mipCount 9                  ^
+REM           --mipCount 7                  ^
 REM           --glossScale 10               ^
-REM           --glossBias 1                 ^
-REM           --lightingModel phongbrdf     ^
+REM           --glossBias 3                 ^
+REM           --lightingModel blinnbrdf     ^
 REM           --edgeFixup none              ^
 REM           --dstFaceSize 256             ^
 REM           ::Processing devices          ^
