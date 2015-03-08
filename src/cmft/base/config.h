@@ -21,7 +21,7 @@
     #define CMFT_ENABLE_PROGRESS_REPORT 0
 
     // Flush output.
-    #define CMFT_ALWAYS_FLUSH_OUTPUT 1
+    #define CMFT_ALWAYS_FLUSH_OUTPUT 0
 
     // Checks.
     #define CMFT_ENABLE_CL_CHECK           0
