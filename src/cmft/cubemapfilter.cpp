@@ -1033,12 +1033,19 @@ namespace cmft
             m_mipStart = _mipBegin;
             m_mipEnd   = _mipTotalCount-1;
             memset(m_mipFace, 0, MAX_MIP_NUM);
+
+            m_unfinishedCount = 0;
+        }
+
+        void set(uint8_t _mip, uint8_t _face, RadianceFilterParams* _params)
+        {
+            memcpy(&m_params[_mip][_face], _params, sizeof(RadianceFilterParams));
         }
 
         // Returns cube face radiance filter parameters starting from the top mip level.
         const RadianceFilterParams* getFromTop()
         {
-            bx::MutexScope lock(m_indexMutex);
+            bx::MutexScope lock(m_access);
 
             while (m_mipStart <= m_mipEnd)
             {
@@ -1060,7 +1067,7 @@ namespace cmft
         // Returns cube face radiance filter parameters starting from the bottom mip level.
         const RadianceFilterParams* getFromBottom()
         {
-            bx::MutexScope lock(m_indexMutex);
+            bx::MutexScope lock(m_access);
 
             while (m_mipStart <= m_mipEnd)
             {
@@ -1078,11 +1085,33 @@ namespace cmft
             return NULL;
         }
 
-        bx::Mutex m_indexMutex;
+        void pushUnfinished(const RadianceFilterParams* _params)
+        {
+            bx::MutexScope lock(m_accessUnfinished);
+            m_unfinished[m_unfinishedCount++] = _params;
+        }
+
+        const RadianceFilterParams* popUnfinished()
+        {
+            bx::MutexScope lock(m_accessUnfinished);
+            return (0 == m_unfinishedCount) ? NULL : m_unfinished[--m_unfinishedCount];
+        }
+
+        uint16_t unfinishedCount() const
+        {
+            return m_unfinishedCount;
+        }
+
+    private:
+        bx::Mutex m_access;
         int8_t m_mipStart;
         int8_t m_mipEnd;
         int8_t m_mipFace[MAX_MIP_NUM];
         RadianceFilterParams m_params[MAX_MIP_NUM][CUBE_FACE_NUM];
+
+        bx::Mutex m_accessUnfinished;
+        uint16_t m_unfinishedCount;
+        const RadianceFilterParams* m_unfinished[MAX_MIP_NUM*CUBE_FACE_NUM];
     };
 
     int32_t radianceFilterCpu(void* _taskList)
@@ -1093,9 +1122,10 @@ namespace cmft
 
         RadianceFilterTaskList* taskList = (RadianceFilterTaskList*)_taskList;
 
-        // Gpu is processing from the top level mip map to the bottom.
+        // Cpu is processing from the bottom level mip map to the top.
         const RadianceFilterParams* params;
-        while ((params = taskList->getFromBottom()) != NULL)
+        while ((params = taskList->getFromBottom()) != NULL
+        ||     (params = taskList->popUnfinished()) != NULL)
         {
             // Start timer.
             const uint64_t startTime = bx::getHPCounter();
@@ -1175,6 +1205,15 @@ namespace cmft
         bool isValid() const
         {
             return (NULL != m_program);
+        }
+
+        void invalidate()
+        {
+            if (NULL != m_program)
+            {
+                clReleaseProgram(m_program);
+                m_program = NULL;
+            }
         }
 
         bool createFromStr(const char* _source, size_t _sourceSize, const char* _header, size_t _headerSize)
@@ -1278,7 +1317,28 @@ namespace cmft
             return result;
         }
 
-        void initDeviceMemory(const Image& _image, float* _cubemapNormalSolidAngle)
+        #define CL_CHECK_RETURN(_err)       \
+            do                              \
+            {                               \
+                if (CL_SUCCESS != _err)     \
+                {                           \
+                    WARN("OpenCL failed!"); \
+                    return false;           \
+                }                           \
+            } while(0)
+
+        #define CL_CHECK_EXPR_RETURN(_expr) \
+            do                              \
+            {                               \
+                cl_int err = _expr;         \
+                if (CL_SUCCESS != err)      \
+                {                           \
+                    WARN("OpenCL failed!"); \
+                    return false;           \
+                }                           \
+            } while(0)
+
+        bool initDeviceMemory(const Image& _image, float* _cubemapNormalSolidAngle)
         {
             cl_int err;
 
@@ -1299,7 +1359,7 @@ namespace cmft
                                                     , ((uint8_t*)_image.m_data + faceOffsets[face])
                                                     , &err
                                                     );
-                CL_CHECK_ERR(err);
+                CL_CHECK_RETURN(err);
 
                 m_memNormalSolidAngle[face] = clCreateImage2D(m_clContext->m_context
                                                             , CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR
@@ -1310,13 +1370,15 @@ namespace cmft
                                                             , ((uint8_t*)_cubemapNormalSolidAngle + normalFaceSize*face)
                                                             , &err
                                                             );
-                CL_CHECK_ERR(err);
+                CL_CHECK_RETURN(err);
             }
 
             m_srcFaceSize = float(int32_t(_image.m_width));
+
+            return true;
         }
 
-        void processAllAtOnce(void* _out
+        bool processAllAtOnce(void* _out
                             , uint8_t _faceIdx
                             , uint32_t _dstFaceSize
                             , float _specularPower
@@ -1348,7 +1410,7 @@ namespace cmft
                                          , NULL
                                          , &err
                                          );
-                CL_CHECK_ERR(err);
+                CL_CHECK_RETURN(err);
             }
             m_prevDstFaceSize = _dstFaceSize;
 
@@ -1366,33 +1428,33 @@ namespace cmft
                                             , filterArea
                                             , &err
                                             );
-                CL_CHECK_ERR(err);
+                CL_CHECK_RETURN(err);
             #endif //CMFT_COMPUTE_FILTER_AREA_ON_CPU
             BX_UNUSED(_edgeFixup);
 
             // Set arguments.
-            CL_CHECK(clSetKernelArg(m_radFilter,  0, sizeof(cl_mem),  (const void*)&m_memOut));
-            CL_CHECK(clSetKernelArg(m_radFilter,  1, sizeof(int32_t), (const void*)&_dstFaceSize));
-            CL_CHECK(clSetKernelArg(m_radFilter,  2, sizeof(float),   (const void*)&_specularPower));
-            CL_CHECK(clSetKernelArg(m_radFilter,  3, sizeof(float),   (const void*)&_specularAngle));
-            CL_CHECK(clSetKernelArg(m_radFilter,  4, sizeof(float),   (const void*)&_filterSize));
-            CL_CHECK(clSetKernelArg(m_radFilter,  5, sizeof(float),   (const void*)&warp));
-            CL_CHECK(clSetKernelArg(m_radFilter,  6, sizeof(int8_t),  (const void*)&_faceIdx));
-            CL_CHECK(clSetKernelArg(m_radFilter,  7, sizeof(float),   (const void*)&m_srcFaceSize));
-            CL_CHECK(clSetKernelArg(m_radFilter,  8, sizeof(cl_mem),  (const void*)&m_memFaceData[0]));
-            CL_CHECK(clSetKernelArg(m_radFilter,  9, sizeof(cl_mem),  (const void*)&m_memFaceData[1]));
-            CL_CHECK(clSetKernelArg(m_radFilter, 10, sizeof(cl_mem),  (const void*)&m_memFaceData[2]));
-            CL_CHECK(clSetKernelArg(m_radFilter, 11, sizeof(cl_mem),  (const void*)&m_memFaceData[3]));
-            CL_CHECK(clSetKernelArg(m_radFilter, 12, sizeof(cl_mem),  (const void*)&m_memFaceData[4]));
-            CL_CHECK(clSetKernelArg(m_radFilter, 13, sizeof(cl_mem),  (const void*)&m_memFaceData[5]));
-            CL_CHECK(clSetKernelArg(m_radFilter, 14, sizeof(cl_mem),  (const void*)&m_memNormalSolidAngle[0]));
-            CL_CHECK(clSetKernelArg(m_radFilter, 15, sizeof(cl_mem),  (const void*)&m_memNormalSolidAngle[1]));
-            CL_CHECK(clSetKernelArg(m_radFilter, 16, sizeof(cl_mem),  (const void*)&m_memNormalSolidAngle[2]));
-            CL_CHECK(clSetKernelArg(m_radFilter, 17, sizeof(cl_mem),  (const void*)&m_memNormalSolidAngle[3]));
-            CL_CHECK(clSetKernelArg(m_radFilter, 18, sizeof(cl_mem),  (const void*)&m_memNormalSolidAngle[4]));
-            CL_CHECK(clSetKernelArg(m_radFilter, 19, sizeof(cl_mem),  (const void*)&m_memNormalSolidAngle[5]));
+            CL_CHECK_EXPR_RETURN(clSetKernelArg(m_radFilter,  0, sizeof(cl_mem),  (const void*)&m_memOut));
+            CL_CHECK_EXPR_RETURN(clSetKernelArg(m_radFilter,  1, sizeof(int32_t), (const void*)&_dstFaceSize));
+            CL_CHECK_EXPR_RETURN(clSetKernelArg(m_radFilter,  2, sizeof(float),   (const void*)&_specularPower));
+            CL_CHECK_EXPR_RETURN(clSetKernelArg(m_radFilter,  3, sizeof(float),   (const void*)&_specularAngle));
+            CL_CHECK_EXPR_RETURN(clSetKernelArg(m_radFilter,  4, sizeof(float),   (const void*)&_filterSize));
+            CL_CHECK_EXPR_RETURN(clSetKernelArg(m_radFilter,  5, sizeof(float),   (const void*)&warp));
+            CL_CHECK_EXPR_RETURN(clSetKernelArg(m_radFilter,  6, sizeof(int8_t),  (const void*)&_faceIdx));
+            CL_CHECK_EXPR_RETURN(clSetKernelArg(m_radFilter,  7, sizeof(float),   (const void*)&m_srcFaceSize));
+            CL_CHECK_EXPR_RETURN(clSetKernelArg(m_radFilter,  8, sizeof(cl_mem),  (const void*)&m_memFaceData[0]));
+            CL_CHECK_EXPR_RETURN(clSetKernelArg(m_radFilter,  9, sizeof(cl_mem),  (const void*)&m_memFaceData[1]));
+            CL_CHECK_EXPR_RETURN(clSetKernelArg(m_radFilter, 10, sizeof(cl_mem),  (const void*)&m_memFaceData[2]));
+            CL_CHECK_EXPR_RETURN(clSetKernelArg(m_radFilter, 11, sizeof(cl_mem),  (const void*)&m_memFaceData[3]));
+            CL_CHECK_EXPR_RETURN(clSetKernelArg(m_radFilter, 12, sizeof(cl_mem),  (const void*)&m_memFaceData[4]));
+            CL_CHECK_EXPR_RETURN(clSetKernelArg(m_radFilter, 13, sizeof(cl_mem),  (const void*)&m_memFaceData[5]));
+            CL_CHECK_EXPR_RETURN(clSetKernelArg(m_radFilter, 14, sizeof(cl_mem),  (const void*)&m_memNormalSolidAngle[0]));
+            CL_CHECK_EXPR_RETURN(clSetKernelArg(m_radFilter, 15, sizeof(cl_mem),  (const void*)&m_memNormalSolidAngle[1]));
+            CL_CHECK_EXPR_RETURN(clSetKernelArg(m_radFilter, 16, sizeof(cl_mem),  (const void*)&m_memNormalSolidAngle[2]));
+            CL_CHECK_EXPR_RETURN(clSetKernelArg(m_radFilter, 17, sizeof(cl_mem),  (const void*)&m_memNormalSolidAngle[3]));
+            CL_CHECK_EXPR_RETURN(clSetKernelArg(m_radFilter, 18, sizeof(cl_mem),  (const void*)&m_memNormalSolidAngle[4]));
+            CL_CHECK_EXPR_RETURN(clSetKernelArg(m_radFilter, 19, sizeof(cl_mem),  (const void*)&m_memNormalSolidAngle[5]));
             #if CMFT_COMPUTE_FILTER_AREA_ON_CPU
-                CL_CHECK(clSetKernelArg(m_radFilter, 20, sizeof(cl_mem),  (const void*)&area));
+                CL_CHECK_EXPR_RETURN(clSetKernelArg(m_radFilter, 20, sizeof(cl_mem),  (const void*)&area));
             #endif //CMFT_COMPUTE_FILTER_AREA_ON_CPU
 
             // Process in tiles of 64x64.
@@ -1408,41 +1470,43 @@ namespace cmft
                         DM_MIN(tileSize, _dstFaceSize-workOffset[0]),
                         DM_MIN(tileSize, _dstFaceSize-workOffset[1]),
                     };
-                    CL_CHECK(clEnqueueNDRangeKernel(m_clContext->m_commandQueue
-                                                  , m_radFilter
-                                                  , 2
-                                                  , workOffset
-                                                  , workSize
-                                                  , NULL
-                                                  , 0
-                                                  , NULL
-                                                  , &m_event
-                                                  ));
+                    CL_CHECK_EXPR_RETURN(clEnqueueNDRangeKernel(m_clContext->m_commandQueue
+                                                              , m_radFilter
+                                                              , 2
+                                                              , workOffset
+                                                              , workSize
+                                                              , NULL
+                                                              , 0
+                                                              , NULL
+                                                              , &m_event
+                                                              ));
                 }
             }
 
             const size_t origin[3] = { 0, 0, 0 };
             const size_t region[3] = { _dstFaceSize, _dstFaceSize, 1 };
-            CL_CHECK(clEnqueueReadImage(m_clContext->m_commandQueue
-                                      , m_memOut
-                                      , CL_TRUE
-                                      , origin
-                                      , region
-                                      , _dstFaceSize*bytesPerPixel
-                                      , 0
-                                      , _out
-                                      , 0
-                                      , NULL
-                                      , &m_event
-                                      ));
+            CL_CHECK_EXPR_RETURN(clEnqueueReadImage(m_clContext->m_commandQueue
+                                                  , m_memOut
+                                                  , CL_TRUE
+                                                  , origin
+                                                  , region
+                                                  , _dstFaceSize*bytesPerPixel
+                                                  , 0
+                                                  , _out
+                                                  , 0
+                                                  , NULL
+                                                  , &m_event
+                                                  ));
 
             #if CMFT_COMPUTE_FILTER_AREA_ON_CPU
                 clReleaseMemObject(area);
                 BX_FREE(g_allocator, filterArea);
             #endif //CMFT_COMPUTE_FILTER_AREA_ON_CPU
+
+            return true;
         }
 
-        void processFaceByFaceAndSum(void* _out
+        bool processFaceByFaceAndSum(void* _out
                                    , uint8_t _faceIdx
                                    , uint32_t _dstFaceSize
                                    , float _specularPower
@@ -1472,20 +1536,20 @@ namespace cmft
                                             , filterArea
                                             , &err
                                             );
-                CL_CHECK_ERR(err);
+                CL_CHECK_RETURN(err);
             #endif //CMFT_COMPUTE_FILTER_AREA_ON_CPU
             BX_UNUSED(_edgeFixup);
 
             // Set arguments that do not change for the entire task.
-            CL_CHECK(clSetKernelArg(m_radFilterSingle,  4, sizeof(int32_t), (const void*)&_dstFaceSize));
-            CL_CHECK(clSetKernelArg(m_radFilterSingle,  5, sizeof(float),   (const void*)&_specularPower));
-            CL_CHECK(clSetKernelArg(m_radFilterSingle,  6, sizeof(float),   (const void*)&_specularAngle));
-            CL_CHECK(clSetKernelArg(m_radFilterSingle,  7, sizeof(float),   (const void*)&_filterSize));
-            CL_CHECK(clSetKernelArg(m_radFilterSingle,  8, sizeof(float),   (const void*)&warp));
-            CL_CHECK(clSetKernelArg(m_radFilterSingle,  9, sizeof(int8_t),  (const void*)&_faceIdx));
-            CL_CHECK(clSetKernelArg(m_radFilterSingle, 10, sizeof(float),   (const void*)&m_srcFaceSize));
+            CL_CHECK_EXPR_RETURN(clSetKernelArg(m_radFilterSingle,  4, sizeof(int32_t), (const void*)&_dstFaceSize));
+            CL_CHECK_EXPR_RETURN(clSetKernelArg(m_radFilterSingle,  5, sizeof(float),   (const void*)&_specularPower));
+            CL_CHECK_EXPR_RETURN(clSetKernelArg(m_radFilterSingle,  6, sizeof(float),   (const void*)&_specularAngle));
+            CL_CHECK_EXPR_RETURN(clSetKernelArg(m_radFilterSingle,  7, sizeof(float),   (const void*)&_filterSize));
+            CL_CHECK_EXPR_RETURN(clSetKernelArg(m_radFilterSingle,  8, sizeof(float),   (const void*)&warp));
+            CL_CHECK_EXPR_RETURN(clSetKernelArg(m_radFilterSingle,  9, sizeof(int8_t),  (const void*)&_faceIdx));
+            CL_CHECK_EXPR_RETURN(clSetKernelArg(m_radFilterSingle, 10, sizeof(float),   (const void*)&m_srcFaceSize));
             #if CMFT_COMPUTE_FILTER_AREA_ON_CPU
-            CL_CHECK(clSetKernelArg(m_radFilterSingle, 11, sizeof(cl_mem),  (const void*)&area));
+            CL_CHECK_EXPR_RETURN(clSetKernelArg(m_radFilterSingle, 11, sizeof(cl_mem),  (const void*)&area));
             #endif //CMFT_COMPUTE_FILTER_AREA_ON_CPU
 
             // Process each face separately in tiles of 64x64.
@@ -1503,12 +1567,13 @@ namespace cmft
                                           , NULL
                                           , &err
                                           );
+                CL_CHECK_RETURN(err);
 
                 const uint8_t faceIdx = ii;
-                CL_CHECK(clSetKernelArg(m_radFilterSingle, 0, sizeof(cl_mem), (const void*)&faces[ii]));
-                CL_CHECK(clSetKernelArg(m_radFilterSingle, 1, sizeof(cl_mem), (const void*)&m_memFaceData[ii]));
-                CL_CHECK(clSetKernelArg(m_radFilterSingle, 2, sizeof(cl_mem), (const void*)&m_memNormalSolidAngle[ii]));
-                CL_CHECK(clSetKernelArg(m_radFilterSingle, 3, sizeof(int8_t), (const void*)&faceIdx));
+                CL_CHECK_EXPR_RETURN(clSetKernelArg(m_radFilterSingle, 0, sizeof(cl_mem), (const void*)&faces[ii]));
+                CL_CHECK_EXPR_RETURN(clSetKernelArg(m_radFilterSingle, 1, sizeof(cl_mem), (const void*)&m_memFaceData[ii]));
+                CL_CHECK_EXPR_RETURN(clSetKernelArg(m_radFilterSingle, 2, sizeof(cl_mem), (const void*)&m_memNormalSolidAngle[ii]));
+                CL_CHECK_EXPR_RETURN(clSetKernelArg(m_radFilterSingle, 3, sizeof(int8_t), (const void*)&faceIdx));
 
                 for (uint32_t yy = 0; yy < count; ++yy)
                 {
@@ -1520,16 +1585,16 @@ namespace cmft
                             DM_MIN(tileSize, _dstFaceSize-workOffset[0]),
                             DM_MIN(tileSize, _dstFaceSize-workOffset[1]),
                         };
-                        CL_CHECK(clEnqueueNDRangeKernel(m_clContext->m_commandQueue
-                                                      , m_radFilterSingle
-                                                      , 2
-                                                      , workOffset
-                                                      , workSize
-                                                      , NULL
-                                                      , 0
-                                                      , NULL
-                                                      , &m_event
-                                                      ));
+                        CL_CHECK_EXPR_RETURN(clEnqueueNDRangeKernel(m_clContext->m_commandQueue
+                                                                  , m_radFilterSingle
+                                                                  , 2
+                                                                  , workOffset
+                                                                  , workSize
+                                                                  , NULL
+                                                                  , 0
+                                                                  , NULL
+                                                                  , &m_event
+                                                                  ));
                     }
                 }
             }
@@ -1551,51 +1616,56 @@ namespace cmft
                                          , NULL
                                          , &err
                                          );
-                CL_CHECK_ERR(err);
+                CL_CHECK_RETURN(err);
             }
             m_prevDstFaceSize = _dstFaceSize;
 
-            CL_CHECK(clSetKernelArg(m_sum, 0, sizeof(cl_mem), (const void*)&m_memOut));
-            CL_CHECK(clSetKernelArg(m_sum, 1, sizeof(cl_mem), (const void*)&faces[0]));
-            CL_CHECK(clSetKernelArg(m_sum, 2, sizeof(cl_mem), (const void*)&faces[1]));
-            CL_CHECK(clSetKernelArg(m_sum, 3, sizeof(cl_mem), (const void*)&faces[2]));
-            CL_CHECK(clSetKernelArg(m_sum, 4, sizeof(cl_mem), (const void*)&faces[3]));
-            CL_CHECK(clSetKernelArg(m_sum, 5, sizeof(cl_mem), (const void*)&faces[4]));
-            CL_CHECK(clSetKernelArg(m_sum, 6, sizeof(cl_mem), (const void*)&faces[5]));
-            CL_CHECK(clEnqueueNDRangeKernel(m_clContext->m_commandQueue, m_sum, 2, NULL, workSize, NULL, 0, NULL, &m_event));
+            CL_CHECK_EXPR_RETURN(clSetKernelArg(m_sum, 0, sizeof(cl_mem), (const void*)&m_memOut));
+            CL_CHECK_EXPR_RETURN(clSetKernelArg(m_sum, 1, sizeof(cl_mem), (const void*)&faces[0]));
+            CL_CHECK_EXPR_RETURN(clSetKernelArg(m_sum, 2, sizeof(cl_mem), (const void*)&faces[1]));
+            CL_CHECK_EXPR_RETURN(clSetKernelArg(m_sum, 3, sizeof(cl_mem), (const void*)&faces[2]));
+            CL_CHECK_EXPR_RETURN(clSetKernelArg(m_sum, 4, sizeof(cl_mem), (const void*)&faces[3]));
+            CL_CHECK_EXPR_RETURN(clSetKernelArg(m_sum, 5, sizeof(cl_mem), (const void*)&faces[4]));
+            CL_CHECK_EXPR_RETURN(clSetKernelArg(m_sum, 6, sizeof(cl_mem), (const void*)&faces[5]));
+            CL_CHECK_EXPR_RETURN(clEnqueueNDRangeKernel(m_clContext->m_commandQueue, m_sum, 2, NULL, workSize, NULL, 0, NULL, &m_event));
 
             // Read result.
             const size_t origin[3] = { 0, 0, 0 };
             const size_t region[3] = { _dstFaceSize, _dstFaceSize, 1 };
-            CL_CHECK(clEnqueueReadImage(m_clContext->m_commandQueue
-                                      , m_memOut
-                                      , CL_TRUE
-                                      , origin
-                                      , region
-                                      , _dstFaceSize*bytesPerPixel
-                                      , 0
-                                      , _out
-                                      , 0
-                                      , NULL
-                                      , &m_event
-                                      ));
+            CL_CHECK_EXPR_RETURN(clEnqueueReadImage(m_clContext->m_commandQueue
+                                                  , m_memOut
+                                                  , CL_TRUE
+                                                  , origin
+                                                  , region
+                                                  , _dstFaceSize*bytesPerPixel
+                                                  , 0
+                                                  , _out
+                                                  , 0
+                                                  , NULL
+                                                  , &m_event
+                                                  ));
 
             #if CMFT_COMPUTE_FILTER_AREA_ON_CPU
                 clReleaseMemObject(area);
                 BX_FREE(g_allocator, filterArea);
             #endif //CMFT_COMPUTE_FILTER_AREA_ON_CPU
+
+            return true;
         }
 
-        void run(void* _out, uint8_t _faceIdx, uint32_t _dstFaceSize, float _specularPower, float _specularAngle, float _filterSize, EdgeFixup::Enum _edgeFixup = EdgeFixup::None)
+        #undef CL_CHECK_RETURN
+        #undef CL_CHECK_EXPR_RETURN
+
+        bool run(void* _out, uint8_t _faceIdx, uint32_t _dstFaceSize, float _specularPower, float _specularAngle, float _filterSize, EdgeFixup::Enum _edgeFixup = EdgeFixup::None)
         {
             if (m_srcFaceSize > 512)
             {
                 // Prevents driver crash by running 6+1 smaller kernels instead of a big one.
-                processFaceByFaceAndSum(_out, _faceIdx, _dstFaceSize, _specularPower, _specularAngle, _filterSize, _edgeFixup);
+                return processFaceByFaceAndSum(_out, _faceIdx, _dstFaceSize, _specularPower, _specularAngle, _filterSize, _edgeFixup);
             }
             else
             {
-                processAllAtOnce(_out, _faceIdx, _dstFaceSize, _specularPower, _specularAngle, _filterSize, _edgeFixup);
+                return processAllAtOnce(_out, _faceIdx, _dstFaceSize, _specularPower, _specularAngle, _filterSize, _edgeFixup);
             }
         }
 
@@ -1677,29 +1747,36 @@ namespace cmft
             const uint64_t startTime = bx::getHPCounter();
 
             // Run radiance program.
-            s_radianceProgram.run(params->m_dstPtr
-                                , params->m_face
-                                , params->m_mipFaceSize
-                                , params->m_specularPower
-                                , params->m_specularAngle
-                                , params->m_filterSize
-                                , params->m_edgeFixup
-                                );
+            const bool result = s_radianceProgram.run(params->m_dstPtr
+                                                    , params->m_face
+                                                    , params->m_mipFaceSize
+                                                    , params->m_specularPower
+                                                    , params->m_specularAngle
+                                                    , params->m_filterSize
+                                                    , params->m_edgeFixup
+                                                    );
+            if (result)
+            {
+                // Determine task duration.
+                const uint64_t currentTime = bx::getHPCounter();
+                const uint64_t taskDuration = currentTime - startTime;
+                const uint64_t totalDuration = currentTime - s_globalState.m_startTime;
 
-            // Determine task duration.
-            const uint64_t currentTime = bx::getHPCounter();
-            const uint64_t taskDuration = currentTime - startTime;
-            const uint64_t totalDuration = currentTime - s_globalState.m_startTime;
+                // Output process info.
+                INFO("Radiance ->  <GPU>  | %4u | %7.3fs | %7.3fs"
+                     , params->m_mipFaceSize
+                     , double(taskDuration)*toSec
+                     , double(totalDuration)*toSec
+                    );
 
-            // Output process info.
-            INFO("Radiance ->  <GPU>  | %4u | %7.3fs | %7.3fs"
-                , params->m_mipFaceSize
-                , double(taskDuration)*toSec
-                , double(totalDuration)*toSec
-                );
-
-            // Update task counter.
-            s_globalState.incrCompletedTasksGpu();
+                // Update task counter.
+                s_globalState.incrCompletedTasksGpu();
+            }
+            else
+            {
+                taskList->pushUnfinished(params);
+                return EXIT_FAILURE;
+            }
         }
 
         return EXIT_SUCCESS;
@@ -1787,7 +1864,7 @@ namespace cmft
                            , uint8_t _glossBias
                            , const Image& _src
                            , EdgeFixup::Enum _edgeFixup
-                           , int8_t _numCpuProcessingThreads
+                           , uint8_t _numCpuProcessingThreads
                            , const ClContext* _clContext
                            , bx::AllocatorI* _allocator
                            )
@@ -1977,7 +2054,11 @@ namespace cmft
             // Enqueue memory transfer for cl device.
             if (s_radianceProgram.isValid())
             {
-                s_radianceProgram.initDeviceMemory(imageRgba32f, cubemapVectors);
+                const bool success = s_radianceProgram.initDeviceMemory(imageRgba32f, cubemapVectors);
+                if (!success)
+                {
+                    s_radianceProgram.invalidate();
+                }
             }
 
             // Start global timer.
@@ -2036,7 +2117,7 @@ namespace cmft
                     };
 
                     // Enqueue processing parameters.
-                    memcpy(&taskList.m_params[mip][face], &taskParams, sizeof(RadianceFilterParams));
+                    taskList.set(mip, face, &taskParams);
                 }
             }
 
@@ -2070,6 +2151,20 @@ namespace cmft
                 for (uint8_t ii = 0; ii < activeCpuThreads; ++ii)
                 {
                     cpuThreads[ii].shutdown();
+                }
+
+                // OpenCL failed and no CPU threads were selected for procesing.
+                const uint16_t unfinished = taskList.unfinishedCount();
+                if (unfinished > 0 && 0 == maxActiveCpuThreads)
+                {
+                    return false;
+                }
+
+                // Process unfinished tasks on CPU.
+                const uint8_t numThreads = DM_MIN(unfinished, maxActiveCpuThreads);
+                for (uint8_t ii = 0; ii < numThreads; ++ii)
+                {
+                    cpuThreads[ii].init(radianceFilterCpu, (void*)&taskList);
                 }
             }
 
@@ -2144,7 +2239,7 @@ namespace cmft
         return true;
     }
 
-    void imageRadianceFilter(Image& _image
+    bool imageRadianceFilter(Image& _image
                            , uint32_t _dstFaceSize
                            , LightingModel::Enum _lightingModel
                            , bool _excludeBase
@@ -2152,7 +2247,7 @@ namespace cmft
                            , uint8_t _glossScale
                            , uint8_t _glossBias
                            , EdgeFixup::Enum _edgeFixup
-                           , int8_t _numCpuProcessingThreads
+                           , uint8_t _numCpuProcessingThreads
                            , const ClContext* _clContext
                            , bx::AllocatorI* _allocator
                            )
@@ -2161,7 +2256,10 @@ namespace cmft
         if (imageRadianceFilter(tmp, _dstFaceSize, _lightingModel, _excludeBase, _mipCount, _glossScale, _glossBias, _image, _edgeFixup, _numCpuProcessingThreads, _clContext, _allocator))
         {
             imageMove(_image, tmp, _allocator);
+            return true;
         }
+
+        return false;
     }
 
 } // namespace cmft

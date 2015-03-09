@@ -82,13 +82,13 @@ namespace cmft
                            , uint8_t _glossBias
                            , const Image& _src
                            , EdgeFixup::Enum _edgeFixup = EdgeFixup::None
-                           , int8_t _numCpuProcessingThreads = -1
+                           , uint8_t _numCpuProcessingThreads = 0
                            , const ClContext* _clContext = NULL
                            , bx::AllocatorI* _allocator = g_allocator
                            );
 
     /// Converts cubemap image into radiance cubemap.
-    void imageRadianceFilter(Image& _image
+    bool imageRadianceFilter(Image& _image
                            , uint32_t _dstFaceSize
                            , LightingModel::Enum _lightingModel
                            , bool _excludeBase
@@ -96,7 +96,7 @@ namespace cmft
                            , uint8_t _glossScale
                            , uint8_t _glossBias
                            , EdgeFixup::Enum _edgeFixup = EdgeFixup::None
-                           , int8_t _numCpuProcessingThreads = -1
+                           , uint8_t _numCpuProcessingThreads = 0
                            , const ClContext* _clContext = NULL
                            , bx::AllocatorI* _allocator = g_allocator
                            );
