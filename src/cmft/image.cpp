@@ -4722,13 +4722,13 @@ namespace cmft
                 if (_image.m_numMips != 1)
                 {
                     char mipStr[8];
-                    _itoa(int32_t(mip), mipStr, 10);
+                    bx::snprintf(mipStr, sizeof(mipStr), "%d", mip);
 
                     char mipWidthStr[8];
-                    _itoa(int32_t(mipWidth), mipWidthStr, 10);
+                    bx::snprintf(mipWidthStr, sizeof(mipWidthStr), "%d", mipWidth);
 
                     char mipHeightStr[8];
-                    _itoa(int32_t(mipHeight), mipHeightStr, 10);
+                    bx::snprintf(mipHeightStr, sizeof(mipHeightStr), "%d", mipHeight);
 
                     bx::strlcat(mipName, "_",          DM_PATH_LEN);
                     bx::strlcat(mipName, mipStr,       DM_PATH_LEN);
@@ -4777,7 +4777,7 @@ namespace cmft
                 const uint8_t* mipData = (const uint8_t*)_image.m_data + imageOffsets[face][mip];
                 if (_yflip)
                 {
-                    const uint8_t* src = (uint8_t*)mipData + mipHeight * mipPitch;
+                    const uint8_t* src = (const uint8_t*)mipData + mipHeight * mipPitch;
                     for (uint32_t yy = 0; yy < mipHeight; ++yy)
                     {
                         src-=mipPitch;
@@ -4788,7 +4788,7 @@ namespace cmft
                 }
                 else
                 {
-                    const uint8_t* src = (uint8_t*)mipData;
+                    const uint8_t* src = (const uint8_t*)mipData;
                     for (uint32_t yy = 0; yy < mipHeight; ++yy)
                     {
                         write = fwrite(src, 1, mipPitch, fp);
