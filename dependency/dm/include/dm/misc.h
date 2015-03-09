@@ -7,9 +7,10 @@
 #define DM_MISC_H_HEADER_GUARD
 
 #include <stdint.h>
+#include <stdlib.h> // _fullpath
 #include <ctype.h>  // toupper()
 #include <math.h>   // logf()
-#include <stdio.h>  // FILE
+#include <stdio.h>  // FILE, fopen()
 #include <float.h>  // FLT_EPSILON
 #include <malloc.h> // alloca()
 
@@ -17,6 +18,7 @@
 #include "check.h"         // DM_CHECK()
 
 #include "../../3rdparty/bx/os.h"       // bx::pwd()
+#include "../../3rdparty/bx/string.h"   // bx::strlcat()
 #include "../../3rdparty/bx/uint32_t.h" // bx::uint32_cntlz(), bx::uint64_cntlz()
 
 namespace dm
@@ -395,16 +397,45 @@ namespace dm
 
     DM_INLINE void realpath(char _abs[DM_PATH_LEN], const char _rel[DM_PATH_LEN])
     {
-        // TODO:
-        //realpath(_dir, path); //Linux
-        //_fullpath(path, _dir, DM_PATH_LEN); //Windows
-        char currentDir[DM_PATH_LEN];
-        bx::pwd(currentDir, DM_PATH_LEN);
+        #if BX_PLATFORM_WINDOWS
+            _fullpath(_abs, _rel, DM_PATH_LEN);
+        #else // OSX and Linux.
+            ::realpath(_rel, _abs);
+        #endif // BX_PLATFORM_WINDOWS
+    }
 
-        bx::chdir(_rel);
-        bx::pwd(_abs, DM_PATH_LEN);
+    DM_INLINE void homeDir(char _path[DM_PATH_LEN])
+    {
+        #if BX_PLATFORM_WINDOWS
+            strscpy(_path, getenv("USERPROFILE"), DM_PATH_LEN);
+            bx::strlcat(_path, "\\", DM_PATH_LEN);
+        #else // OSX and Linux.
+            strscpy(_path, getenv("HOME"), DM_PATH_LEN);
+            bx::strlcat(_path, "/", DM_PATH_LEN);
+        #endif
+    }
 
-        bx::chdir(currentDir);
+    DM_INLINE void desktopDir(char _path[DM_PATH_LEN])
+    {
+        #if BX_PLATFORM_WINDOWS
+            strscpy(_path, getenv("USERPROFILE"), DM_PATH_LEN);
+            bx::strlcat(_path, "\\Desktop\\", DM_PATH_LEN);
+        #else // OSX and Linux.
+            strscpy(_path, getenv("HOME"), DM_PATH_LEN);
+            bx::strlcat(_path, "/Desktop/", DM_PATH_LEN);
+        #endif
+    }
+
+    DM_INLINE void rootDir(char _path[DM_PATH_LEN])
+    {
+        #if BX_PLATFORM_WINDOWS
+            char currentDir[DM_PATH_LEN];
+            bx::pwd(currentDir, DM_PATH_LEN);
+            strscpy(_path, currentDir, 4);
+        #else // OSX and Linux.
+            _path[0] = '/';
+            _path[1] = '\0';
+        #endif
     }
 
     /// Gets file name without extension from file path. Examples:
@@ -431,6 +462,20 @@ namespace dm
        }
 
        return false;
+    }
+
+    DM_INLINE long int fileExists(const char* _file)
+    {
+        FILE* file = fopen(_file, "rb");
+        if (NULL == file)
+        {
+            return false;
+        }
+        else
+        {
+            fclose(file);
+            return true;
+        }
     }
 
     DM_INLINE long int fsize(FILE* _file)

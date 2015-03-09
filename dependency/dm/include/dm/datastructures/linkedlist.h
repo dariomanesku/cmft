@@ -72,7 +72,7 @@ namespace dm
 
         static inline uint32_t sizeFor(uint16_t _max)
         {
-            return HandleAlloc::sizeFor(_max) + _max*sizeof(Elem);
+            return _max*SizePerElement;
         }
 
         // Allocates memory internally.
@@ -121,6 +121,11 @@ namespace dm
         }
 
         #include "linkedlist_inline_impl.h"
+
+        enum
+        {
+            SizePerElement = sizeof(Elem) + HandleAlloc::SizePerElement,
+        };
 
         uint16_t count() const
         {

@@ -74,9 +74,14 @@ namespace dm
             reset();
         }
 
+        enum
+        {
+            SizePerElement = 2*sizeof(uint16_t),
+        };
+
         static inline uint32_t sizeFor(uint16_t _max)
         {
-            return 2*_max*sizeof(uint16_t);
+            return _max*SizePerElement;
         }
 
         // Uses externaly allocated memory.

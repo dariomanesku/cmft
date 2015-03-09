@@ -68,9 +68,14 @@ namespace dm
             destroy();
         }
 
+        enum
+        {
+            SizePerElement = sizeof(Ty) + HandleAlloc::SizePerElement,
+        };
+
         static inline uint32_t sizeFor(uint16_t _max)
         {
-            return HandleAlloc::sizeFor(_max) + _max*sizeof(Ty);
+            return _max*SizePerElement;
         }
 
         // Allocates memory internally.

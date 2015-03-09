@@ -72,11 +72,17 @@ namespace dm
             m_objects = (Ty*)ptr;
         }
 
+        enum
+        {
+            SizePerElement = sizeof(Ty)
+                           + Array<uint16_t>::SizePerElement
+                           + HandleAlloc::SizePerElement
+                           ,
+        };
+
         static inline uint32_t sizeFor(uint16_t _max)
         {
-            return Array<uint16_t>::sizeFor(_max)
-                 + HandleAlloc::sizeFor(_max)
-                 + sizeof(Ty)*_max;
+            return _max*SizePerElement;
         }
 
         // Uses externaly allocated memory.
