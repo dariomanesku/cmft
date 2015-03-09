@@ -14,11 +14,7 @@
 #define CONCATENATE(_x, _y) CONCATENATE_(_x, _y)
 #define CONCATENATE_(_x, _y) _x ## _y
 
-#if CMFT_CONFIG_DEBUG
-    #define _FILE_LINE_ " " __FILE__ "(" STRINGIZE(__LINE__) ")"
-#else
-    #define _FILE_LINE_
-#endif
+#define _FILE_LINE_ " " __FILE__ "(" STRINGIZE(__LINE__) ")"
 
 #if ((__GNUC__ > 2) || (__GNUC__ == 2 && __GNUC_MINOR__ > 4))
 #   define CMFT_UNUSED __attribute__((__unused__))
