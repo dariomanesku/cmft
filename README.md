@@ -37,7 +37,6 @@ Remark !
     - Use a workaround on Windows: increase the TdrDelay or modify the TdrLevel in the registry and restart the machine. More details here: http://msdn.microsoft.com/en-us/library/windows/hardware/ff569918%28v=vs.85%29.aspx
     - Run cmft on a faster GPU.
     - Run cmft on a GPU that is not connected to the monitor.
-    - Run cmft on CPU only.
 
 
 Building
