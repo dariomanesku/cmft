@@ -25,7 +25,7 @@ Download
 See it in action - [here](https://github.com/dariomanesku/cmftStudio)
 ------------
 Screenshot from [cmftStudio](https://github.com/dariomanesku/cmftStudio):
-![cmftStudioScreenshot](https://raw.githubusercontent.com/dariomanesku/cmftStudio/master/screenshots/cmftStudio3.jpg)
+![cmftStudioScreenshot](https://raw.githubusercontent.com/dariomanesku/cmftStudio/master/screenshots/cmftStudio_osx0.jpg)
 
 
 Remark !
