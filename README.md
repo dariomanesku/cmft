@@ -8,12 +8,10 @@ It reaches very fast processing speeds by utilizing both multi-core CPU and Open
 Download
 --------
 
- * [cmft - Windows 64bit](https://github.com/dariomanesku/cmft-bin/raw/master/cmft_win64.zip)<br />
- * [cmft - Windows 32bit](https://github.com/dariomanesku/cmft-bin/raw/master/cmft_win32.zip)<br />
- * [cmft - Linux 64bit](https://github.com/dariomanesku/cmft-bin/raw/master/cmft_lin64.zip)<br />
- * [cmft - Linux 32bit](https://github.com/dariomanesku/cmft-bin/raw/master/cmft_lin32.zip)<br />
- * [cmft - OSX 64bit](https://github.com/dariomanesku/cmft-bin/raw/master/cmft_osx64.zip)<br />
- * [cmft - OSX 32bit](https://github.com/dariomanesku/cmft-bin/raw/master/cmft_osx32.zip)<br />
+<img src="https://github.com/dariomanesku/cmft-bin/raw/master/res/windows.png" height="16px">  [cmft - Windows 64bit](https://github.com/dariomanesku/cmft-bin/raw/master/cmft_win64.zip)<br />
+<img src="https://github.com/dariomanesku/cmft-bin/raw/master/res/linux.png"   height="16px">  [cmft - Linux 64bit](https://github.com/dariomanesku/cmft-bin/raw/master/cmft_lin64.zip)<br />
+<img src="https://github.com/dariomanesku/cmft-bin/raw/master/res/apple.png"   height="16px">  [cmft - OSX 64bit](https://github.com/dariomanesku/cmft-bin/raw/master/cmft_osx64.zip)<br />
+*In case you need 32bit binaries, compile from source.*<br />
 
 
 ![cmft-cover](https://github.com/dariomanesku/cmft/raw/master/res/cmft_cover.jpg)
