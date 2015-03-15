@@ -77,7 +77,7 @@ Building
 - Additional build configurations will be available in the future. If one is there and not described here in this document, it is probably not yet set up properly and may not work out-of-the-box as expected without some care.<br \>
 
 ### Known issues
-- Linux GCC build works but processing on CPU is noticeably slower comparing to Windows build (haven't yet figured out why). OpenCL runs fine.
+- Linux GCC build noticeably slower comparing to Windows build (haven't yet figured out why).
 - PVRTexTool is not properly opening mipmapped \*.ktx files from cmft. This appears to be the problem with the current version of PVRTexTool. Has to be further investigated.
 
 
