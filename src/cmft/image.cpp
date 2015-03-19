@@ -3982,7 +3982,7 @@ namespace cmft
         // Seek back right after newline character.
         if (NULL != nl)
         {
-            bx::seek(&_reader, nl-_out-_max, bx::Whence::Current);
+			bx::seek(&_reader, (int64_t)(nl - _out) - _max, bx::Whence::Current);
         }
 
         return nl;
