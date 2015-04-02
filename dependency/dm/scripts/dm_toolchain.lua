@@ -360,7 +360,7 @@ function dm_toolchain(_buildDir, _projDir, _libDir, _bxDir)
         }
         buildoptions
         {
-            "/Ob2", -- The Inline Function Expansion
+            "/Ob2",    -- The Inline Function Expansion
         }
         linkoptions
         {
@@ -818,13 +818,13 @@ function dm_toolchain(_buildDir, _projDir, _libDir, _bxDir)
     configuration { "osx", "x32" }
         targetdir (path.join(_buildDir, "osx32_clang/bin"))
         objdir (path.join(_buildDir, "osx32_clang/obj"))
-        libdirs { path.join(_libDir, "lib/osx32_clang") }
+        --libdirs { path.join(_libDir, "lib/osx32_clang") }
         buildoptions { "-m32", }
 
     configuration { "osx", "x64" }
         targetdir (path.join(_buildDir, "osx64_clang/bin"))
         objdir (path.join(_buildDir, "osx64_clang/obj"))
-        libdirs { path.join(_libDir, "lib/osx64_clang") }
+        --libdirs { path.join(_libDir, "lib/osx64_clang") }
         buildoptions { "-m64", }
 
     configuration { "osx or xcode4" }

@@ -3,8 +3,46 @@
  * License: http://www.opensource.org/licenses/BSD-2-Clause
  */
 
+#ifdef DM_DYNAMIC_ARRAY
+    void resize(uint32_t _max)
+    {
+        if (m_cleanup) // 'm_values' was allocated internally.
+        {
+            m_values = (Ty*)DM_REALLOC(m_values, sizeFor(_max));
+            m_max = _max;
+        }
+        else // 'm_values' was passed as a pointer.
+        {
+            if (_max > m_max) // Expand.
+            {
+                m_values = (Ty*)DM_ALLOC(sizeFor(_max));
+            }
+
+            m_max = _max;
+        }
+    }
+
+    private: void expandIfFull()
+    {
+        if (m_count >= m_max)
+        {
+            const uint32_t newMax = m_max + m_max/2;
+            resize(newMax);
+        }
+    } public:
+
+    void shrink()
+    {
+        resize(m_count);
+    }
+#endif //DM_DYNAMIC_ARRAY
+
 Ty* addNew()
 {
+    #ifdef DM_DYNAMIC_ARRAY
+        expandIfFull();
+    #endif //DM_DYNAMIC_ARRAY
+
     DM_CHECK(m_count < max(), "objarrayAddNew | %d, %d", m_count, max());
 
     return &m_values[m_count++];
@@ -12,12 +50,29 @@ Ty* addNew()
 
 uint32_t addObj(const Ty& _obj)
 {
+    #ifdef DM_DYNAMIC_ARRAY
+        expandIfFull();
+    #endif //DM_DYNAMIC_ARRAY
+
     DM_CHECK(m_count < max(), "objarrayAddObj | %d, %d", m_count, max());
 
     Ty* dst = &m_values[m_count++];
     dst = ::new (dst) Ty(_obj);
 
     return (m_count-1);
+}
+
+void cut(uint32_t _idx)
+{
+    DM_CHECK(_idx < max(), "objarrayCut - 1 | %d, %d", _idx, max());
+
+    for (uint32_t ii = _idx, end = m_count; ii < end; ++ii)
+    {
+        Ty* elem = &m_values[ii];
+        elem->~Ty();
+    }
+
+    m_count = _idx;
 }
 
 void remove(uint32_t _idx)
@@ -34,6 +89,16 @@ void remove(uint32_t _idx)
     m_count--;
 }
 
+void pop()
+{
+    DM_CHECK(0 < m_count, "objarrayPop - 0 | %d", m_count);
+
+    m_count--;
+
+    Ty* elem = &m_values[m_count];
+    elem->~Ty();
+}
+
 // Uses swap instead of memmove. Order is not preserved!
 void removeSwap(uint32_t _idx)
 {
@@ -45,8 +110,8 @@ void removeSwap(uint32_t _idx)
 
     if (_idx != --m_count)
     {
-        Ty* last = &m_values[m_count];
-        elem->Ty(*last);
+        const Ty* last = &m_values[m_count];
+        elem = ::new (elem) Ty(*last);
     }
 }
 
@@ -89,9 +154,16 @@ const Ty& operator[](uint32_t _idx) const
     return m_values[_idx];
 }
 
+const Ty* elements() const
+{
+    return m_values;
+}
+
 void reset()
 {
     m_count = 0;
 }
+
+#undef DM_DYNAMIC_ARRAY
 
 /* vim: set sw=4 ts=4 expandtab: */

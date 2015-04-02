@@ -1,7 +1,7 @@
 dm
 ==
 
-Header-only base C++ library. Used in [cmft](https://github.com/dariomanesku/cmft) and [cmftStudio](https://github.com/dariomanesku/cmftStudio).
+Header-only base C+(+) library. Used in [cmft](https://github.com/dariomanesku/cmft) and [cmftStudio](https://github.com/dariomanesku/cmftStudio).
 
 Contact
 -------

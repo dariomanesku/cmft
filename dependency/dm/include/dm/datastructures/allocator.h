@@ -22,6 +22,11 @@
                 return ::malloc(_size);
             }
 
+            static DM_INLINE void* realloc(void* _ptr, size_t _size)
+            {
+                return ::realloc(_ptr, _size);
+            }
+
             static DM_INLINE void free(void* _ptr)
             {
                 return ::free(_ptr);
@@ -35,15 +40,16 @@
 // Allocator interface.
 //-----
 
-#if    defined(DM_ALLOC) &&  defined(DM_FREE)
-#elif !defined(DM_ALLOC) && !defined(DM_FREE)
+#if    defined(DM_ALLOC) &&  defined(DM_REALLOC) &&  defined(DM_FREE)
+#elif !defined(DM_ALLOC) && !defined(DM_REALLOC) && !defined(DM_FREE)
 #else
-#error "Either define both alloc() and free() or none of them!"
+#error "Either define alloc(), realloc() and free() or none of them!"
 #endif
 
 #if !defined(DM_ALLOC)
-    #define DM_ALLOC(_size) DM_ALLOCATOR_IMPL::alloc(_size)
-    #define DM_FREE(_ptr)   DM_ALLOCATOR_IMPL::free(_ptr)
+    #define DM_ALLOC(_size)         DM_ALLOCATOR_IMPL::alloc(_size)
+    #define DM_REALLOC(_ptr, _size) DM_ALLOCATOR_IMPL::realloc(_ptr, _size)
+    #define DM_FREE(_ptr)           DM_ALLOCATOR_IMPL::free(_ptr)
 #endif //!defined(DM_ALLOC)
 
 
