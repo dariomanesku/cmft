@@ -2055,7 +2055,6 @@ namespace cmft
         va_end(argList);
     }
 
-    // TODO: fix image rotation !
     void imageTransformArg(Image& _image, va_list _argList)
     {
         uint32_t op = va_arg(_argList, uint32_t);
@@ -2097,6 +2096,14 @@ namespace cmft
                                         dm::swap(aa, bb, tmp, bytesPerPixel);
                                     }
                                 }
+                            }
+
+                            // Flip X.
+                            for (uint32_t yy = 0, yyEnd = height-1; yy < yyEnd; ++yy, --yyEnd)
+                            {
+                                uint8_t* rowPtr    = (uint8_t*)facePtr + pitch*yy;
+                                uint8_t* rowPtrEnd = (uint8_t*)facePtr + pitch*yyEnd;
+                                dm::swap(rowPtr, rowPtrEnd, tmp, pitch);
                             }
                         }
                     }
@@ -2176,6 +2183,14 @@ namespace cmft
                                         dm::swap(aa, bb, tmp, bytesPerPixel);
                                     }
                                 }
+                            }
+
+                            // Flip X.
+                            for (uint32_t yy = 0, yyEnd = height-1; yy < yyEnd; ++yy, --yyEnd)
+                            {
+                                uint8_t* rowPtr    = (uint8_t*)facePtr + pitch*yy;
+                                uint8_t* rowPtrEnd = (uint8_t*)facePtr + pitch*yyEnd;
+                                dm::swap(rowPtr, rowPtrEnd, tmp, pitch);
                             }
                         }
                     }
