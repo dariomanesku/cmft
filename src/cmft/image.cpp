@@ -1844,7 +1844,7 @@ namespace cmft
         imageGetPixel(_out, _format, xx, yy, face, _mip, _image);
     }
 
-    // TODO: fix imageResize !
+    // Notice: this is the most trivial image resampling implementation. Use this only for testing/debugging purposes!
     void imageResize(Image& _dst, uint32_t _width, uint32_t _height, const Image& _src, bx::AllocatorI* _allocator)
     {
         // Operation is done in rgba32f format.
@@ -1877,9 +1877,11 @@ namespace cmft
         {
             for (uint8_t mip = 0; mip < imageRgba32f.m_numMips; ++mip)
             {
-                const uint32_t srcMipWidth  = dm::max(UINT32_C(1), imageRgba32f.m_width  >> mip);
-                const uint32_t srcMipHeight = dm::max(UINT32_C(1), imageRgba32f.m_height >> mip);
+                const uint8_t  srcMip       = dm::min(mip, uint8_t(_src.m_numMips-1));
+                const uint32_t srcMipWidth  = dm::max(UINT32_C(1), imageRgba32f.m_width  >> srcMip);
+                const uint32_t srcMipHeight = dm::max(UINT32_C(1), imageRgba32f.m_height >> srcMip);
                 const uint32_t srcMipPitch  = srcMipWidth * bytesPerPixel;
+                const uint8_t* srcMipData   = (const uint8_t*)imageRgba32f.m_data + srcOffsets[face][srcMip];
 
                 const uint32_t dstMipWidth  = dm::max(UINT32_C(1), _width  >> mip);
                 const uint32_t dstMipHeight = dm::max(UINT32_C(1), _height >> mip);
@@ -1891,7 +1893,6 @@ namespace cmft
                 const uint32_t dstToSrcRatioY  = dm::ftou(dstToSrcRatioYf);
 
                 uint8_t* dstMipData = (uint8_t*)dstData + dstOffsets[face][mip];
-                const uint8_t* srcMipData = (const uint8_t*)imageRgba32f.m_data + srcOffsets[face][mip];
 
                 for (int32_t yDst = 0; yDst < int32_t(dstMipHeight); ++yDst)
                 {
