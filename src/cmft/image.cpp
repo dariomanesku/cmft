@@ -2081,7 +2081,7 @@ namespace cmft
                         {
                             const uint32_t width  = dm::max(UINT32_C(1), _image.m_width  >> mip);
                             const uint32_t height = dm::max(UINT32_C(1), _image.m_height >> mip);
-                            const uint32_t pitch = width * bytesPerPixel;
+                            const uint32_t pitch  = width * bytesPerPixel;
 
                             uint8_t* facePtr = (uint8_t*)_image.m_data + offsets[imageFace][mip];
                             for (uint32_t yy = 0, yyEnd = height-1; yy < height; ++yy, --yyEnd)
@@ -2115,7 +2115,7 @@ namespace cmft
                         {
                             const uint32_t width  = dm::max(UINT32_C(1), _image.m_width  >> mip);
                             const uint32_t height = dm::max(UINT32_C(1), _image.m_height >> mip);
-                            const uint32_t pitch = width * bytesPerPixel;
+                            const uint32_t pitch  = width * bytesPerPixel;
 
                             uint8_t* facePtr = (uint8_t*)_image.m_data + offsets[imageFace][mip];
                             uint32_t yy = 0, yyEnd = height-1;
@@ -2160,7 +2160,7 @@ namespace cmft
                         {
                             const uint32_t width  = dm::max(UINT32_C(1), _image.m_width  >> mip);
                             const uint32_t height = dm::max(UINT32_C(1), _image.m_height >> mip);
-                            const uint32_t pitch = width * bytesPerPixel;
+                            const uint32_t pitch  = width * bytesPerPixel;
 
                             uint8_t* facePtr = (uint8_t*)_image.m_data + offsets[imageFace][mip];
                             for (uint32_t yy = 0; yy < height; ++yy)
@@ -2193,7 +2193,7 @@ namespace cmft
                     {
                         const uint32_t width  = dm::max(UINT32_C(1), _image.m_width  >> mip);
                         const uint32_t height = dm::max(UINT32_C(1), _image.m_height >> mip);
-                        const uint32_t pitch = width * bytesPerPixel;
+                        const uint32_t pitch  = width * bytesPerPixel;
 
                         uint8_t* facePtr = (uint8_t*)_image.m_data + offsets[imageFace][mip];
                         for (uint32_t yy = 0, yyEnd = height-1; yy < yyEnd; ++yy, --yyEnd)
@@ -2211,7 +2211,7 @@ namespace cmft
                     {
                         const uint32_t width  = dm::max(UINT32_C(1), _image.m_width  >> mip);
                         const uint32_t height = dm::max(UINT32_C(1), _image.m_height >> mip);
-                        const uint32_t pitch = width * bytesPerPixel;
+                        const uint32_t pitch  = width * bytesPerPixel;
 
                         uint8_t* facePtr = (uint8_t*)_image.m_data + offsets[imageFace][mip];
                         for (uint32_t yy = 0; yy < height; ++yy)
