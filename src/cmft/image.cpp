@@ -1885,10 +1885,10 @@ namespace cmft
                 const uint32_t dstMipHeight = dm::max(UINT32_C(1), _height >> mip);
                 const uint32_t dstMipPitch  = dstMipWidth * bytesPerPixel;
 
-                const float    dstToSrcRatioXf = float(int32_t(srcMipWidth)) /float(int32_t(dstMipWidth));
-                const float    dstToSrcRatioYf = float(int32_t(srcMipHeight))/float(int32_t(dstMipHeight));
-                const uint32_t dstToSrcRatioX  = uint32_t(int32_t(dstToSrcRatioXf));
-                const uint32_t dstToSrcRatioY  = uint32_t(int32_t(dstToSrcRatioYf));
+                const float    dstToSrcRatioXf = dm::utof(srcMipWidth) /dm::utof(dstMipWidth);
+                const float    dstToSrcRatioYf = dm::utof(srcMipHeight)/dm::utof(dstMipHeight);
+                const uint32_t dstToSrcRatioX  = dm::ftou(dstToSrcRatioXf);
+                const uint32_t dstToSrcRatioY  = dm::ftou(dstToSrcRatioYf);
 
                 uint8_t* dstMipData = (uint8_t*)dstData + dstOffsets[face][mip];
                 const uint8_t* srcMipData = (const uint8_t*)imageRgba32f.m_data + srcOffsets[face][mip];
