@@ -1904,14 +1904,14 @@ namespace cmft
                         float color[3] = { 0.0f, 0.0f, 0.0f };
                         uint32_t weight = 0;
 
-                        uint32_t ySrc = uint32_t(float(yDst)*dstToSrcRatioYf);
-                        uint32_t ySrcEnd = ySrc + dm::max(UINT32_C(1), dstToSrcRatioY);
+                        uint32_t       ySrc    = dm::ftou(float(yDst)*dstToSrcRatioYf);
+                        uint32_t const ySrcEnd = ySrc + DM_MAX(1, dstToSrcRatioY);
                         for (; ySrc < ySrcEnd; ++ySrc)
                         {
                             const uint8_t* srcRowData = (const uint8_t*)srcMipData + ySrc*srcMipPitch;
 
-                            uint32_t xSrc = uint32_t(float(xDst)*dstToSrcRatioXf);
-                            uint32_t xSrcEnd = xSrc + dm::max(UINT32_C(1), dstToSrcRatioX);
+                            uint32_t       xSrc    = dm::ftou(float(xDst)*dstToSrcRatioXf);
+                            uint32_t const xSrcEnd = xSrc + DM_MAX(1, dstToSrcRatioX);
                             for (; xSrc < xSrcEnd; ++xSrc)
                             {
                                 const float* srcColumnData = (const float*)((const uint8_t*)srcRowData + xSrc*bytesPerPixel);
