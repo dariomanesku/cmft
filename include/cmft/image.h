@@ -18,9 +18,8 @@
 
 namespace cmft
 {
-
-#define CUBE_FACE_NUM  6
-#define MAX_MIP_NUM   16
+    #define CUBE_FACE_NUM  6
+    #define MAX_MIP_NUM   16
 
     enum ImageTransformArgs
     {
