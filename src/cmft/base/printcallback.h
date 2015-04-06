@@ -17,7 +17,7 @@ namespace cmft
     {                                                                                   \
         if (g_printWarnings)                                                            \
         {                                                                               \
-            printWarning("CMFT WARNING" _FILE_LINE_ ": "  _format "\n", ##__VA_ARGS__); \
+            printWarning("CMFT WARNING: "  _format "\n", ##__VA_ARGS__); \
         }                                                                               \
     } while(0)
 

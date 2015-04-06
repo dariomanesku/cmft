@@ -458,7 +458,7 @@ void inputParametersFromCommandLine(InputParameters& _inputParameters, const bx:
 
                     WARN("Output(%u) - File type %s does not support %s output type."
                          " Valid output types for %s are: %s."
-                         " Choose one of the valid output types or a different file type.\n"
+                         " Choose one of the valid output types or a different file type."
                          , outputId, getFileTypeStr(ft), requestedOutputType
                          , getFileTypeStr(ft), validOutputTypes
                          );
@@ -863,6 +863,12 @@ int cmftMain(int _argc, char const* const* _argv)
     InputParameters inputParameters;
     inputParametersDefault(inputParameters);
     inputParametersFromCommandLine(inputParameters, cmdLine);
+
+    if (0 == inputParameters.m_outputFilesNum)
+    {
+        WARN("There are no valid specified outputs! Execution will not terminate.");
+        return EXIT_FAILURE;
+    }
 
     if (inputParameters.m_silent)
     {
