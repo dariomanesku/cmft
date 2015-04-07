@@ -2318,10 +2318,10 @@ namespace cmft
                             float* dstColumnData = (float*)((uint8_t*)dstRowData + xx*bytesPerPixel);
 
                             float color[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
-                            for (uint32_t yParent = yy*2, end = yParent+2; yParent < end; ++yParent)
+                            for (uint32_t yParent = yy*2, yEnd = yParent+2; yParent < yEnd; ++yParent)
                             {
                                 const uint8_t* parentRowData = (const uint8_t*)parentMipData + parentPitch*yParent;
-                                for (uint32_t xParent = xx*2, end = xParent+2; xParent < end; ++xParent)
+                                for (uint32_t xParent = xx*2, xEnd = xParent+2; xParent < xEnd; ++xParent)
                                 {
                                     const float* parentColumnData = (const float*)((const uint8_t*)parentRowData + xParent*bytesPerPixel);
                                     color[0] += parentColumnData[0];
@@ -2842,19 +2842,19 @@ namespace cmft
                     texelCoordToVec(vec, uu, vv, face);
 
                     // Convert cubemap vector (x,y,z) to latlong (u,v).
-                    float xSrc;
-                    float ySrc;
-                    latLongFromVec(xSrc, ySrc, vec);
+                    float xSrcf;
+                    float ySrcf;
+                    latLongFromVec(xSrcf, ySrcf, vec);
 
                     // Convert from [0..1] to [0..(size-1)] range.
-                    xSrc *= srcWidthMinusOne;
-                    ySrc *= srcHeightMinusOne;
+                    xSrcf *= srcWidthMinusOne;
+                    ySrcf *= srcHeightMinusOne;
 
                     // Sample from latlong (u,v).
                     if (_useBilinearInterpolation)
                     {
-                        const uint32_t x0 = uint32_t(xSrc);
-                        const uint32_t y0 = uint32_t(ySrc);
+                        const uint32_t x0 = dm::ftou(xSrcf);
+                        const uint32_t y0 = dm::ftou(ySrcf);
                         const uint32_t x1 = dm::min(x0+1, imageRgba32f.m_width-1);
                         const uint32_t y1 = dm::min(y0+1, imageRgba32f.m_height-1);
 
@@ -2863,8 +2863,8 @@ namespace cmft
                         const float *src2 = (const float*)((const uint8_t*)imageRgba32f.m_data + y1*srcPitch + x0*bytesPerPixel);
                         const float *src3 = (const float*)((const uint8_t*)imageRgba32f.m_data + y1*srcPitch + x1*bytesPerPixel);
 
-                        const float tx = xSrc - float(int32_t(x0));
-                        const float ty = ySrc - float(int32_t(y0));
+                        const float tx = xSrcf - float(int32_t(x0));
+                        const float ty = ySrcf - float(int32_t(y0));
                         const float invTx = 1.0f - tx;
                         const float invTy = 1.0f - ty;
 
@@ -2888,9 +2888,9 @@ namespace cmft
                     }
                     else
                     {
-                        const uint32_t xx = uint32_t(xSrc);
-                        const uint32_t yy = uint32_t(ySrc);
-                        const float *src = (const float*)((const uint8_t*)imageRgba32f.m_data + yy*srcPitch + xx*bytesPerPixel);
+                        const uint32_t xSrc = dm::ftou(xSrcf);
+                        const uint32_t ySrc = dm::ftou(ySrcf);
+                        const float *src = (const float*)((const uint8_t*)imageRgba32f.m_data + ySrc*srcPitch + xSrc*bytesPerPixel);
 
                         dstColumnData[0] = src[0];
                         dstColumnData[1] = src[1];
@@ -3005,20 +3005,20 @@ namespace cmft
                     vecFromLatLong(vec, xDst, yDst);
 
                     // Get cubemap (u,v,faceIdx) from cubemap vector (x,y,z).
-                    float xSrc;
-                    float ySrc;
+                    float xSrcf;
+                    float ySrcf;
                     uint8_t faceIdx;
-                    vecToTexelCoord(xSrc, ySrc, faceIdx, vec);
+                    vecToTexelCoord(xSrcf, ySrcf, faceIdx, vec);
 
                     // Convert from [0..1] to [0..(size-1)] range.
-                    xSrc *= srcMipSizeMinOnef;
-                    ySrc *= srcMipSizeMinOnef;
+                    xSrcf *= srcMipSizeMinOnef;
+                    ySrcf *= srcMipSizeMinOnef;
 
                     // Sample from cubemap (u,v, faceIdx).
                     if (_useBilinearInterpolation)
                     {
-                        const uint32_t x0 = dm::ftou(xSrc);
-                        const uint32_t y0 = dm::ftou(ySrc);
+                        const uint32_t x0 = dm::ftou(xSrcf);
+                        const uint32_t y0 = dm::ftou(ySrcf);
                         const uint32_t x1 = dm::min(x0+1, srcMipSizeMinOne);
                         const uint32_t y1 = dm::min(y0+1, srcMipSizeMinOne);
 
@@ -3028,8 +3028,8 @@ namespace cmft
                         const float *src2 = (const float*)((const uint8_t*)srcFaceData + y1*srcPitch + x0*bytesPerPixel);
                         const float *src3 = (const float*)((const uint8_t*)srcFaceData + y1*srcPitch + x1*bytesPerPixel);
 
-                        const float tx = xSrc - float(int32_t(x0));
-                        const float ty = ySrc - float(int32_t(y0));
+                        const float tx = xSrcf - float(int32_t(x0));
+                        const float ty = ySrcf - float(int32_t(y0));
                         const float invTx = 1.0f - tx;
                         const float invTy = 1.0f - ty;
 
@@ -3053,11 +3053,11 @@ namespace cmft
                     }
                     else
                     {
-                        const uint32_t xx = uint32_t(xSrc);
-                        const uint32_t yy = uint32_t(ySrc);
+                        const uint32_t xSrc = dm::ftou(xSrcf);
+                        const uint32_t ySrc = dm::ftou(ySrcf);
 
                         const uint8_t* srcFaceData = (const uint8_t*)imageRgba32f.m_data + srcOffsets[faceIdx][mip];
-                        const float *src = (const float*)((const uint8_t*)srcFaceData + yy*srcPitch + xx*bytesPerPixel);
+                        const float *src = (const float*)((const uint8_t*)srcFaceData + ySrc*srcPitch + xSrc*bytesPerPixel);
 
                         dstColumnData[0] = src[0];
                         dstColumnData[1] = src[1];
