@@ -49,11 +49,16 @@ Building
 
 ### Windows
 
-- Visual Studio solutions can be found in *\_projects/vs20XX/*.<br \>
+- Visual Studio
+  - Visual Studio solution will be located in *\_projects/vs20XX/*.
+- MinGW
+  - MinGW Makefile will be located in *\_projects/gmake-mingw-gcc/*.
+  - Project can be build from the root directory by running `make mingw-gcc-release64` (or similar).
+- Remember to edit CMFT variable in *runtime/cmft_win.bat* accordingly to match the build configuration you are using.
 
 ### Linux
 
-- Makefile can be found in *\_projects/gmake-linux/*.<br \>
+- Makefile will be loacted in *\_projects/gmake-linux/*.<br \>
 - Project can be build from the root directory by running `make linux-release64` (or similar).<br \>
 - Vim users can source *.ide.vim* and make use of Build() and Execute() functions from inside Vim.<br \>
 - Remember to edit CMFT variable in *runtime/cmft_lin.sh* accordingly to match the build configuration you are using.<br \>
@@ -61,7 +66,7 @@ Building
 ### OS X
 
 - XCode
-  - XCode solution can be found in *\_projects/xcode4/*.<br \>
+  - XCode solution will be located in *\_projects/xcode4/*.<br \>
   - XCode project contains one scheme with 4 build configurations (debug/release 32/64bit). Select desired build configuration manually and/or setup schemes manually as desired. In case you need 64bit build, it is possible to just set *Build Settings -> Architectures -> Standard Architectures (64-bit Intel) (x86_64).*<br \>
   - Also it is probably necessary to manually set runtime directory (it is not picking it from genie for some reason). This is done by going to "*Product -> Scheme -> Edit Scheme... -> Run cmftDebug -> Options -> Working Directory (Use custom working directory)*" and specifying *runtime/* directory from cmft root folder.<br \>
 - Makefile
