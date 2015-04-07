@@ -30,8 +30,9 @@ all:
 	$(GENIE) --file=scripts/main.lua vs2010
 	$(GENIE) --file=scripts/main.lua vs2012
 	$(GENIE) --file=scripts/main.lua vs2013
-	$(GENIE) --file=scripts/main.lua --gcc=osx       gmake
+	$(GENIE) --file=scripts/main.lua --gcc=mingw-gcc gmake
 	$(GENIE) --file=scripts/main.lua --gcc=linux-gcc gmake
+	$(GENIE) --file=scripts/main.lua --gcc=osx       gmake
 
 .PHONY: clean-projects
 clean-projects:
@@ -141,15 +142,15 @@ osx: osx-debug32 osx-release32 osx-debug64 osx-release64
 #win-clang-release64: _projects/gmake-win-clang
 #	make -R -C _projects/gmake-win-clang config=release64
 #win-clang: win-debug32 win-release32 win-debug64 win-release64
-#
-#_projects/gmake-win-mingw:
-#	$(GENIE) --file=scripts/main.lua --mingw=win-clang gmake
-#win-mingw-debug32: _projects/gmake-win-clang
-#	make -R -C _projects/gmake-win-mingw config=debug32
-#win-mingw-release32: _projects/gmake-win-clang
-#	make -R -C _projects/gmake-win-mingw config=release32
-#win-mingw-debug64: _projects/gmake-win-clang
-#	make -R -C _projects/gmake-win-mingw config=debug64
-#win-mingw-release64: _projects/gmake-win-clang
-#	make -R -C _projects/gmake-win-mingw config=release64
-#win-mingw: win-debug32 win-release32 win-debug64 win-release64
+
+_projects/gmake-mingw-gcc:
+	$(GENIE) --file=scripts/main.lua --gcc=mingw-gcc gmake
+mingw-gcc-debug32: _projects/gmake-mingw-gcc
+	make -R -C _projects/gmake-mingw-gcc config=debug32
+mingw-gcc-release32: _projects/gmake-mingw-gcc
+	make -R -C _projects/gmake-mingw-gcc config=release32
+mingw-gcc-debug64: _projects/gmake-mingw-gcc
+	make -R -C _projects/gmake-mingw-gcc config=debug64
+mingw-gcc-release64: _projects/gmake-mingw-gcc
+	make -R -C _projects/gmake-mingw-gcc config=release64
+mingw: mingw-gcc-debug32 mingw-gcc-release32 mingw-gcc-debug64 mingw-gcc-release64
