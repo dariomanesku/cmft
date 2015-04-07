@@ -78,7 +78,6 @@ Building
 
 ### Other
 - Also other compilation options may be available, have a look inside *\_projects* directory.<br \>
-- File *config.mk* is used for setting environment variables for different compilers.<br \>
 - Additional build configurations will be available in the future. If one is there and not described here in this document, it is probably not yet set up properly and may not work out-of-the-box as expected without some care.<br \>
 
 ### Known issues
