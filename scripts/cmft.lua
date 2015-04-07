@@ -25,10 +25,10 @@ function cmftProject(_cmftDir)
             }
 
         configuration { "vs*" }
-        buildoptions
-        {
-            "/wd 4127" -- disable 'conditional expression is constant' for do {} while(0)
-        }
+            buildoptions
+            {
+                "/wd 4127" -- disable 'conditional expression is constant' for do {} while(0)
+            }
 
         configuration {}
 
