@@ -7,11 +7,10 @@
 #define DM_BITARRAY_H_HEADER_GUARD
 
 #include <stdint.h> // uint32_t
-#include <new> // placement-new
+#include <new>      // placement-new
 
-#include "allocator.h" // DM_ALLOC()/DM_FREE()
-#include "../common/common.h" // DM_INLINE
-#include "../check.h" // DM_CHECK
+#include "../common/common.h"              // DM_INLINE
+#include "../check.h"                      // DM_CHECK
 #include "../../../3rdparty/bx/uint32_t.h" // bx::uint64_cnttz(), bx::uint64_cntlz(), bx::uint64_cntbits()
 
 namespace dm
@@ -57,16 +56,17 @@ namespace dm
         // Uninitialized state, init() needs to be called !
         BitArray()
         {
+            m_bits = NULL;
         }
 
-        BitArray(uint32_t _max)
+        BitArray(uint32_t _max, bx::ReallocatorI* _reallocator)
         {
-            init(_max);
+            init(_max, _reallocator);
         }
 
-        BitArray(uint32_t _max, void* _mem)
+        BitArray(uint32_t _max, void* _mem, bx::AllocatorI* _allocator)
         {
-            init(_max, _mem);
+            init(_max, _mem, _allocator);
         }
 
         ~BitArray()
@@ -80,11 +80,12 @@ namespace dm
         }
 
         // Allocates memory internally.
-        void init(uint32_t _max)
+        void init(uint32_t _max, bx::ReallocatorI* _reallocator)
         {
             m_max = _max;
             m_numSlots = numSlotsFor(_max);
-            m_bits = (uint64_t*)DM_ALLOC(sizeFor(_max));
+            m_bits = (uint64_t*)BX_ALLOC(_reallocator, sizeFor(_max));
+            m_reallocator = _reallocator;
             m_cleanup = true;
 
             reset();
@@ -95,12 +96,13 @@ namespace dm
             return numSlotsFor(_max)*sizeof(uint64_t);
         }
 
-        // Uses externaly allocated memory.
-        void* init(uint32_t _max, void* _mem)
+        // Uses externally allocated memory.
+        void* init(uint32_t _max, void* _mem, bx::AllocatorI* _allocator = NULL)
         {
             m_max = _max;
             m_numSlots = numSlotsFor(_max);
             m_bits = (uint64_t*)_mem;
+            m_allocator = _allocator;
             m_cleanup = false;
 
             reset();
@@ -109,11 +111,16 @@ namespace dm
             return end;
         }
 
+        bool isInitialized() const
+        {
+            return (NULL != m_bits);
+        }
+
         void destroy()
         {
             if (m_cleanup && NULL != m_bits)
             {
-                DM_FREE(m_bits);
+                BX_FREE(m_reallocator, m_bits);
                 m_bits = NULL;
             }
         }
@@ -130,29 +137,39 @@ namespace dm
             return m_numSlots;
         }
 
+        bx::AllocatorI* allocator()
+        {
+            return m_allocator;
+        }
+
     private:
         uint32_t m_last;
         uint32_t m_max;
         uint32_t m_numSlots;
         uint64_t* m_bits;
+        union
+        {
+            bx::AllocatorI*   m_allocator;
+            bx::ReallocatorI* m_reallocator;
+        };
         bool m_cleanup;
     };
 
-    DM_INLINE BitArray* createBitArray(uint32_t _max, void* _mem)
+    DM_INLINE BitArray* createBitArray(uint32_t _max, void* _mem, bx::AllocatorI* _allocator)
     {
-        return ::new (_mem) BitArray(_max, (uint8_t*)_mem + sizeof(BitArray));
+        return ::new (_mem) BitArray(_max, (uint8_t*)_mem + sizeof(BitArray), _allocator);
     }
 
-    DM_INLINE BitArray* createBitArray(uint32_t _max)
+    DM_INLINE BitArray* createBitArray(uint32_t _max, bx::AllocatorI* _allocator)
     {
-        uint8_t* ptr = (uint8_t*)DM_ALLOC(sizeof(BitArray) + BitArray::sizeFor(_max));
-        return createBitArray(_max, ptr);
+        uint8_t* ptr = (uint8_t*)BX_ALLOC(_allocator, sizeof(BitArray) + BitArray::sizeFor(_max));
+        return createBitArray(_max, ptr, _allocator);
     }
 
     DM_INLINE void destroyBitArray(BitArray* _bitArray)
     {
         _bitArray->~BitArray();
-        delete _bitArray;
+        BX_FREE(_bitArray->allocator(), _bitArray);
     }
 
 } // namespace dm

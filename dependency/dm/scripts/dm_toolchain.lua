@@ -1056,7 +1056,6 @@ function strip()
         .. " -Wuninitialized"
         .. " -Wunused-parameter"
         -- Other
-        .. " -Wno-cast-align" --disabled!
         .. " -Wcast-qual"
         .. " -Wdisabled-optimization"
         .. " -Wdiv-by-zero"
@@ -1077,7 +1076,7 @@ function strip()
         .. " -Wsign-compare"
         .. " -Wstrict-aliasing"
         .. " -Wstrict-aliasing=2"
-        .. " -Wswitch"
+        .. " -Wshadow"
         .. " -Wwrite-strings"
         .. " -Werror=declaration-after-statement"
         .. " -Werror=implicit-function-declaration"
@@ -1085,6 +1084,7 @@ function strip()
         .. " -Werror=old-style-definition"
         .. " -Werror=strict-prototypes"
         -- Disable
+        .. " -Wno-cast-align" --disabled!
         .. " -Wno-enum-compare"
         .. " -Wno-unused-function"
         .. " -Wno-variadic-macros"

@@ -281,7 +281,7 @@ namespace dm
         return _val - integerPart(_val);
     }
 
-    DM_INLINE bool set(float _flag)
+    DM_INLINE bool isSet(float _flag)
     {
         return (0.0f != _flag);
     }

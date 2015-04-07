@@ -8,14 +8,14 @@
     {
         if (m_cleanup) // 'm_values' was allocated internally.
         {
-            m_values = (Ty*)DM_REALLOC(m_values, sizeFor(_max));
+            m_values = (Ty*)BX_REALLOC(m_reallocator, m_values, sizeFor(_max));
             m_max = _max;
         }
         else // 'm_values' was passed as a pointer.
         {
             if (_max > m_max) // Expand.
             {
-                m_values = (Ty*)DM_ALLOC(sizeFor(_max));
+                m_values = (Ty*)BX_ALLOC(m_allocator, sizeFor(_max));
             }
 
             m_max = _max;

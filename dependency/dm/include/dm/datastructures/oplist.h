@@ -7,11 +7,10 @@
 #define DM_OPLIST_H_HEADER_GUARD
 
 #include <stdint.h> // uint32_t
-#include <new> // placement-new
+#include <new>      // placement-new
 
-#include "allocator.h" // DM_ALLOC()/DM_FREE()
 #include "../common/common.h" // DM_INLINE
-#include "../check.h" // DM_CHECK
+#include "../check.h"         // DM_CHECK
 
 #include "array.h"
 #include "handlealloc.h"
@@ -43,16 +42,17 @@ namespace dm
         // Uninitialized state, init() needs to be called !
         OpList()
         {
+            m_memoryBlock = NULL;
         }
 
-        OpList(uint16_t _max)
+        OpList(uint16_t _max, bx::ReallocatorI* _reallocator)
         {
-            init(_max);
+            init(_max, _reallocator);
         }
 
-        OpList(uint16_t _max, void* _mem)
+        OpList(uint16_t _max, void* _mem, bx::AllocatorI* _allocator)
         {
-            init(_max, _mem);
+            init(_max, _mem, _allocator);
         }
 
         ~OpList()
@@ -61,9 +61,10 @@ namespace dm
         }
 
         // Allocates memory internally.
-        void init(uint16_t _max)
+        void init(uint16_t _max, bx::ReallocatorI* _reallocator)
         {
-            m_memoryBlock = DM_ALLOC(sizeFor(_max));
+            m_memoryBlock = BX_ALLOC(_reallocator, sizeFor(_max));
+            m_reallocator = _reallocator;
             m_cleanup = true;
 
             void* ptr = m_memoryBlock;
@@ -85,10 +86,11 @@ namespace dm
             return _max*SizePerElement;
         }
 
-        // Uses externaly allocated memory.
-        void* init(uint16_t _max, void* _mem)
+        // Uses externally allocated memory.
+        void* init(uint16_t _max, void* _mem, bx::AllocatorI* _allocator = NULL)
         {
             m_memoryBlock = _mem;
+            m_allocator = _allocator;
             m_cleanup = false;
 
             void* ptr = m_memoryBlock;
@@ -100,11 +102,20 @@ namespace dm
             return end;
         }
 
+        bool isInitialized() const
+        {
+            return (NULL != m_memoryBlock);
+        }
+
         void destroy()
         {
-            if (NULL != m_memoryBlock && m_cleanup)
+            if (NULL != m_memoryBlock)
             {
-                DM_FREE(m_memoryBlock);
+                m_handles.destroy();
+                if (m_cleanup)
+                {
+                    BX_FREE(m_reallocator, m_memoryBlock);
+                }
                 m_memoryBlock = NULL;
             }
         }
@@ -116,32 +127,42 @@ namespace dm
             return m_handleAlloc.max();
         }
 
+        bx::AllocatorI* allocator()
+        {
+            return m_allocator;
+        }
+
     private:
         Array<uint16_t> m_handles;
         HandleAlloc m_handleAlloc;
         Ty* m_objects;
         void* m_memoryBlock;
+        union
+        {
+            bx::AllocatorI*   m_allocator;
+            bx::ReallocatorI* m_reallocator;
+        };
         bool m_cleanup;
     };
 
     template <typename Ty/*obj type*/>
-    DM_INLINE OpList<Ty>* createOpList(uint16_t _max, void* _mem)
+    DM_INLINE OpList<Ty>* createOpList(uint16_t _max, void* _mem, bx::AllocatorI* _allocator)
     {
-        return ::new (_mem) OpList<Ty>(_max, (uint8_t*)_mem + sizeof(OpList<Ty>));
+        return ::new (_mem) OpList<Ty>(_max, (uint8_t*)_mem + sizeof(OpList<Ty>), _allocator);
     }
 
     template <typename Ty/*obj type*/>
-    DM_INLINE OpList<Ty>* createOpList(uint16_t _max)
+    DM_INLINE OpList<Ty>* createOpList(uint16_t _max, bx::AllocatorI* _allocator)
     {
-        uint8_t* ptr = (uint8_t*)DM_ALLOC(sizeof(OpList<Ty>) + OpList<Ty>::sizeFor(_max));
-        return createOpList<Ty>(_max, ptr);
+        uint8_t* ptr = (uint8_t*)BX_ALLOC(_allocator, sizeof(OpList<Ty>) + OpList<Ty>::sizeFor(_max));
+        return createOpList<Ty>(_max, ptr, _allocator);
     }
 
     template <typename Ty/*obj type*/>
     DM_INLINE void destroyOpList(OpList<Ty>* _opList)
     {
         _opList->~OpList<Ty>();
-        delete _opList;
+        BX_FREE(_opList->allocator(), _opList);
     }
 
 } // namespace dm

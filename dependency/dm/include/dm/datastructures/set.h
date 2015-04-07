@@ -7,11 +7,10 @@
 #define DM_SET_H_HEADER_GUARD
 
 #include <stdint.h> // uint32_t
-#include <new> // placement-new
+#include <new>      // placement-new
 
-#include "allocator.h" // DM_ALLOC()/DM_FREE()
 #include "../common/common.h" // DM_INLINE
-#include "../check.h" // DM_CHECK
+#include "../check.h"         // DM_CHECK
 
 namespace dm
 {
@@ -47,16 +46,17 @@ namespace dm
         // Uninitialized state, init() needs to be called !
         Set()
         {
+            m_values = NULL;
         }
 
-        Set(uint16_t _max)
+        Set(uint16_t _max, bx::ReallocatorI* _reallocator)
         {
-            init(_max);
+            init(_max, _reallocator);
         }
 
-        Set(uint16_t _max, void* _mem)
+        Set(uint16_t _max, void* _mem, bx::AllocatorI* _allocator)
         {
-            init(_max, _mem);
+            init(_max, _mem, _allocator);
         }
 
         ~Set()
@@ -65,11 +65,12 @@ namespace dm
         }
 
         // Allocates memory internally.
-        void init(uint16_t _max)
+        void init(uint16_t _max, bx::ReallocatorI* _reallocator)
         {
             m_num = 0;
             m_max = _max;
-            m_values = (uint16_t*)DM_ALLOC(sizeFor(_max));
+            m_values = (uint16_t*)BX_ALLOC(_reallocator, sizeFor(_max));
+            m_reallocator = _reallocator;
             m_cleanup = true;
         }
 
@@ -83,12 +84,13 @@ namespace dm
             return _max*SizePerElement;
         }
 
-        // Uses externaly allocated memory.
-        void* init(uint16_t _max, void* _mem)
+        // Uses externally allocated memory.
+        void* init(uint16_t _max, void* _mem, bx::AllocatorI* _allocator = NULL)
         {
             m_num = 0;
             m_max = _max;
             m_values = (uint16_t*)_mem;
+            m_allocator = _allocator;
             m_cleanup = false;
 
             void* end = (void*)((uint8_t*)_mem + sizeFor(_max));
@@ -99,9 +101,14 @@ namespace dm
         {
             if (m_cleanup && NULL != m_values)
             {
-                DM_FREE(m_values);
+                BX_FREE(m_reallocator, m_values);
                 m_values = NULL;
             }
+        }
+
+        bool isInitialized() const
+        {
+            return (NULL != m_values);
         }
 
         #include "set_inline_impl.h"
@@ -116,28 +123,38 @@ namespace dm
             return m_max;
         }
 
+        bx::AllocatorI* allocator()
+        {
+            return m_allocator;
+        }
+
     private:
         uint16_t m_max;
         uint16_t m_num;
         uint16_t* m_values;
+        union
+        {
+            bx::AllocatorI*   m_allocator;
+            bx::ReallocatorI* m_reallocator;
+        };
         bool m_cleanup;
     };
 
-    DM_INLINE Set* createSet(uint16_t _max, void* _mem)
+    DM_INLINE Set* createSet(uint16_t _max, void* _mem, bx::AllocatorI* _allocator)
     {
-        return ::new (_mem) Set(_max, (uint8_t*)_mem + sizeof(Set));
+        return ::new (_mem) Set(_max, (uint8_t*)_mem + sizeof(Set), _allocator);
     }
 
-    DM_INLINE Set* createSet(uint16_t _max)
+    DM_INLINE Set* createSet(uint16_t _max, bx::AllocatorI* _allocator)
     {
-        uint8_t* ptr = (uint8_t*)DM_ALLOC(sizeof(Set) + Set::sizeFor(_max));
-        return createSet(_max, ptr);
+        uint8_t* ptr = (uint8_t*)BX_ALLOC(_allocator, sizeof(Set) + Set::sizeFor(_max));
+        return createSet(_max, ptr, _allocator);
     }
 
     DM_INLINE void destroySet(Set* _set)
     {
         _set->~Set();
-        delete _set;
+        BX_FREE(_set->allocator(), _set);
     }
 
 } // namespace dm

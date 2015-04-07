@@ -7,11 +7,10 @@
 #define DM_ARRAY_H_HEADER_GUARD
 
 #include <stdint.h> // uint32_t
-#include <new> // placement-new
+#include <new>      // placement-new
 
-#include "allocator.h" // DM_ALLOC()/DM_FREE()
 #include "../common/common.h" // DM_INLINE
-#include "../check.h" // DM_CHECK
+#include "../check.h"         // DM_CHECK
 
 namespace dm
 {
@@ -35,7 +34,7 @@ namespace dm
             return MaxT;
         }
 
-    public:
+    private:
         uint32_t m_count;
         Ty m_values[MaxT];
     };
@@ -47,17 +46,16 @@ namespace dm
         Array()
         {
             m_values = NULL;
-            m_max = 0;
         }
 
-        Array(uint32_t _max)
+        Array(uint32_t _max, bx::ReallocatorI* _reallocator)
         {
-            init(_max);
+            init(_max, _reallocator);
         }
 
-        Array(uint32_t _max, void* _mem)
+        Array(uint32_t _max, void* _mem, bx::AllocatorI* _allocator)
         {
-            init(_max, _mem);
+            init(_max, _mem, _allocator);
         }
 
         ~Array()
@@ -76,48 +74,52 @@ namespace dm
         }
 
         // Allocates memory internally.
-        void init(uint32_t _max)
+        void init(uint32_t _max, bx::ReallocatorI* _reallocator)
         {
             m_count = 0;
             m_max = _max;
-            m_values = (Ty*)DM_ALLOC(sizeFor(_max));
+            m_values = (Ty*)BX_ALLOC(_reallocator, sizeFor(_max));
+            m_reallocator = _reallocator;
             m_cleanup = true;
         }
 
-        // Uses externaly allocated memory.
-        void* init(uint32_t _max, void* _mem)
+        // Uses externally allocated memory.
+        void* init(uint32_t _max, void* _mem, bx::AllocatorI* _allocator = NULL)
         {
             m_count = 0;
             m_max = _max;
             m_values = (Ty*)_mem;
+            m_allocator = _allocator;
             m_cleanup = false;
 
             void* end = (void*)((uint8_t*)_mem + sizeFor(_max));
             return end;
         }
 
-        bool isInitialized()
+        bool isInitialized() const
         {
             return (NULL != m_values);
         }
 
-        void reinit(uint32_t _max)
+        void reinit(uint32_t _max, bx::ReallocatorI* _reallocator)
         {
             if (isInitialized())
             {
                 destroy();
             }
 
-            init(_max);
+            init(_max, _reallocator);
         }
 
         void destroy()
         {
             if (m_cleanup && NULL != m_values)
             {
-                DM_FREE(m_values);
+                BX_FREE(m_reallocator, m_values);
                 m_values = NULL;
             }
+
+            m_count = 0;
         }
 
         #define DM_DYNAMIC_ARRAY
@@ -133,31 +135,41 @@ namespace dm
             return m_max;
         }
 
-    public:
+        bx::AllocatorI* allocator()
+        {
+            return m_allocator;
+        }
+
+    private:
         uint32_t m_count;
         uint32_t m_max;
         Ty* m_values;
+        union
+        {
+            bx::AllocatorI*   m_allocator;
+            bx::ReallocatorI* m_reallocator;
+        };
         bool m_cleanup;
     };
 
     template <typename Ty>
-    DM_INLINE Array<Ty>* createArray(uint32_t _max, void* _mem)
+    DM_INLINE Array<Ty>* createArray(uint32_t _max, void* _mem, bx::AllocatorI* _allocator)
     {
-        return ::new (_mem) Array<Ty>(_max, (uint8_t*)_mem + sizeof(Array<Ty>));
+        return ::new (_mem) Array<Ty>(_max, (uint8_t*)_mem + sizeof(Array<Ty>), _allocator);
     }
 
     template <typename Ty>
-    DM_INLINE Array<Ty>* createArray(uint32_t _max)
+    DM_INLINE Array<Ty>* createArray(uint32_t _max, bx::AllocatorI* _allocator)
     {
-        uint8_t* ptr = (uint8_t*)DM_ALLOC(sizeof(Array<Ty>) + Array<Ty>::sizeFor(_max));
-        return createArray<Ty>(_max, ptr);
+        uint8_t* ptr = (uint8_t*)BX_ALLOC(_allocator, sizeof(Array<Ty>) + Array<Ty>::sizeFor(_max));
+        return createArray<Ty>(_max, ptr, _allocator);
     }
 
     template <typename Ty>
     DM_INLINE void destroyArray(Array<Ty>* _array)
     {
         _array->~Array<Ty>();
-        delete _array;
+        BX_FREE(_array->allocator(), _array);
     }
 
 } // namespace dm

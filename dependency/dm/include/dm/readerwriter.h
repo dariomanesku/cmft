@@ -130,6 +130,7 @@ namespace dm
 
         virtual int32_t open(const char* _filePath, bool _binary = true) BX_OVERRIDE
         {
+            strcpy(m_path, _filePath);
             m_file = fopen(_filePath, _binary?"rb":"r");
             return NULL == m_file;
         }
@@ -151,8 +152,14 @@ namespace dm
             return (int32_t)fread(_data, 1, _size, m_file);
         }
 
+        const char* getPath() const
+        {
+            return m_path;
+        }
+
     private:
         FILE* m_file;
+        char m_path[4096];
     };
 
 } // namespace dm
