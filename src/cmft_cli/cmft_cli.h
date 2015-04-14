@@ -6,21 +6,18 @@
 #ifndef CMFT_CMFT_CLI_H_HEADER_GUARD
 #define CMFT_CMFT_CLI_H_HEADER_GUARD
 
-#include <base/config.h>        //INFO, WARN
-#include <base/printcallback.h> //_INFO, _WARN, g_printInfo, g_printWarnings
-#include <base/macros.h>        //countof
+#include <base/config.h>        // INFO, WARN
+#include <base/printcallback.h> // _INFO, _WARN, g_printInfo, g_printWarnings
 
 #include <stdio.h>
 #include <stdint.h>
 
+#include <dm/misc.h>            // DM_PATH_LEN, dm::min, dm::strscpya, dm::ScopeFclose
 #include <bx/commandline.h>
 
 #include <cmft/image.h>
 #include <cmft/cubemapfilter.h>
 #include <cmft/clcontext.h>
-
-
-#include <dm/misc.h> //DM_PATH_LEN, dm::min, dm::strscpya, dm::ScopeFclose
 
 using namespace cmft;
 
