@@ -185,6 +185,8 @@ namespace dm
     #define U_UKB(_size) asKBInt(_size), dm::asKBDec(_size)
     #define U_UMB(_size) asMBInt(_size), dm::asMBDec(_size)
 
+    #define DM_BOOL(_val) (0 != (_val))
+
     DM_INLINE bool toBool(int32_t _v)
     {
         return (0 != _v);
