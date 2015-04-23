@@ -44,8 +44,8 @@ Building
 	cd cmft
 	make
 
-- After calling `make`, *\_projects* folder will be created with all supported project files. Deleting *\_projects* folder is safe at any time.<br \>
-- All compiler generated files will be in *\_build* folder. Again, deleting *\_build* folder is safe at any time.<br \>
+- After calling `make`, *\_projects* folder will be created with all supported project files. Deleting *\_projects* folder is safe at any time.
+- All compiler generated files will be in *\_build* folder. Again, deleting *\_build* folder is safe at any time.
 
 ### Windows
 
@@ -58,27 +58,26 @@ Building
 
 ### Linux
 
-- Makefile will be loacted in *\_projects/gmake-linux/*.<br \>
-- Project can be build from the root directory by running `make linux-release64` (or similar).<br \>
-- Vim users can source *.ide.vim* and make use of Build() and Execute() functions from inside Vim.<br \>
-- Remember to edit CMFT variable in *runtime/cmft_lin.sh* accordingly to match the build configuration you are using.<br \>
+- Makefile will be loacted in *\_projects/gmake-linux/*.
+- Project can be build from the root directory by running `make linux-release64` (or similar).
+- Vim users can source *.ide.vim* and make use of Build() and Execute() functions from inside Vim.
+- Remember to edit CMFT variable in *runtime/cmft_lin.sh* accordingly to match the build configuration you are using.
 
 ### OS X
 
 - XCode
-  - XCode solution will be located in *\_projects/xcode4/*.<br \>
-  - XCode project contains one scheme with 4 build configurations (debug/release 32/64bit). Select desired build configuration manually and/or setup schemes manually as desired. In case you need 64bit build, it is possible to just set *Build Settings -> Architectures -> Standard Architectures (64-bit Intel) (x86_64).*<br \>
-  - Also it is probably necessary to manually set runtime directory (it is not picking it from genie for some reason). This is done by going to "*Product -> Scheme -> Edit Scheme... -> Run cmftDebug -> Options -> Working Directory (Use custom working directory)*" and specifying *runtime/* directory from cmft root folder.<br \>
+  - XCode solution will be located in *\_projects/xcode4/*.
+  - XCode project contains one scheme with 4 build configurations (debug/release 32/64bit). Select desired build configuration manually and/or setup schemes manually as desired. In case you need 64bit build, it is possible to just set *Build Settings -> Architectures -> Standard Architectures (64-bit Intel) (x86_64).*
+  - Also it is probably necessary to manually set runtime directory (it is not picking it from genie for some reason). This is done by going to "*Product -> Scheme -> Edit Scheme... -> Run cmftDebug -> Options -> Working Directory (Use custom working directory)*" and specifying *runtime/* directory from cmft root folder.
 - Makefile
-  - Makefile can be found in *\_projects/gmake-osx/*.<br \>
-  - Project can be build from the root directory by running `make osx-release64` (or similar).<br \>
-  <br \>
-- Vim users can source *.ide.vim* and make use of Build() and Execute() functions from inside Vim.<br \>
-- Remember to edit CMFT variable in *runtime/cmft_osx.sh* accordingly to match the build configuration you are using.<br \>
+  - Makefile can be found in *\_projects/gmake-osx/*.
+  - Project can be build from the root directory by running `make osx-release64` (or similar).
+- Vim users can source *.ide.vim* and make use of Build() and Execute() functions from inside Vim.
+- Remember to edit CMFT variable in *runtime/cmft_osx.sh* accordingly to match the build configuration you are using.
 
 ### Other
-- Also other compilation options may be available, have a look inside *\_projects* directory.<br \>
-- Additional build configurations will be available in the future. If one is there and not described here in this document, it is probably not yet set up properly and may not work out-of-the-box as expected without some care.<br \>
+- Also other compilation options may be available, have a look inside *\_projects* directory.
+- Additional build configurations will be available in the future. If one is there and not described here in this document, it is probably not yet set up properly and may not work out-of-the-box as expected without some care.
 
 ### Known issues
 - Linux GCC build noticeably slower comparing to Windows build (haven't yet figured out why).
@@ -88,7 +87,7 @@ Building
 Performance
 -----------
 
-cmft was compared with the popular CubeMapGen tool for processing performance.<br \>
+cmft was compared with the popular CubeMapGen tool for processing performance.
 Test machine: Intel i5-3570 @ 3.8ghz, Nvidia GTX 560 Ti 448.
 
 Filter settings:
@@ -117,7 +116,7 @@ Test case #4:
 - Dst face size: 256
 - Lighting model: blinnbrdf
 
-<br />
+
 
 |Test case| CubeMapGen   | cmft Cpu only | cmft Gpu only | cmft  |
 |:--------|:-------------|:--------------|:--------------|:------|
@@ -134,22 +133,22 @@ Test case #4:
 Environment maps
 ------------
 
-- [NoEmotion HDRs](http://noemotionhdrs.net/).<br />
-- [sIBL Archive - Hdrlabs.com](http://www.hdrlabs.com/sibl/archive.html).<br />
+- [NoEmotion HDRs](http://noemotionhdrs.net/).
+- [sIBL Archive - Hdrlabs.com](http://www.hdrlabs.com/sibl/archive.html).
 
 
 Recommended tools
 ------------
 
-- [PVRTexTool](http://community.imgtec.com/developers/powervr/) - for opening \*.dds and \*.ktx files.<br />
-- [GIMP](http://www.gimp.org) - for opening \*.tga files.<br />
-- [Luminance HDR](http://qtpfsgui.sourceforge.net/) - for opening \*.hdr files.<br />
+- [PVRTexTool](http://community.imgtec.com/developers/powervr/) - for opening \*.dds and \*.ktx files.
+- [GIMP](http://www.gimp.org) - for opening \*.tga files.
+- [Luminance HDR](http://qtpfsgui.sourceforge.net/) - for opening \*.hdr files.
 
 
 Similar projects
 ------------
 
-- [CubeMapGen](http://developer.amd.com/tools-and-sdks/archive/legacy-cpu-gpu-tools/cubemapgen/) - A well known tool for cubemap filtering from AMD.<br \>
+- [CubeMapGen](http://developer.amd.com/tools-and-sdks/archive/legacy-cpu-gpu-tools/cubemapgen/) - A well known tool for cubemap filtering from AMD.
 - [Marmoset Skyshop](http://www.marmoset.co/skyshop) - Commercial plugin for Unity3D Game engine.
 - [Knald Lys](https://www.knaldtech.com/lys-open-beta/) - Commercial tool from KnaldTech.
 
