@@ -423,12 +423,12 @@ namespace cmft
     // HDR format.
     //-----
 
-#define HDR_VALID_PROGRAMTYPE 0x01
-#define HDR_VALID_GAMMA       0x02
-#define HDR_VALID_EXPOSURE    0x04
-#define HDR_MAGIC             CMFT_MAKEFOURCC('#','?','R','A')
-#define HDR_MAGIC_FULL        "#?RADIANCE"
-#define HDR_MAGIC_LEN         10
+    #define HDR_VALID_PROGRAMTYPE 0x01
+    #define HDR_VALID_GAMMA       0x02
+    #define HDR_VALID_EXPOSURE    0x04
+    #define HDR_MAGIC             CMFT_MAKEFOURCC('#','?','R','A')
+    #define HDR_MAGIC_FULL        "#?RADIANCE"
+    #define HDR_MAGIC_LEN         10
 
     struct HdrHeader
     {
@@ -440,19 +440,19 @@ namespace cmft
     // TGA format.
     //-----
 
-#define TGA_HEADER_SIZE 18
-#define TGA_ID          { 'T', 'R', 'U', 'E', 'V', 'I', 'S', 'I', 'O', 'N', '-', 'X', 'F', 'I', 'L', 'E', '.', '\0' }
-#define TGA_ID_LEN      18
-#define TGA_FOOTER_SIZE 26
+    #define TGA_HEADER_SIZE 18
+    #define TGA_ID          { 'T', 'R', 'U', 'E', 'V', 'I', 'S', 'I', 'O', 'N', '-', 'X', 'F', 'I', 'L', 'E', '.', '\0' }
+    #define TGA_ID_LEN      18
+    #define TGA_FOOTER_SIZE 26
 
-#define TGA_IT_NOIMAGE     0x0
-#define TGA_IT_COLORMAPPED 0x1
-#define TGA_IT_RGB         0x2
-#define TGA_IT_BW          0x3
-#define TGA_IT_RLE         0x8
+    #define TGA_IT_NOIMAGE     0x0
+    #define TGA_IT_COLORMAPPED 0x1
+    #define TGA_IT_RGB         0x2
+    #define TGA_IT_BW          0x3
+    #define TGA_IT_RLE         0x8
 
-#define TGA_DESC_HORIZONTAL 0x10
-#define TGA_DESC_VERTICAL   0x20
+    #define TGA_DESC_HORIZONTAL 0x10
+    #define TGA_DESC_VERTICAL   0x20
 
     struct TgaHeader
     {
@@ -480,98 +480,98 @@ namespace cmft
     // DDS format.
     //-----
 
-#define DDS_MAGIC             CMFT_MAKEFOURCC('D', 'D', 'S', ' ')
-#define DDS_HEADER_SIZE       124
-#define DDS_IMAGE_DATA_OFFSET (DDS_HEADER_SIZE + 4)
-#define DDS_PIXELFORMAT_SIZE  32
-#define DDS_DX10_HEADER_SIZE  20
+    #define DDS_MAGIC             CMFT_MAKEFOURCC('D', 'D', 'S', ' ')
+    #define DDS_HEADER_SIZE       124
+    #define DDS_IMAGE_DATA_OFFSET (DDS_HEADER_SIZE + 4)
+    #define DDS_PIXELFORMAT_SIZE  32
+    #define DDS_DX10_HEADER_SIZE  20
 
-#define DDS_DXT1 CMFT_MAKEFOURCC('D', 'X', 'T', '1')
-#define DDS_DXT2 CMFT_MAKEFOURCC('D', 'X', 'T', '2')
-#define DDS_DXT3 CMFT_MAKEFOURCC('D', 'X', 'T', '3')
-#define DDS_DXT4 CMFT_MAKEFOURCC('D', 'X', 'T', '4')
-#define DDS_DXT5 CMFT_MAKEFOURCC('D', 'X', 'T', '5')
-#define DDS_ATI1 CMFT_MAKEFOURCC('A', 'T', 'I', '1')
-#define DDS_BC4U CMFT_MAKEFOURCC('B', 'C', '4', 'U')
-#define DDS_ATI2 CMFT_MAKEFOURCC('A', 'T', 'I', '2')
-#define DDS_BC5U CMFT_MAKEFOURCC('B', 'C', '5', 'U')
+    #define DDS_DXT1 CMFT_MAKEFOURCC('D', 'X', 'T', '1')
+    #define DDS_DXT2 CMFT_MAKEFOURCC('D', 'X', 'T', '2')
+    #define DDS_DXT3 CMFT_MAKEFOURCC('D', 'X', 'T', '3')
+    #define DDS_DXT4 CMFT_MAKEFOURCC('D', 'X', 'T', '4')
+    #define DDS_DXT5 CMFT_MAKEFOURCC('D', 'X', 'T', '5')
+    #define DDS_ATI1 CMFT_MAKEFOURCC('A', 'T', 'I', '1')
+    #define DDS_BC4U CMFT_MAKEFOURCC('B', 'C', '4', 'U')
+    #define DDS_ATI2 CMFT_MAKEFOURCC('A', 'T', 'I', '2')
+    #define DDS_BC5U CMFT_MAKEFOURCC('B', 'C', '5', 'U')
 
-#define DDS_DX10 CMFT_MAKEFOURCC('D', 'X', '1', '0')
+    #define DDS_DX10 CMFT_MAKEFOURCC('D', 'X', '1', '0')
 
-#define D3DFMT_R8G8B8        20
-#define D3DFMT_A8R8G8B8      21
-#define D3DFMT_X8R8G8B8      22
-#define D3DFMT_A8B8G8R8      32
-#define D3DFMT_X8B8G8R8      33
-#define D3DFMT_A16B16G16R16  36
-#define D3DFMT_A16B16G16R16F 113
-#define D3DFMT_A32B32G32R32F 116
+    #define D3DFMT_R8G8B8        20
+    #define D3DFMT_A8R8G8B8      21
+    #define D3DFMT_X8R8G8B8      22
+    #define D3DFMT_A8B8G8R8      32
+    #define D3DFMT_X8B8G8R8      33
+    #define D3DFMT_A16B16G16R16  36
+    #define D3DFMT_A16B16G16R16F 113
+    #define D3DFMT_A32B32G32R32F 116
 
-#define DDSD_CAPS                   0x00000001
-#define DDSD_HEIGHT                 0x00000002
-#define DDSD_WIDTH                  0x00000004
-#define DDSD_PITCH                  0x00000008
-#define DDSD_PIXELFORMAT            0x00001000
-#define DDSD_MIPMAPCOUNT            0x00020000
-#define DDSD_LINEARSIZE             0x00080000
-#define DDSD_DEPTH                  0x00800000
+    #define DDSD_CAPS                   0x00000001
+    #define DDSD_HEIGHT                 0x00000002
+    #define DDSD_WIDTH                  0x00000004
+    #define DDSD_PITCH                  0x00000008
+    #define DDSD_PIXELFORMAT            0x00001000
+    #define DDSD_MIPMAPCOUNT            0x00020000
+    #define DDSD_LINEARSIZE             0x00080000
+    #define DDSD_DEPTH                  0x00800000
 
-#define DDPF_ALPHAPIXELS            0x00000001
-#define DDPF_ALPHA                  0x00000002
-#define DDPF_FOURCC                 0x00000004
-#define DDPF_INDEXED                0x00000020
-#define DDPF_RGB                    0x00000040
-#define DDPF_YUV                    0x00000200
-#define DDPF_LUMINANCE              0x00020000
-#define DDPF_RGBA                   (DDPF_RGB|DDPF_ALPHAPIXELS)
-#define DDPF_LUMINANCEA             (DDPF_LUMINANCE|DDPF_ALPHAPIXELS)
-#define DDS_PF_BC_24                0x00100000
-#define DDS_PF_BC_32                0x00200000
-#define DDS_PF_BC_48                0x00400000
+    #define DDPF_ALPHAPIXELS            0x00000001
+    #define DDPF_ALPHA                  0x00000002
+    #define DDPF_FOURCC                 0x00000004
+    #define DDPF_INDEXED                0x00000020
+    #define DDPF_RGB                    0x00000040
+    #define DDPF_YUV                    0x00000200
+    #define DDPF_LUMINANCE              0x00020000
+    #define DDPF_RGBA                   (DDPF_RGB|DDPF_ALPHAPIXELS)
+    #define DDPF_LUMINANCEA             (DDPF_LUMINANCE|DDPF_ALPHAPIXELS)
+    #define DDS_PF_BC_24                0x00100000
+    #define DDS_PF_BC_32                0x00200000
+    #define DDS_PF_BC_48                0x00400000
 
-#define DDSCAPS_COMPLEX             0x00000008
-#define DDSCAPS_TEXTURE             0x00001000
-#define DDSCAPS_MIPMAP              0x00400000
+    #define DDSCAPS_COMPLEX             0x00000008
+    #define DDSCAPS_TEXTURE             0x00001000
+    #define DDSCAPS_MIPMAP              0x00400000
 
-#define DDSCAPS2_CUBEMAP            0x00000200
-#define DDSCAPS2_CUBEMAP_POSITIVEX  0x00000400
-#define DDSCAPS2_CUBEMAP_NEGATIVEX  0x00000800
-#define DDSCAPS2_CUBEMAP_POSITIVEY  0x00001000
-#define DDSCAPS2_CUBEMAP_NEGATIVEY  0x00002000
-#define DDSCAPS2_CUBEMAP_POSITIVEZ  0x00004000
-#define DDSCAPS2_CUBEMAP_NEGATIVEZ  0x00008000
+    #define DDSCAPS2_CUBEMAP            0x00000200
+    #define DDSCAPS2_CUBEMAP_POSITIVEX  0x00000400
+    #define DDSCAPS2_CUBEMAP_NEGATIVEX  0x00000800
+    #define DDSCAPS2_CUBEMAP_POSITIVEY  0x00001000
+    #define DDSCAPS2_CUBEMAP_NEGATIVEY  0x00002000
+    #define DDSCAPS2_CUBEMAP_POSITIVEZ  0x00004000
+    #define DDSCAPS2_CUBEMAP_NEGATIVEZ  0x00008000
 
-#define DDS_CUBEMAP_ALLFACES ( DDSCAPS2_CUBEMAP_POSITIVEX|DDSCAPS2_CUBEMAP_NEGATIVEX \
-                             | DDSCAPS2_CUBEMAP_POSITIVEY|DDSCAPS2_CUBEMAP_NEGATIVEY \
-                             | DDSCAPS2_CUBEMAP_POSITIVEZ|DDSCAPS2_CUBEMAP_NEGATIVEZ )
+    #define DDS_CUBEMAP_ALLFACES ( DDSCAPS2_CUBEMAP_POSITIVEX|DDSCAPS2_CUBEMAP_NEGATIVEX \
+                                 | DDSCAPS2_CUBEMAP_POSITIVEY|DDSCAPS2_CUBEMAP_NEGATIVEY \
+                                 | DDSCAPS2_CUBEMAP_POSITIVEZ|DDSCAPS2_CUBEMAP_NEGATIVEZ )
 
-#define DDSCAPS2_VOLUME             0x00200000
+    #define DDSCAPS2_VOLUME             0x00200000
 
-#define DXGI_FORMAT_UNKNOWN             0
-#define DXGI_FORMAT_R32G32B32A32_FLOAT  2
-#define DXGI_FORMAT_R16G16B16A16_FLOAT  10
-#define DXGI_FORMAT_R16G16B16A16_UINT   12
-#define DXGI_FORMAT_R8G8B8A8_UNORM      28
-#define DXGI_FORMAT_R8G8B8A8_UINT       30
-#define DXGI_FORMAT_B8G8R8A8_UNORM      87
-#define DXGI_FORMAT_B8G8R8X8_UNORM      88
-#define DXGI_FORMAT_B8G8R8A8_TYPELESS   90
+    #define DXGI_FORMAT_UNKNOWN             0
+    #define DXGI_FORMAT_R32G32B32A32_FLOAT  2
+    #define DXGI_FORMAT_R16G16B16A16_FLOAT  10
+    #define DXGI_FORMAT_R16G16B16A16_UINT   12
+    #define DXGI_FORMAT_R8G8B8A8_UNORM      28
+    #define DXGI_FORMAT_R8G8B8A8_UINT       30
+    #define DXGI_FORMAT_B8G8R8A8_UNORM      87
+    #define DXGI_FORMAT_B8G8R8X8_UNORM      88
+    #define DXGI_FORMAT_B8G8R8A8_TYPELESS   90
 
-#define DDS_DIMENSION_TEXTURE1D 2
-#define DDS_DIMENSION_TEXTURE2D 3
-#define DDS_DIMENSION_TEXTURE3D 4
+    #define DDS_DIMENSION_TEXTURE1D 2
+    #define DDS_DIMENSION_TEXTURE2D 3
+    #define DDS_DIMENSION_TEXTURE3D 4
 
-#define DDS_ALPHA_MODE_UNKNOWN        0x0
-#define DDS_ALPHA_MODE_STRAIGHT       0x1
-#define DDS_ALPHA_MODE_PREMULTIPLIED  0x2
-#define DDS_ALPHA_MODE_OPAQUE         0x3
-#define DDS_ALPHA_MODE_CUSTOM         0x4
+    #define DDS_ALPHA_MODE_UNKNOWN        0x0
+    #define DDS_ALPHA_MODE_STRAIGHT       0x1
+    #define DDS_ALPHA_MODE_PREMULTIPLIED  0x2
+    #define DDS_ALPHA_MODE_OPAQUE         0x3
+    #define DDS_ALPHA_MODE_CUSTOM         0x4
 
-#define D3D10_RESOURCE_MISC_GENERATE_MIPS      0x1L
-#define D3D10_RESOURCE_MISC_SHARED             0x2L
-#define D3D10_RESOURCE_MISC_TEXTURECUBE        0x4L
-#define D3D10_RESOURCE_MISC_SHARED_KEYEDMUTEX  0x10L
-#define D3D10_RESOURCE_MISC_GDI_COMPATIBLE     0x20L
+    #define D3D10_RESOURCE_MISC_GENERATE_MIPS      0x1L
+    #define D3D10_RESOURCE_MISC_SHARED             0x2L
+    #define D3D10_RESOURCE_MISC_TEXTURECUBE        0x4L
+    #define D3D10_RESOURCE_MISC_SHARED_KEYEDMUTEX  0x10L
+    #define D3D10_RESOURCE_MISC_GDI_COMPATIBLE     0x20L
 
     struct DdsPixelFormat
     {
@@ -614,11 +614,11 @@ namespace cmft
 
     static const DdsPixelFormat s_ddsPixelFormat[] =
     {
-        { sizeof(DdsPixelFormat), DDPF_RGB,  D3DFMT_R8G8B8,   24, 0x00ff0000, 0x0000ff00, 0x000000ff, 0x00000000 }, //BGR8
-        { sizeof(DdsPixelFormat), DDPF_RGBA, D3DFMT_A8B8G8R8, 32, 0x00ff0000, 0x0000ff00, 0x000000ff, 0xff000000 }, //BGRA8
-        { sizeof(DdsPixelFormat), DDPF_FOURCC, DDS_DX10,  64, 0x00ff0000, 0x0000ff00, 0x000000ff, 0xff000000 }, //RGBA16
-        { sizeof(DdsPixelFormat), DDPF_FOURCC, DDS_DX10,  64, 0x00ff0000, 0x0000ff00, 0x000000ff, 0xff000000 }, //RGBA16F
-        { sizeof(DdsPixelFormat), DDPF_FOURCC, DDS_DX10, 128, 0x00ff0000, 0x0000ff00, 0x000000ff, 0xff000000 }, //RGBA32F
+        { sizeof(DdsPixelFormat), DDPF_RGB,    D3DFMT_R8G8B8,    24, 0x00ff0000, 0x0000ff00, 0x000000ff, 0x00000000 }, //BGR8
+        { sizeof(DdsPixelFormat), DDPF_RGBA,   D3DFMT_A8B8G8R8,  32, 0x00ff0000, 0x0000ff00, 0x000000ff, 0xff000000 }, //BGRA8
+        { sizeof(DdsPixelFormat), DDPF_FOURCC, DDS_DX10,         64, 0x00ff0000, 0x0000ff00, 0x000000ff, 0xff000000 }, //RGBA16
+        { sizeof(DdsPixelFormat), DDPF_FOURCC, DDS_DX10,         64, 0x00ff0000, 0x0000ff00, 0x000000ff, 0xff000000 }, //RGBA16F
+        { sizeof(DdsPixelFormat), DDPF_FOURCC, DDS_DX10,        128, 0x00ff0000, 0x0000ff00, 0x000000ff, 0xff000000 }, //RGBA32F
     };
 
     static inline const DdsPixelFormat& getDdsPixelFormat(TextureFormat::Enum _format)
@@ -682,45 +682,45 @@ namespace cmft
     // KTX format.
     //-----
 
-#define KTX_MAGIC             { 0xAB, 0x4B, 0x54, 0x58, 0x20, 0x31, 0x31, 0xBB, 0x0D, 0x0A, 0x1A, 0x0A }
-#define KTX_MAGIC_SHORT       0x58544BAB
-#define KTX_MAGIC_LEN         12
-#define KTX_ENDIAN_REF        0x04030201
-#define KTX_ENDIAN_REF_REV    0x01020304
-#define KTX_HEADER_SIZE       52
-#define KTX_UNPACK_ALIGNMENT  4
+    #define KTX_MAGIC             { 0xAB, 0x4B, 0x54, 0x58, 0x20, 0x31, 0x31, 0xBB, 0x0D, 0x0A, 0x1A, 0x0A }
+    #define KTX_MAGIC_SHORT       0x58544BAB
+    #define KTX_MAGIC_LEN         12
+    #define KTX_ENDIAN_REF        0x04030201
+    #define KTX_ENDIAN_REF_REV    0x01020304
+    #define KTX_HEADER_SIZE       52
+    #define KTX_UNPACK_ALIGNMENT  4
 
-// GL data type.
-#define GL_BYTE             0x1400
-#define GL_UNSIGNED_BYTE    0x1401
-#define GL_SHORT            0x1402
-#define GL_UNSIGNED_SHORT   0x1403
-#define GL_INT              0x1404
-#define GL_UNSIGNED_INT     0x1405
-#define GL_FLOAT            0x1406
-#define GL_HALF_FLOAT       0x140B
-#define GL_FIXED            0x140C
+    // GL data type.
+    #define GL_BYTE             0x1400
+    #define GL_UNSIGNED_BYTE    0x1401
+    #define GL_SHORT            0x1402
+    #define GL_UNSIGNED_SHORT   0x1403
+    #define GL_INT              0x1404
+    #define GL_UNSIGNED_INT     0x1405
+    #define GL_FLOAT            0x1406
+    #define GL_HALF_FLOAT       0x140B
+    #define GL_FIXED            0x140C
 
-// GL pixel format.
-#define GL_RGB              0x1907
-#define GL_RGBA             0x1908
+    // GL pixel format.
+    #define GL_RGB              0x1907
+    #define GL_RGBA             0x1908
 
-#define GL_RGBA32F          0x8814
-#define GL_RGB32F           0x8815
-#define GL_RGBA16F          0x881A
-#define GL_RGB16F           0x881B
-#define GL_RGBA32UI         0x8D70
-#define GL_RGB32UI          0x8D71
-#define GL_RGBA16UI         0x8D76
-#define GL_RGB16UI          0x8D77
-#define GL_RGBA8UI          0x8D7C
-#define GL_RGB8UI           0x8D7D
-#define GL_RGBA32I          0x8D82
-#define GL_RGB32I           0x8D83
-#define GL_RGBA16I          0x8D88
-#define GL_RGB16I           0x8D89
-#define GL_RGBA8I           0x8D8E
-#define GL_RGB8I            0x8D8F
+    #define GL_RGBA32F          0x8814
+    #define GL_RGB32F           0x8815
+    #define GL_RGBA16F          0x881A
+    #define GL_RGB16F           0x881B
+    #define GL_RGBA32UI         0x8D70
+    #define GL_RGB32UI          0x8D71
+    #define GL_RGBA16UI         0x8D76
+    #define GL_RGB16UI          0x8D77
+    #define GL_RGBA8UI          0x8D7C
+    #define GL_RGB8UI           0x8D7D
+    #define GL_RGBA32I          0x8D82
+    #define GL_RGB32I           0x8D83
+    #define GL_RGBA16I          0x8D88
+    #define GL_RGB16I           0x8D89
+    #define GL_RGBA8I           0x8D8E
+    #define GL_RGB8I            0x8D8F
 
     struct KtxHeader
     {
@@ -1037,7 +1037,7 @@ namespace cmft
     void imageCreate(Image& _image, uint32_t _width, uint32_t _height, uint32_t _rgba, uint8_t _numMips, uint8_t _numFaces, TextureFormat::Enum _format, bx::AllocatorI* _allocator)
     {
         const uint8_t numFaces = _numFaces > 0 ? _numFaces : 1;
-        const uint8_t numMips = _numMips > 0 ? _numMips : 1;
+        const uint8_t numMips  = _numMips  > 0 ? _numMips  : 1;
 
         // Alloc data.
         const uint32_t bytesPerPixel = 4 /*numChannels*/ * 4 /*bytesPerChannel*/;
