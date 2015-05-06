@@ -11,7 +11,7 @@
 
 namespace cmft
 {
-#define SH_COEFF_NUM 25
+    #define SH_COEFF_NUM 25
 
     /// Computes spherical harominics coefficients for given cubemap data.
     /// Input data should be in RGBA32F format.
