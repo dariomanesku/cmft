@@ -172,8 +172,8 @@ When contributing to the cmft project you must agree to the BSD 2-clause licensi
 Contributors
 ------------
 
-Mmxix productions ([Github](https://github.com/mmxix/)) - Vstrip image format.
-Pierre Lepers ([Github](https://github.com/plepers), [Twitter](https://twitter.com/_pil_)) - Octant image format.
+* Mmxix productions ([@mmxix](https://github.com/mmxix/)) - Vstrip image format.
+* [Pierre Lepers](https://twitter.com/_pil_) ([@plepers](https://github.com/plepers)) - Octant image format.
 
 
 Thanks to
