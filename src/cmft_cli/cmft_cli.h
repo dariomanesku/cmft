@@ -119,6 +119,7 @@ static const CliOptionMap s_validOutputTypes[] =
     { "hstrip",   OutputType::HStrip   },
     { "vstrip",   OutputType::VStrip   },
     { "facelist", OutputType::FaceList },
+    { "octant",   OutputType::Octant   },
     CLI_OPTION_MAP_TERMINATOR,
 };
 
@@ -941,6 +942,11 @@ int cmftMain(int _argc, char const* const* _argv)
         {
             INFO("Converting vstrip image to cubemap.");
             imageCubemapFromStrip(image);
+        }
+        else if (imageIsOctant(image))
+        {
+            INFO("Converting octant image to cubemap.");
+            imageCubemapFromOctant(image);
         }
         else
         {
