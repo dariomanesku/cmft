@@ -1329,8 +1329,8 @@ namespace cmft
         #define CL_CHECK_EXPR_RETURN(_expr) \
             do                              \
             {                               \
-                cl_int err = _expr;         \
-                if (CL_SUCCESS != err)      \
+                cl_int result = _expr;      \
+                if (CL_SUCCESS != result)   \
                 {                           \
                     WARN("OpenCL failed!"); \
                     return false;           \
@@ -1578,17 +1578,17 @@ namespace cmft
                 {
                     for (uint32_t xx = 0; xx < count; ++xx)
                     {
-                        const size_t workOffset[2] = { xx*tileSize, yy*tileSize };
-                        const size_t workSize[2] =
+                        const size_t tileWorkOffset[2] = { xx*tileSize, yy*tileSize };
+                        const size_t tileWorkSize[2] =
                         {
-                            DM_MIN(tileSize, _dstFaceSize-workOffset[0]),
-                            DM_MIN(tileSize, _dstFaceSize-workOffset[1]),
+                            DM_MIN(tileSize, _dstFaceSize-tileWorkOffset[0]),
+                            DM_MIN(tileSize, _dstFaceSize-tileWorkOffset[1]),
                         };
                         CL_CHECK_EXPR_RETURN(clEnqueueNDRangeKernel(m_clContext->m_commandQueue
                                                                   , m_radFilterSingle
                                                                   , 2
-                                                                  , workOffset
-                                                                  , workSize
+                                                                  , tileWorkOffset
+                                                                  , tileWorkSize
                                                                   , NULL
                                                                   , 0
                                                                   , NULL
