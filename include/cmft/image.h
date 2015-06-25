@@ -276,7 +276,7 @@ namespace cmft
 
     ///
     bool imageIsVStrip(const Image& _image);
-    
+
     ///
     bool imageIsOctant(const Image& _image);
 
@@ -336,13 +336,13 @@ namespace cmft
 
     ///
     bool imageToCubemap(Image& _image, bx::AllocatorI* _allocator = g_allocator);
-    
+
     ///
     bool imageOctantFromCubemap(Image& _dst, const Image& _src, bool _useBilinearInterpolation, bx::AllocatorI* _allocator);
-    
+
     ///
     bool imageCubemapFromOctant(Image& _dst, const Image& _src, bool _useBilinearInterpolation = true, bx::AllocatorI* _allocator = g_allocator);
-    
+
     ///
     bool imageCubemapFromOctant(Image& _image, bool _useBilinearInterpolation = true, bx::AllocatorI* _allocator = g_allocator);
 
