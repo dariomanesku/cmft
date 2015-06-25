@@ -262,8 +262,9 @@ namespace cmft
     ///
     ///    Cubemap        HCross           VCross           Lat Long               HStrip          VStrip     Face list            Octant
     ///
-    ///  Links:
+    ///  Octant:
     ///     Octahedron environment maps: http://www.vis.uni-stuttgart.de/~dachsbcn/download/vmvOctaMaps.pdf
+    ///     A survey of efficient representations for independent unit vectors: http://jcgt.org/published/0003/02/01/paper.pdf (page 8. and 9.)
     ///
 
     ///
