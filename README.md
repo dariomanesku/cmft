@@ -169,6 +169,12 @@ Other than that, everyone is welcome to contribute to cmft by submitting bug rep
 
 When contributing to the cmft project you must agree to the BSD 2-clause licensing terms.
 
+Contributors
+------------
+
+Mmxix productions ([Github](https://github.com/mmxix/)) - Vstrip image format.
+Pierre Lepers ([Github](https://github.com/plepers), [Twitter](https://twitter.com/_pil_)) - Octant image format.
+
 
 Thanks to
 ------------
