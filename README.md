@@ -17,7 +17,7 @@ Download
 ![cmft-cover](https://github.com/dariomanesku/cmft/raw/master/res/cmft_cover.jpg)
 
 - Supported input/output formats: \*.dds, \*.ktx, \*.hdr, \*.tga.
-- Supported input/output types: cubemap, cube cross, latlong, face list, horizontal and vertical strip.
+- Supported input/output types: cubemap, cube cross, latlong, face list, horizontal/vertical strip, octant.
 
 
 See it in action - [here](https://github.com/dariomanesku/cmftStudio)
