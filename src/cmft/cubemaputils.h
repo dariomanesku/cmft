@@ -235,7 +235,7 @@ namespace cmft
     
     
     static inline float signNotZero( float f ){
-        return ( f < 0.0 ) ? -1.0 : 1.0;
+        return ( f < 0.0f ) ? -1.0f : 1.0f;
     }
     
     // Assume normalized _vec.
@@ -245,29 +245,29 @@ namespace cmft
         // Project the sphere onto the octahedron, and then onto the xy plane
         float dot = fabsf(_vec[0]) + fabsf(_vec[1]) + fabsf(_vec[2]);
         float px = _vec[0] / dot;
-    	float py = _vec[2] / dot;
+        float py = _vec[2] / dot;
         // Reflect the folds of the lower hemisphere over the diagonals
-        if( _vec[1] <= 0.0 ) {
-            _u = ((1.0 - fabsf(py)) * signNotZero(px) );
-            _v = ((1.0 - fabsf(px)) * signNotZero(py) );
+        if( _vec[1] <= 0.0f ) {
+            _u = ((1.0f - fabsf(py)) * signNotZero(px) );
+            _v = ((1.0f - fabsf(px)) * signNotZero(py) );
         } else {
             _u = px;
             _v = py;
         }
-        _u = _u * .5 + .5;
-        _v = _v * .5 + .5;
+        _u = _u * .5f + .5f;
+        _v = _v * .5f + .5f;
     }
     
     static inline void vecFromOctant(float _vec[3], float _u, float _v)
     {
-        _u = _u*2.0 - 1.0;
-        _v = _v*2.0 - 1.0;
+        _u = _u*2.0f - 1.0f;
+        _v = _v*2.0f - 1.0f;
         
-        _vec[1] = 1.0 - fabsf(_u) - fabsf(_v);
+        _vec[1] = 1.0f - fabsf(_u) - fabsf(_v);
         
-        if(_vec[1] < 0) {
-            _vec[0] = (1.0 - fabsf(_v)) * signNotZero(_u);
-            _vec[2] = (1.0 - fabsf(_u)) * signNotZero(_v);
+        if(_vec[1] < 0.0f) {
+            _vec[0] = (1.0f - fabsf(_v)) * signNotZero(_u);
+            _vec[2] = (1.0f - fabsf(_u)) * signNotZero(_v);
         } else {
             _vec[0] = _u;
             _vec[2] = _v;
