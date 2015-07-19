@@ -83,7 +83,7 @@ namespace cmft
         }
 
         // Enumerate devices.
-        cl_device_id devices[8];
+        cl_device_id devices[8] = { 0 };
         cl_uint numDevices = 0;
 
         // First try to get preferred device type.
