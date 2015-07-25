@@ -92,6 +92,7 @@ namespace cmft
         "HStrip",
         "VStrip",
         "FaceList",
+        "Octant",
     };
 
     const char* getOutputTypeStr(OutputType::Enum _outputType)
