@@ -882,7 +882,9 @@ int cmftMain(int _argc, char const* const* _argv)
     // Load image.
     if (0 != strcmp("", inputParameters.m_inputFilePath))
     {
-       imageLoaded = imageLoad(image, inputParameters.m_inputFilePath, TextureFormat::RGBA32F);
+       imageLoaded = imageLoad   (image, inputParameters.m_inputFilePath, TextureFormat::RGBA32F)
+                  || imageLoadStb(image, inputParameters.m_inputFilePath, TextureFormat::RGBA32F)
+                   ;
     }
     else
     {

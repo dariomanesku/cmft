@@ -9,6 +9,7 @@
 #include "base/config.h"
 #include "base/printcallback.h"
 #include "base/macros.h"
+#include "base/stb_image.h"
 #include "cubemaputils.h"
 
 #include <bx/uint32_t.h>
@@ -4678,11 +4679,6 @@ namespace cmft
         {
             loaded = imageLoadTga(_image, _reader, _allocator);
         }
-        else
-        {
-            WARN("Unknown file type.");
-            return false;
-        }
 
         if (!loaded)
         {
@@ -4717,6 +4713,88 @@ namespace cmft
     {
         bx::MemoryReader reader(_data, _dataSize);
         return imageLoad(_image, reader, _convertTo, _allocator);
+    }
+
+    ///
+    bool imageLoadStb(Image& _image, const char* _filePath, TextureFormat::Enum _convertTo, bx::AllocatorI* _allocator)
+    {
+        // Try loading the image through stb_image.
+        int stbWidth, stbHeight, stbNumComponents;
+        // Passing reqNumComponents as 4 forces RGBA8 in data.
+        // After stbi_load, stbNumComponents will hold the actual # of components from the source image.
+        const int reqNumComponents = 4;
+        uint8_t* data = (uint8_t*)stb::stbi_load(_filePath, &stbWidth, &stbHeight, &stbNumComponents, reqNumComponents);
+
+        if (NULL == data)
+        {
+            return false;
+        }
+
+        // Fill image structure.
+        Image result;
+        result.m_width    = (uint16_t)stbWidth;
+        result.m_height   = (uint16_t)stbHeight;
+        result.m_dataSize = stbWidth*stbHeight*reqNumComponents;
+        result.m_format   = cmft::TextureFormat::RGBA8;
+        result.m_numMips  = 1;
+        result.m_numFaces = 1;
+        result.m_data     = data;
+
+        // Convert if necessary.
+        if (TextureFormat::Null != _convertTo
+        &&  _image.m_format != _convertTo)
+        {
+            imageConvert(_image, _convertTo, result, _allocator);
+        }
+        else
+        {
+            imageCopy(_image, result, _allocator); //TODO: use imageMove instead of imageCopy if the same allocator was used from stbi_load().
+        }
+
+        stb::stbi_image_free(data);
+
+        return true;
+    }
+
+    ///
+    bool imageLoadStb(Image& _image, const void* _data, uint32_t _dataSize, TextureFormat::Enum _convertTo, bx::AllocatorI* _allocator)
+    {
+        // Try loading the image through stb_image.
+        int stbWidth, stbHeight, stbNumComponents;
+        // Passing reqNumComponents as 4 forces RGBA8 in data.
+        // After stbi_load, stbNumComponents will hold the actual # of components from the source image.
+        const int reqNumComponents = 4;
+        uint8_t* data = (uint8_t*)stb::stbi_load_from_memory((const stb::stbi_uc*)_data, (int)_dataSize, &stbWidth, &stbHeight, &stbNumComponents, reqNumComponents);
+
+        if (NULL == data)
+        {
+            return false;
+        }
+
+        // Fill image structure.
+        Image result;
+        result.m_width    = (uint16_t)stbWidth;
+        result.m_height   = (uint16_t)stbHeight;
+        result.m_dataSize = stbWidth*stbHeight*reqNumComponents;
+        result.m_format   = cmft::TextureFormat::RGBA8;
+        result.m_numMips  = 1;
+        result.m_numFaces = 1;
+        result.m_data     = data;
+
+        // Convert if necessary.
+        if (TextureFormat::Null != _convertTo
+        &&  _image.m_format != _convertTo)
+        {
+            imageConvert(_image, _convertTo, result, _allocator);
+        }
+        else
+        {
+            imageCopy(_image, result, _allocator); //TODO: use imageMove instead of imageCopy if the same allocator was used from stbi_load().
+        }
+
+        stb::stbi_image_free(data);
+
+        return true;
     }
 
     bool imageIsValid(const Image& _image)

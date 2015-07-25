@@ -357,6 +357,12 @@ namespace cmft
     bool imageLoad(Image& _image, const void* _data, uint32_t _dataSize, TextureFormat::Enum _convertTo = TextureFormat::Null, bx::AllocatorI* _allocator = g_allocator);
 
     ///
+    bool imageLoadStb(Image& _image, const char* _filePath, TextureFormat::Enum _convertTo = TextureFormat::Null, bx::AllocatorI* _allocator = g_allocator);
+
+    ///
+    bool imageLoadStb(Image& _image, const void* _data, uint32_t _dataSize, TextureFormat::Enum _convertTo = TextureFormat::Null, bx::AllocatorI* _allocator = g_allocator);
+
+    ///
     bool imageIsValid(const Image& _image);
 
     ///

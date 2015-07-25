@@ -5,15 +5,17 @@
 
 function cmftCliProject(_cmftDir)
 
-    local CMFT_INCLUDE_DIR  = (_cmftDir .. "include/")
-    local CMFT_SRC_DIR      = (_cmftDir .. "src/cmft/")
-    local CMFT_CLI_SRC_DIR  = (_cmftDir .. "src/")
-    local CMFT_RUNTIME_DIR  = (_cmftDir .. "runtime/")
+    local CMFT_INCLUDE_DIR    = (_cmftDir .. "include/")
+    local CMFT_SRC_DIR        = (_cmftDir .. "src/cmft/")
+    local CMFT_CLI_SRC_DIR    = (_cmftDir .. "src/")
+    local CMFT_RUNTIME_DIR    = (_cmftDir .. "runtime/")
+    local CMFT_DEPENDENCY_DIR = (_cmftDir .. "dependency/")
 
-    local BX_INCLUDE_DIR    = (_cmftDir .. "dependency/bx/include/")
-    local BX_THIRDPARTY_DIR = (_cmftDir .. "dependency/bx/3rdparty/")
+    local BX_INCLUDE_DIR    = (CMFT_DEPENDENCY_DIR .. "bx/include/")
+    local BX_THIRDPARTY_DIR = (CMFT_DEPENDENCY_DIR .. "bx/3rdparty/")
 
-    local DM_INCLUDE_DIR    = (_cmftDir .. "dependency/dm/include/")
+    local DM_INCLUDE_DIR    = (CMFT_DEPENDENCY_DIR .. "dm/include/")
+
 
     project "cmft_cli"
         uuid("52267a12-34bf-4834-8245-2bead0100dc8")
@@ -53,6 +55,7 @@ function cmftCliProject(_cmftDir)
 
         includedirs
         {
+            CMFT_DEPENDENCY_DIR,
             DM_INCLUDE_DIR,
             BX_INCLUDE_DIR,
             BX_THIRDPARTY_DIR,
