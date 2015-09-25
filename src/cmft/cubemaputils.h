@@ -149,7 +149,7 @@ namespace cmft
         _out3f[2] = s_faceUvVectors[_faceId][0][2] * _u + s_faceUvVectors[_faceId][1][2] * _v + s_faceUvVectors[_faceId][2][2];
 
         // Normalize.
-        const float invLen = 1.0f/sqrt(_out3f[0]*_out3f[0] + _out3f[1]*_out3f[1] + _out3f[2]*_out3f[2]);
+        const float invLen = 1.0f/sqrtf(_out3f[0]*_out3f[0] + _out3f[1]*_out3f[1] + _out3f[2]*_out3f[2]);
         _out3f[0] *= invLen;
         _out3f[1] *= invLen;
         _out3f[2] *= invLen;
