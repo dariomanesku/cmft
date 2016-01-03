@@ -8,13 +8,13 @@
 
 #include <stdlib.h>
 
-namespace bx { struct AllocatorI; }
+namespace dm { struct AllocatorI; }
 
 namespace cmft
 {
-    extern bx::AllocatorI* g_allocator;
+    extern dm::AllocatorI* g_allocator;
 
-    static inline void setAllocator(bx::AllocatorI* _allocator)
+    static inline void setAllocator(dm::AllocatorI* _allocator)
     {
         g_allocator = _allocator;
     }

@@ -24,7 +24,7 @@
 #include <bx/os.h>        //bx::sleep
 #include <bx/thread.h>    //bx::thread
 #include <bx/mutex.h>     //bx::mutex
-#include <bx/allocator.h> //BX_FREE, BX_ALLOC
+#include <bx/allocator.h> //DM_FREE, DM_ALLOC
 
 #define CMFT_COMPUTE_FILTER_AREA_ON_CPU 1
 
@@ -113,10 +113,10 @@ namespace cmft
         return (uint8_t*)_mem + _size;
     }
 
-    float* buildCubemapNormalSolidAngle(uint32_t _cubemapFaceSize, EdgeFixup::Enum _fixup = EdgeFixup::None, bx::AllocatorI* _allocator = g_allocator)
+    float* buildCubemapNormalSolidAngle(uint32_t _cubemapFaceSize, EdgeFixup::Enum _fixup = EdgeFixup::None, dm::AllocatorI* _allocator = g_allocator)
     {
         const size_t size = cubemapNormalSolidAngleSize(_cubemapFaceSize);
-        float* mem = (float*)BX_ALLOC(_allocator, size);
+        float* mem = (float*)DM_ALLOC(_allocator, size);
         MALLOC_CHECK(mem);
 
         buildCubemapNormalSolidAngle(mem, size, _cubemapFaceSize, _fixup);
@@ -226,10 +226,10 @@ namespace cmft
             _shCoeffs[ii][2] *= norm;
         }
 
-        BX_FREE(g_allocator, cubemapVectors);
+        DM_FREE(g_allocator, cubemapVectors);
     }
 
-    bool imageShCoeffs(double _shCoeffs[SH_COEFF_NUM][3], const Image& _image, bx::AllocatorI* _allocator)
+    bool imageShCoeffs(double _shCoeffs[SH_COEFF_NUM][3], const Image& _image, dm::AllocatorI* _allocator)
     {
         // Input image must be a cubemap.
         if (!imageIsCubemap(_image))
@@ -254,7 +254,7 @@ namespace cmft
         return true;
     }
 
-    bool imageIrradianceFilterSh(Image& _dst, uint32_t _dstFaceSize, const Image& _src, bx::AllocatorI* _allocator)
+    bool imageIrradianceFilterSh(Image& _dst, uint32_t _dstFaceSize, const Image& _src, dm::AllocatorI* _allocator)
     {
         // Input image must be a cubemap.
         if (!imageIsCubemap(_src))
@@ -280,7 +280,7 @@ namespace cmft
         const uint32_t dstPitch = dstFaceSize*dstBytesPerPixel;
         const uint32_t dstFaceDataSize = dstPitch * dstFaceSize;
         const uint32_t dstDataSize = dstFaceDataSize * 6 /*numFaces*/;
-        void* dstData = BX_ALLOC(_allocator, dstDataSize);
+        void* dstData = DM_ALLOC(_allocator, dstDataSize);
         MALLOC_CHECK(dstData);
 
         // Build cubemap texel vectors.
@@ -388,12 +388,12 @@ namespace cmft
         // Cleanup.
         imageUnload(imageRgba32f, _allocator);
 
-        BX_FREE(g_allocator, cubemapVectors);
+        DM_FREE(g_allocator, cubemapVectors);
 
         return true;
     }
 
-    void imageIrradianceFilterSh(Image& _image, uint32_t _faceSize, bx::AllocatorI* _allocator)
+    void imageIrradianceFilterSh(Image& _image, uint32_t _faceSize, dm::AllocatorI* _allocator)
     {
         Image tmp;
         if (imageIrradianceFilterSh(tmp, _faceSize, _image, _allocator))
@@ -764,10 +764,10 @@ namespace cmft
         return (uint8_t*)_mem + _size;
     }
 
-    float* buildCubemapFilterArea(uint8_t _faceIdx, uint32_t _cubemapFaceSize, float _filterSize, EdgeFixup::Enum _fixup = EdgeFixup::None, bx::AllocatorI* _allocator = g_allocator)
+    float* buildCubemapFilterArea(uint8_t _faceIdx, uint32_t _cubemapFaceSize, float _filterSize, EdgeFixup::Enum _fixup = EdgeFixup::None, dm::AllocatorI* _allocator = g_allocator)
     {
         const size_t size = cubemapFilterAreaSize(_cubemapFaceSize);
-        float* mem = (float*)BX_ALLOC(_allocator, size);
+        float* mem = (float*)DM_ALLOC(_allocator, size);
         MALLOC_CHECK(mem);
 
         buildCubemapFilterArea(mem, size, _faceIdx, _cubemapFaceSize, _filterSize, _fixup);
@@ -1294,7 +1294,7 @@ namespace cmft
 
             // Alloc data for string.
             const size_t fileSize = dm::fsize(fp);
-            char* sourceData = (char*)BX_ALLOC(g_allocator, fileSize);
+            char* sourceData = (char*)DM_ALLOC(g_allocator, fileSize);
 
             // Read opencl source file.
             read = fread(sourceData, fileSize, 1, fp);
@@ -1311,7 +1311,7 @@ namespace cmft
                 result = createFromStr(sourceData, fileSize);
             }
 
-            BX_FREE(g_allocator, sourceData);
+            DM_FREE(g_allocator, sourceData);
 
             return result;
         }
@@ -1499,7 +1499,7 @@ namespace cmft
 
             #if CMFT_COMPUTE_FILTER_AREA_ON_CPU
                 clReleaseMemObject(area);
-                BX_FREE(g_allocator, filterArea);
+                DM_FREE(g_allocator, filterArea);
             #endif //CMFT_COMPUTE_FILTER_AREA_ON_CPU
 
             return true;
@@ -1646,7 +1646,7 @@ namespace cmft
 
             #if CMFT_COMPUTE_FILTER_AREA_ON_CPU
                 clReleaseMemObject(area);
-                BX_FREE(g_allocator, filterArea);
+                DM_FREE(g_allocator, filterArea);
             #endif //CMFT_COMPUTE_FILTER_AREA_ON_CPU
 
             return true;
@@ -1865,7 +1865,7 @@ namespace cmft
                            , EdgeFixup::Enum _edgeFixup
                            , uint8_t _numCpuProcessingThreads
                            , const ClContext* _clContext
-                           , bx::AllocatorI* _allocator
+                           , dm::AllocatorI* _allocator
                            )
     {
         // Input image must be a cubemap.
@@ -1956,7 +1956,7 @@ namespace cmft
                 dstDataSize += faceSize * faceSize * bytesPerPixel;
             }
         }
-        void* dstData = BX_ALLOC(_allocator, dstDataSize);
+        void* dstData = DM_ALLOC(_allocator, dstDataSize);
         MALLOC_CHECK(dstData);
 
         // Get source image offsets.
@@ -2208,7 +2208,7 @@ namespace cmft
             }
             s_globalState.reset();
 
-            BX_FREE(g_allocator, cubemapVectors);
+            DM_FREE(g_allocator, cubemapVectors);
         }
 
         // Fill result structure.
@@ -2248,7 +2248,7 @@ namespace cmft
                            , EdgeFixup::Enum _edgeFixup
                            , uint8_t _numCpuProcessingThreads
                            , const ClContext* _clContext
-                           , bx::AllocatorI* _allocator
+                           , dm::AllocatorI* _allocator
                            )
     {
         Image tmp;

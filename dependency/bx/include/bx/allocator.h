@@ -1,6 +1,6 @@
 /*
- * Copyright 2010-2015 Branimir Karadzic. All rights reserved.
- * License: http://www.opensource.org/licenses/BSD-2-Clause
+ * Copyright 2010-2016 Branimir Karadzic. All rights reserved.
+ * License: https://github.com/bkaradzic/bx#license-bsd-2-clause
  */
 
 #ifndef BX_ALLOCATOR_H_HEADER_GUARD
@@ -45,6 +45,204 @@
 #endif // BX_CONFIG_ALLOCATOR_NATURAL_ALIGNMENT
 
 namespace bx
+{
+	/// Aligns pointer to nearest next aligned address. _align must be power of two.
+	inline void* alignPtr(void* _ptr, size_t _extra, size_t _align = BX_CONFIG_ALLOCATOR_NATURAL_ALIGNMENT)
+	{
+		union { void* ptr; size_t addr; } un;
+		un.ptr = _ptr;
+		size_t unaligned = un.addr + _extra; // space for header
+		size_t mask = _align-1;
+		size_t aligned = BX_ALIGN_MASK(unaligned, mask);
+		un.addr = aligned;
+		return un.ptr;
+	}
+
+	struct BX_NO_VTABLE AllocatorI
+	{
+		virtual ~AllocatorI() = 0;
+
+		/// Allocated, resizes memory block or frees memory.
+		///
+		/// @param[in] _ptr If _ptr is NULL new block will be allocated.
+		/// @param[in] _size If _ptr is set, and _size is 0, memory will be freed.
+		/// @param[in] _align Alignment.
+		/// @param[in] _file Debug file path info.
+		/// @param[in] _line Debug file line info.
+		virtual void* realloc(void* _ptr, size_t _size, size_t _align, const char* _file, uint32_t _line) = 0;
+	};
+
+	inline AllocatorI::~AllocatorI()
+	{
+	}
+
+	inline void* alloc(AllocatorI* _allocator, size_t _size, size_t _align = 0, const char* _file = NULL, uint32_t _line = 0)
+	{
+		return _allocator->realloc(NULL, _size, _align, _file, _line);
+	}
+
+	inline void free(AllocatorI* _allocator, void* _ptr, size_t _align = 0, const char* _file = NULL, uint32_t _line = 0)
+	{
+		_allocator->realloc(_ptr, 0, _align, _file, _line);
+	}
+
+	inline void* realloc(AllocatorI* _allocator, void* _ptr, size_t _size, size_t _align = 0, const char* _file = NULL, uint32_t _line = 0)
+	{
+		return _allocator->realloc(_ptr, _size, _align, _file, _line);
+	}
+
+	static inline void* alignedAlloc(AllocatorI* _allocator, size_t _size, size_t _align, const char* _file = NULL, uint32_t _line = 0)
+	{
+		size_t total = _size + _align;
+		uint8_t* ptr = (uint8_t*)alloc(_allocator, total, 0, _file, _line);
+		uint8_t* aligned = (uint8_t*)alignPtr(ptr, sizeof(uint32_t), _align);
+		uint32_t* header = (uint32_t*)aligned - 1;
+		*header = uint32_t(aligned - ptr);
+		return aligned;
+	}
+
+	static inline void alignedFree(AllocatorI* _allocator, void* _ptr, size_t /*_align*/, const char* _file = NULL, uint32_t _line = 0)
+	{
+		uint8_t* aligned = (uint8_t*)_ptr;
+		uint32_t* header = (uint32_t*)aligned - 1;
+		uint8_t* ptr = aligned - *header;
+		free(_allocator, ptr, 0, _file, _line);
+	}
+
+	static inline void* alignedRealloc(AllocatorI* _allocator, void* _ptr, size_t _size, size_t _align, const char* _file = NULL, uint32_t _line = 0)
+	{
+		if (NULL == _ptr)
+		{
+			return alignedAlloc(_allocator, _size, _align, _file, _line);
+		}
+
+		uint8_t* aligned = (uint8_t*)_ptr;
+		uint32_t offset = *( (uint32_t*)aligned - 1);
+		uint8_t* ptr = aligned - offset;
+		size_t total = _size + _align;
+		ptr = (uint8_t*)realloc(_allocator, ptr, total, 0, _file, _line);
+		uint8_t* newAligned = (uint8_t*)alignPtr(ptr, sizeof(uint32_t), _align);
+
+		if (newAligned == aligned)
+		{
+			return aligned;
+		}
+
+		aligned = ptr + offset;
+		::memmove(newAligned, aligned, _size);
+		uint32_t* header = (uint32_t*)newAligned - 1;
+		*header = uint32_t(newAligned - ptr);
+		return newAligned;
+	}
+
+	template <typename ObjectT>
+	inline void deleteObject(AllocatorI* _allocator, ObjectT* _object, size_t _align = 0, const char* _file = NULL, uint32_t _line = 0)
+	{
+		if (NULL != _object)
+		{
+			_object->~ObjectT();
+			free(_allocator, _object, _align, _file, _line);
+		}
+	}
+
+#if BX_CONFIG_ALLOCATOR_CRT
+	class CrtAllocator : public AllocatorI
+	{
+	public:
+		CrtAllocator()
+		{
+		}
+
+		virtual ~CrtAllocator()
+		{
+		}
+
+		virtual void* realloc(void* _ptr, size_t _size, size_t _align, const char* _file, uint32_t _line) BX_OVERRIDE
+		{
+			if (0 == _size)
+			{
+				if (NULL != _ptr)
+				{
+					if (BX_CONFIG_ALLOCATOR_NATURAL_ALIGNMENT >= _align)
+					{
+						::free(_ptr);
+						return NULL;
+					}
+
+#	if BX_COMPILER_MSVC
+					BX_UNUSED(_file, _line);
+					_aligned_free(_ptr);
+#	else
+					bx::alignedFree(this, _ptr, _align, _file, _line);
+#	endif // BX_
+				}
+
+				return NULL;
+			}
+			else if (NULL == _ptr)
+			{
+				if (BX_CONFIG_ALLOCATOR_NATURAL_ALIGNMENT >= _align)
+				{
+					return ::malloc(_size);
+				}
+
+#	if BX_COMPILER_MSVC
+				BX_UNUSED(_file, _line);
+				return _aligned_malloc(_size, _align);
+#	else
+				return bx::alignedAlloc(this, _size, _align, _file, _line);
+#	endif // BX_
+			}
+
+			if (BX_CONFIG_ALLOCATOR_NATURAL_ALIGNMENT >= _align)
+			{
+				return ::realloc(_ptr, _size);
+			}
+
+#	if BX_COMPILER_MSVC
+			BX_UNUSED(_file, _line);
+			return _aligned_realloc(_ptr, _size, _align);
+#	else
+			return bx::alignedRealloc(this, _ptr, _size, _align, _file, _line);
+#	endif // BX_
+		}
+	};
+#endif // BX_CONFIG_ALLOCATOR_CRT
+
+} // namespace bx
+
+/*
+ * Copyright 2016 Dario Manesku. All rights reserved.
+ * License: http://www.opensource.org/licenses/BSD-2-Clause
+ */
+
+//TODO: This is only temporarly here. Get rid of this.
+
+#if BX_CONFIG_ALLOCATOR_DEBUG
+#	define DM_ALLOC(_allocator, _size)                         dm::alloc(_allocator, _size, 0, __FILE__, __LINE__)
+#	define DM_REALLOC(_allocator, _ptr, _size)                 dm::realloc(_allocator, _ptr, _size, 0, __FILE__, __LINE__)
+#	define DM_FREE(_allocator, _ptr)                           dm::free(_allocator, _ptr, 0, __FILE__, __LINE__)
+#	define DM_ALIGNED_ALLOC(_allocator, _size, _align)         dm::alloc(_allocator, _size, _align, __FILE__, __LINE__)
+#	define DM_ALIGNED_REALLOC(_allocator, _ptr, _size, _align) dm::realloc(_allocator, _ptr, _size, _align, __FILE__, __LINE__)
+#	define DM_ALIGNED_FREE(_allocator, _ptr, _align)           dm::free(_allocator, _ptr, _align, __FILE__, __LINE__)
+#	define DM_NEW(_allocator, _type)                           ::new(DM_ALLOC(_allocator, sizeof(_type) ) ) _type
+#	define DM_DELETE(_allocator, _ptr)                         dm::deleteObject(_allocator, _ptr, 0, __FILE__, __LINE__)
+#	define DM_ALIGNED_NEW(_allocator, _type, _align)           ::new(DM_ALIGNED_ALLOC(_allocator, sizeof(_type), _align) ) _type
+#	define DM_ALIGNED_DELETE(_allocator, _ptr, _align)         dm::deleteObject(_allocator, _ptr, _align, __FILE__, __LINE__)
+#else
+#	define DM_ALLOC(_allocator, _size)                         dm::alloc(_allocator, _size, 0)
+#	define DM_REALLOC(_allocator, _ptr, _size)                 dm::realloc(_allocator, _ptr, _size, 0)
+#	define DM_FREE(_allocator, _ptr)                           dm::free(_allocator, _ptr, 0)
+#	define DM_ALIGNED_ALLOC(_allocator, _size, _align)         dm::alloc(_allocator, _size, _align)
+#	define DM_ALIGNED_REALLOC(_allocator, _ptr, _size, _align) dm::realloc(_allocator, _ptr, _size, _align)
+#	define DM_ALIGNED_FREE(_allocator, _ptr, _align)           dm::free(_allocator, _ptr, _align)
+#	define DM_NEW(_allocator, _type)                           ::new(DM_ALLOC(_allocator, sizeof(_type) ) ) _type
+#	define DM_DELETE(_allocator, _ptr)                         dm::deleteObject(_allocator, _ptr, 0)
+#	define DM_ALIGNED_NEW(_allocator, _type, _align)           ::new(DM_ALIGNED_ALLOC(_allocator, sizeof(_type), _align) ) _type
+#	define DM_ALIGNED_DELETE(_allocator, _ptr, _align)         dm::deleteObject(_allocator, _ptr, _align)
+#endif // BX_CONFIG_DEBUG_ALLOC
+
+namespace dm
 {
 	/// Aligns pointer to nearest next aligned address. _align must be power of two.
 	inline void* alignPtr(void* _ptr, size_t _extra, size_t _align = BX_CONFIG_ALLOCATOR_NATURAL_ALIGNMENT)
@@ -174,7 +372,7 @@ namespace bx
 			BX_UNUSED(_file, _line);
 			return _aligned_malloc(_size, _align);
 #	else
-			return bx::alignedAlloc(this, _size, _align, _file, _line);
+			return dm::alignedAlloc(this, _size, _align, _file, _line);
 #	endif // BX_
 		}
 
@@ -190,7 +388,7 @@ namespace bx
 			BX_UNUSED(_file, _line);
 			_aligned_free(_ptr);
 #	else
-			bx::alignedFree(this, _ptr, _align, _file, _line);
+			dm::alignedFree(this, _ptr, _align, _file, _line);
 #	endif // BX_
 		}
 
@@ -205,12 +403,11 @@ namespace bx
 			BX_UNUSED(_file, _line);
 			return _aligned_realloc(_ptr, _size, _align);
 #	else
-			return bx::alignedRealloc(this, _ptr, _size, _align, _file, _line);
+			return dm::alignedRealloc(this, _ptr, _size, _align, _file, _line);
 #	endif // BX_
 		}
 	};
 #endif // BX_CONFIG_ALLOCATOR_CRT
-
-} // namespace bx
+} // namespace dm
 
 #endif // BX_ALLOCATOR_H_HEADER_GUARD

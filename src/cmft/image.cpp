@@ -1040,7 +1040,7 @@ namespace cmft
     // Image.
     //-----
 
-    void imageCreate(Image& _image, uint32_t _width, uint32_t _height, uint32_t _rgba, uint8_t _numMips, uint8_t _numFaces, TextureFormat::Enum _format, bx::AllocatorI* _allocator)
+    void imageCreate(Image& _image, uint32_t _width, uint32_t _height, uint32_t _rgba, uint8_t _numMips, uint8_t _numFaces, TextureFormat::Enum _format, dm::AllocatorI* _allocator)
     {
         const uint8_t numFaces = _numFaces > 0 ? _numFaces : 1;
         const uint8_t numMips  = _numMips  > 0 ? _numMips  : 1;
@@ -1055,7 +1055,7 @@ namespace cmft
             dstDataSize += mipWidth * mipHeight * bytesPerPixel;
         }
         dstDataSize *= numFaces;
-        void* dstData = BX_ALLOC(_allocator, dstDataSize);
+        void* dstData = DM_ALLOC(_allocator, dstDataSize);
         MALLOC_CHECK(dstData);
 
         // Get color in rgba32f format.
@@ -1096,16 +1096,16 @@ namespace cmft
         }
     }
 
-    void imageUnload(Image& _image, bx::AllocatorI* _allocator)
+    void imageUnload(Image& _image, dm::AllocatorI* _allocator)
     {
         if (_image.m_data)
         {
-            BX_FREE(_allocator, _image.m_data);
+            DM_FREE(_allocator, _image.m_data);
             _image.m_data = NULL;
         }
     }
 
-    void imageMove(Image& _dst, Image& _src, bx::AllocatorI* _allocator)
+    void imageMove(Image& _dst, Image& _src, dm::AllocatorI* _allocator)
     {
         imageUnload(_dst, _allocator);
         _dst.m_data     = _src.m_data;
@@ -1119,11 +1119,11 @@ namespace cmft
         _src.m_data     = NULL;
     }
 
-    void imageCopy(Image& _dst, const Image& _src, bx::AllocatorI* _allocator)
+    void imageCopy(Image& _dst, const Image& _src, dm::AllocatorI* _allocator)
     {
         imageUnload(_dst, _allocator);
 
-        _dst.m_data = BX_ALLOC(_allocator, _src.m_dataSize);
+        _dst.m_data = DM_ALLOC(_allocator, _src.m_dataSize);
         MALLOC_CHECK(_dst.m_data);
         memcpy(_dst.m_data, _src.m_data, _src.m_dataSize);
         _dst.m_width    = _src.m_width;
@@ -1305,13 +1305,13 @@ namespace cmft
         };
     }
 
-    void imageToRgba32f(Image& _dst, const Image& _src, bx::AllocatorI* _allocator)
+    void imageToRgba32f(Image& _dst, const Image& _src, dm::AllocatorI* _allocator)
     {
         // Alloc dst data.
         const uint32_t pixelCount = imageGetNumPixels(_src);
         const uint8_t dstBytesPerPixel = getImageDataInfo(TextureFormat::RGBA32F).m_bytesPerPixel;
         const uint32_t dataSize = pixelCount*dstBytesPerPixel;
-        void* data = BX_ALLOC(_allocator, dataSize);
+        void* data = DM_ALLOC(_allocator, dataSize);
         MALLOC_CHECK(data);
 
         // Get total number of channels.
@@ -1461,7 +1461,7 @@ namespace cmft
         imageMove(_dst, result, _allocator);
     }
 
-    void imageToRgba32f(Image& _image, bx::AllocatorI* _allocator)
+    void imageToRgba32f(Image& _image, dm::AllocatorI* _allocator)
     {
         Image tmp;
         imageToRgba32f(tmp, _image, _allocator);
@@ -1574,7 +1574,7 @@ namespace cmft
         };
     }
 
-    void imageFromRgba32f(Image& _dst, TextureFormat::Enum _dstFormat, const Image& _src, bx::AllocatorI* _allocator)
+    void imageFromRgba32f(Image& _dst, TextureFormat::Enum _dstFormat, const Image& _src, dm::AllocatorI* _allocator)
     {
         DEBUG_CHECK(TextureFormat::RGBA32F == _src.m_format, "Source image is not in RGBA32F format!");
 
@@ -1582,7 +1582,7 @@ namespace cmft
         const uint32_t pixelCount = imageGetNumPixels(_src);
         const uint8_t dstBytesPerPixel = getImageDataInfo(_dstFormat).m_bytesPerPixel;
         const uint32_t dstDataSize = pixelCount*dstBytesPerPixel;
-        void* dstData = BX_ALLOC(_allocator, dstDataSize);
+        void* dstData = DM_ALLOC(_allocator, dstDataSize);
         MALLOC_CHECK(dstData);
 
         // Get total number of channels.
@@ -1736,14 +1736,14 @@ namespace cmft
         imageMove(_dst, result, _allocator);
     }
 
-    void imageFromRgba32f(Image& _image, TextureFormat::Enum _textureFormat, bx::AllocatorI* _allocator)
+    void imageFromRgba32f(Image& _image, TextureFormat::Enum _textureFormat, dm::AllocatorI* _allocator)
     {
         Image tmp;
         imageFromRgba32f(tmp, _textureFormat, _image, _allocator);
         imageMove(_image, tmp, _allocator);
     }
 
-    void imageConvert(Image& _dst, TextureFormat::Enum _dstFormat, const Image& _src, bx::AllocatorI* _allocator)
+    void imageConvert(Image& _dst, TextureFormat::Enum _dstFormat, const Image& _src, dm::AllocatorI* _allocator)
     {
         // Image _src to rgba32f.
         ImageSoftRef imageRgba32f;
@@ -1780,7 +1780,7 @@ namespace cmft
         imageUnload(imageRgba32f, _allocator);
     }
 
-    void imageConvert(Image& _image, TextureFormat::Enum _format, bx::AllocatorI* _allocator)
+    void imageConvert(Image& _image, TextureFormat::Enum _format, dm::AllocatorI* _allocator)
     {
         if (_format != _image.m_format)
         {
@@ -1851,7 +1851,7 @@ namespace cmft
     }
 
     // Notice: this is the most trivial image resampling implementation. Use this only for testing/debugging purposes!
-    void imageResize(Image& _dst, uint32_t _width, uint32_t _height, const Image& _src, bx::AllocatorI* _allocator)
+    void imageResize(Image& _dst, uint32_t _width, uint32_t _height, const Image& _src, dm::AllocatorI* _allocator)
     {
         // Operation is done in rgba32f format.
         ImageSoftRef imageRgba32f;
@@ -1871,7 +1871,7 @@ namespace cmft
                 dstDataSize += dstMipWidth * dstMipHeight * bytesPerPixel;
             }
         }
-        void* dstData = BX_ALLOC(_allocator, dstDataSize);
+        void* dstData = DM_ALLOC(_allocator, dstDataSize);
         MALLOC_CHECK(dstData);
 
         // Get source offsets.
@@ -1964,7 +1964,7 @@ namespace cmft
         imageUnload(imageRgba32f, _allocator);
     }
 
-    void imageResize(Image& _image, uint32_t _width, uint32_t _height, bx::AllocatorI* _allocator)
+    void imageResize(Image& _image, uint32_t _width, uint32_t _height, dm::AllocatorI* _allocator)
     {
         Image tmp;
         imageResize(tmp, _width, _height, _image, _allocator);
@@ -2010,14 +2010,14 @@ namespace cmft
         }
     }
 
-    void imageResize(Image& _dst, uint32_t _faceSize, const Image& _src, bx::AllocatorI* _allocator)
+    void imageResize(Image& _dst, uint32_t _faceSize, const Image& _src, dm::AllocatorI* _allocator)
     {
         uint32_t width, height;
         faceSizeToWH(width, height, _faceSize, _src);
         imageResize(_dst, width, height, _src, _allocator);
     }
 
-    void imageResize(Image& _image, uint32_t _faceSize, bx::AllocatorI* _allocator)
+    void imageResize(Image& _image, uint32_t _faceSize, dm::AllocatorI* _allocator)
     {
         uint32_t width, height;
         faceSizeToWH(width, height, _faceSize, _image);
@@ -2251,7 +2251,7 @@ namespace cmft
         }
     }
 
-    void imageGenerateMipMapChain(Image& _image, uint8_t _numMips, bx::AllocatorI* _allocator)
+    void imageGenerateMipMapChain(Image& _image, uint8_t _numMips, dm::AllocatorI* _allocator)
     {
         // Processing is done in rgba32f format.
         ImageHardRef imageRgba32f;
@@ -2279,7 +2279,7 @@ namespace cmft
         }
 
         // Alloc data.
-        void* dstData = BX_ALLOC(_allocator, dstDataSize);
+        void* dstData = DM_ALLOC(_allocator, dstDataSize);
         MALLOC_CHECK(dstData);
 
         // Get source offsets.
@@ -2372,7 +2372,7 @@ namespace cmft
         imageUnload(imageRgba32f, _allocator);
     }
 
-    void imageApplyGamma(Image& _image, float _gammaPow, bx::AllocatorI* _allocator)
+    void imageApplyGamma(Image& _image, float _gammaPow, dm::AllocatorI* _allocator)
     {
         // Do nothing if _gammaPow is ~= 1.0f.
         if (dm::equals(_gammaPow, 1.0, 0.0001f))
@@ -2406,7 +2406,7 @@ namespace cmft
         imageUnload(imageRgba32f, _allocator);
     }
 
-    void imageClamp(Image& _dst, const Image& _src, bx::AllocatorI* _allocator)
+    void imageClamp(Image& _dst, const Image& _src, dm::AllocatorI* _allocator)
     {
         // Get a copy in rgba32f format.
         Image imageRgba32f;
@@ -2436,7 +2436,7 @@ namespace cmft
         }
     }
 
-    void imageClamp(Image& _image, bx::AllocatorI* _allocator)
+    void imageClamp(Image& _image, dm::AllocatorI* _allocator)
     {
         // Operation is done in rgba32f format.
         ImageHardRef imageRgba32f;
@@ -2692,7 +2692,7 @@ namespace cmft
             || imageIsCubeCross(_image, _fastCheck);
     }
 
-    bool imageCubemapFromCross(Image& _dst, const Image& _src, bx::AllocatorI* _allocator)
+    bool imageCubemapFromCross(Image& _dst, const Image& _src, dm::AllocatorI* _allocator)
     {
         // Checking image aspect.
         const float aspect = (float)(int32_t)_src.m_width/(float)(int32_t)_src.m_height;
@@ -2714,7 +2714,7 @@ namespace cmft
 
         // Alloc data.
         const uint32_t dstDataSize = faceDataSize * CUBE_FACE_NUM;
-        void* data = BX_ALLOC(_allocator, dstDataSize);
+        void* data = DM_ALLOC(_allocator, dstDataSize);
         MALLOC_CHECK(data);
 
         // Setup offsets.
@@ -2795,7 +2795,7 @@ namespace cmft
         return true;
     }
 
-    bool imageCubemapFromCross(Image& _image, bx::AllocatorI* _allocator)
+    bool imageCubemapFromCross(Image& _image, dm::AllocatorI* _allocator)
     {
         Image tmp;
         if (imageCubemapFromCross(tmp, _image, _allocator))
@@ -2807,7 +2807,7 @@ namespace cmft
         return false;
     }
 
-    bool imageCubemapFromLatLong(Image& _dst, const Image& _src, bool _useBilinearInterpolation, bx::AllocatorI* _allocator)
+    bool imageCubemapFromLatLong(Image& _dst, const Image& _src, bool _useBilinearInterpolation, dm::AllocatorI* _allocator)
     {
         if (!imageIsLatLong(_src))
         {
@@ -2824,7 +2824,7 @@ namespace cmft
         const uint32_t dstPitch = dstFaceSize * bytesPerPixel;
         const uint32_t dstFaceDataSize = dstPitch * dstFaceSize;
         const uint32_t dstDataSize = dstFaceDataSize * CUBE_FACE_NUM;
-        void* dstData = BX_ALLOC(_allocator, dstDataSize);
+        void* dstData = DM_ALLOC(_allocator, dstDataSize);
         MALLOC_CHECK(dstData);
 
         // Get source parameters.
@@ -2940,7 +2940,7 @@ namespace cmft
         return true;
     }
 
-    bool imageCubemapFromLatLong(Image& _image, bool _useBilinearInterpolation, bx::AllocatorI* _allocator)
+    bool imageCubemapFromLatLong(Image& _image, bool _useBilinearInterpolation, dm::AllocatorI* _allocator)
     {
         Image tmp;
         if (imageCubemapFromLatLong(tmp, _image, _useBilinearInterpolation, _allocator))
@@ -2952,7 +2952,7 @@ namespace cmft
         return false;
     }
 
-    bool imageLatLongFromCubemap(Image& _dst, const Image& _src, bool _useBilinearInterpolation, bx::AllocatorI* _allocator)
+    bool imageLatLongFromCubemap(Image& _dst, const Image& _src, bool _useBilinearInterpolation, dm::AllocatorI* _allocator)
     {
         // Input check.
         if (!imageIsCubemap(_src))
@@ -2977,7 +2977,7 @@ namespace cmft
             const uint32_t dstMipHeight = dm::max(UINT32_C(1), dstHeight >> mip);
             dstDataSize += dstMipWidth * dstMipHeight * bytesPerPixel;
         }
-        void* dstData = BX_ALLOC(_allocator, dstDataSize);
+        void* dstData = DM_ALLOC(_allocator, dstDataSize);
         MALLOC_CHECK(dstData);
 
         // Get source image parameters.
@@ -3106,7 +3106,7 @@ namespace cmft
         return true;
     }
 
-    bool imageLatLongFromCubemap(Image& _cubemap, bool _useBilinearInterpolation, bx::AllocatorI* _allocator)
+    bool imageLatLongFromCubemap(Image& _cubemap, bool _useBilinearInterpolation, dm::AllocatorI* _allocator)
     {
         Image tmp;
         if (imageLatLongFromCubemap(tmp, _cubemap, _useBilinearInterpolation, _allocator))
@@ -3118,7 +3118,7 @@ namespace cmft
         return false;
     }
 
-    bool imageStripFromCubemap(Image& _dst, const Image& _src, bool _vertical, bx::AllocatorI* _allocator)
+    bool imageStripFromCubemap(Image& _dst, const Image& _src, bool _vertical, dm::AllocatorI* _allocator)
     {
         // Input check.
         if(!imageIsCubemap(_src))
@@ -3140,7 +3140,7 @@ namespace cmft
 
             dstDataSize += mipWidth * mipHeight * bytesPerPixel;
         }
-        void* dstData = BX_ALLOC(_allocator, dstDataSize);
+        void* dstData = DM_ALLOC(_allocator, dstDataSize);
         MALLOC_CHECK(dstData);
 
         // Get source image offsets.
@@ -3219,7 +3219,7 @@ namespace cmft
         return true;
     }
 
-    bool imageStripFromCubemap(Image& _cubemap, bool _vertical, bx::AllocatorI* _allocator)
+    bool imageStripFromCubemap(Image& _cubemap, bool _vertical, dm::AllocatorI* _allocator)
     {
         Image tmp;
         if (imageStripFromCubemap(tmp, _cubemap, _vertical, _allocator))
@@ -3231,7 +3231,7 @@ namespace cmft
         return false;
     }
 
-    bool imageCubemapFromStrip(Image& _dst, const Image& _src, bx::AllocatorI* _allocator)
+    bool imageCubemapFromStrip(Image& _dst, const Image& _src, dm::AllocatorI* _allocator)
     {
         // Input check.
         const bool isVertical   = imageIsVStrip(_src);
@@ -3256,7 +3256,7 @@ namespace cmft
                 dstDataSize += mipSize * mipSize * bytesPerPixel;
             }
         }
-        void* dstData = BX_ALLOC(_allocator, dstDataSize);
+        void* dstData = DM_ALLOC(_allocator, dstDataSize);
         MALLOC_CHECK(dstData);
 
         uint32_t srcOffsets[CUBE_FACE_NUM][MAX_MIP_NUM];
@@ -3305,7 +3305,7 @@ namespace cmft
         return true;
     }
 
-    bool imageCubemapFromStrip(Image& _image, bx::AllocatorI* _allocator)
+    bool imageCubemapFromStrip(Image& _image, dm::AllocatorI* _allocator)
     {
         Image tmp;
         if (imageCubemapFromStrip(tmp, _image, _allocator))
@@ -3317,7 +3317,7 @@ namespace cmft
         return false;
     }
 
-    bool imageFaceListFromCubemap(Image _faceList[6], const Image& _cubemap, bx::AllocatorI* _allocator)
+    bool imageFaceListFromCubemap(Image _faceList[6], const Image& _cubemap, dm::AllocatorI* _allocator)
     {
         // Input check.
         if(!imageIsCubemap(_cubemap))
@@ -3342,7 +3342,7 @@ namespace cmft
 
         for (uint8_t face = 0; face < 6; ++face)
         {
-            void* dstData = BX_ALLOC(_allocator, dstDataSize);
+            void* dstData = DM_ALLOC(_allocator, dstDataSize);
             MALLOC_CHECK(dstData);
 
             for (uint8_t mip = 0; mip < _cubemap.m_numMips; ++mip)
@@ -3379,7 +3379,7 @@ namespace cmft
         return true;
     }
 
-    bool imageCubemapFromFaceList(Image& _cubemap, const Image _faceList[6], bx::AllocatorI* _allocator)
+    bool imageCubemapFromFaceList(Image& _cubemap, const Image _faceList[6], dm::AllocatorI* _allocator)
     {
         // Input check.
         if (!imageValidCubemapFaceList(_faceList))
@@ -3394,7 +3394,7 @@ namespace cmft
 
         // Alloc destination data.
         const uint32_t dstDataSize = _faceList[0].m_dataSize * 6;
-        void* dstData = BX_ALLOC(_allocator, dstDataSize);
+        void* dstData = DM_ALLOC(_allocator, dstDataSize);
         MALLOC_CHECK(dstData);
 
         // Copy data.
@@ -3439,7 +3439,7 @@ namespace cmft
         return true;
     }
 
-    bool imageCrossFromCubemap(Image& _dst, const Image& _src, bool _vertical, bx::AllocatorI* _allocator)
+    bool imageCrossFromCubemap(Image& _dst, const Image& _src, bool _vertical, dm::AllocatorI* _allocator)
     {
         // Input check.
         if(!imageIsCubemap(_src))
@@ -3471,7 +3471,7 @@ namespace cmft
 
             dstDataSize += mipWidth * mipHeight * bytesPerPixel;
         }
-        void* dstData = BX_ALLOC(_allocator, dstDataSize);
+        void* dstData = DM_ALLOC(_allocator, dstDataSize);
         MALLOC_CHECK(dstData);
 
         // Get black pixel.
@@ -3600,7 +3600,7 @@ namespace cmft
         return true;
     }
 
-    bool imageCrossFromCubemap(Image& _image, bool _vertical, bx::AllocatorI* _allocator)
+    bool imageCrossFromCubemap(Image& _image, bool _vertical, dm::AllocatorI* _allocator)
     {
         Image tmp;
         if (imageCrossFromCubemap(tmp, _image, _vertical, _allocator))
@@ -3612,7 +3612,7 @@ namespace cmft
         return false;
     }
 
-    bool imageToCubemap(Image& _dst, const Image& _src, bx::AllocatorI* _allocator)
+    bool imageToCubemap(Image& _dst, const Image& _src, dm::AllocatorI* _allocator)
     {
         if (imageIsCubemap(_src))
         {
@@ -3629,7 +3629,7 @@ namespace cmft
         return false;
     }
 
-    bool imageToCubemap(Image& _image, bx::AllocatorI* _allocator)
+    bool imageToCubemap(Image& _image, dm::AllocatorI* _allocator)
     {
         if (!imageIsCubemap(_image))
         {
@@ -3650,7 +3650,7 @@ namespace cmft
         return imageIsValid(_image) && imageIsCubemap(_image);
     }
 
-    bool imageOctantFromCubemap(Image& _dst, const Image& _src, bool _useBilinearInterpolation, bx::AllocatorI* _allocator)
+    bool imageOctantFromCubemap(Image& _dst, const Image& _src, bool _useBilinearInterpolation, dm::AllocatorI* _allocator)
     {
         // Input check.
         if(!imageIsCubemap(_src))
@@ -3673,7 +3673,7 @@ namespace cmft
             const uint32_t dstMipSize  = dm::max(UINT32_C(1), dstSize  >> mip);
             dstDataSize += dstMipSize * dstMipSize * bytesPerPixel;
         }
-        void* dstData = BX_ALLOC(_allocator, dstDataSize);
+        void* dstData = DM_ALLOC(_allocator, dstDataSize);
         MALLOC_CHECK(dstData);
 
         // Get source image parameters.
@@ -3802,7 +3802,7 @@ namespace cmft
 
     }
 
-    bool imageCubemapFromOctant(Image& _dst, const Image& _src, bool _useBilinearInterpolation, bx::AllocatorI* _allocator)
+    bool imageCubemapFromOctant(Image& _dst, const Image& _src, bool _useBilinearInterpolation, dm::AllocatorI* _allocator)
     {
         if (!imageIsOctant(_src))
         {
@@ -3819,7 +3819,7 @@ namespace cmft
         const uint32_t dstPitch = dstFaceSize * bytesPerPixel;
         const uint32_t dstFaceDataSize = dstPitch * dstFaceSize;
         const uint32_t dstDataSize = dstFaceDataSize * CUBE_FACE_NUM;
-        void* dstData = BX_ALLOC(_allocator, dstDataSize);
+        void* dstData = DM_ALLOC(_allocator, dstDataSize);
         MALLOC_CHECK(dstData);
 
         // Get source parameters.
@@ -3936,7 +3936,7 @@ namespace cmft
 
     }
 
-    bool imageCubemapFromOctant(Image& _image, bool _useBilinearInterpolation, bx::AllocatorI* _allocator)
+    bool imageCubemapFromOctant(Image& _image, bool _useBilinearInterpolation, dm::AllocatorI* _allocator)
     {
         Image tmp;
         if(imageCubemapFromOctant(tmp, _image, _useBilinearInterpolation, _allocator))
@@ -3951,7 +3951,7 @@ namespace cmft
     // Image loading.
     //-----
 
-    bool imageLoadDds(Image& _image, bx::ReaderSeekerI& _reader, bx::AllocatorI* _allocator)
+    bool imageLoadDds(Image& _image, bx::ReaderSeekerI& _reader, dm::AllocatorI* _allocator)
     {
         CMFT_UNUSED size_t read;
 
@@ -4126,7 +4126,7 @@ namespace cmft
         bx::seek(&_reader, currentPos - DDS_DX10_HEADER_SIZE*(remaining == dataSize-DDS_DX10_HEADER_SIZE), bx::Whence::Begin);
 
         // Alloc and read data.
-        void* data = BX_ALLOC(_allocator, dataSize);
+        void* data = DM_ALLOC(_allocator, dataSize);
         MALLOC_CHECK(data);
         read = bx::read(&_reader, data, dataSize);
         DEBUG_CHECK(read == dataSize, "Could not read dds image data.");
@@ -4147,7 +4147,7 @@ namespace cmft
         return true;
     }
 
-    bool imageLoadKtx(Image& _image, bx::ReaderSeekerI& _reader, bx::AllocatorI* _allocator)
+    bool imageLoadKtx(Image& _image, bx::ReaderSeekerI& _reader, dm::AllocatorI* _allocator)
     {
         CMFT_UNUSED size_t read;
 
@@ -4222,7 +4222,7 @@ namespace cmft
         }
 
         // Alloc data.
-        void* data = (void*)BX_ALLOC(_allocator, dataSize);
+        void* data = (void*)DM_ALLOC(_allocator, dataSize);
         MALLOC_CHECK(data);
 
         // Jump header key-value data.
@@ -4316,7 +4316,7 @@ namespace cmft
         return nl;
     }
 
-    bool imageLoadHdr(Image& _image, bx::ReaderSeekerI& _reader, bx::AllocatorI* _allocator)
+    bool imageLoadHdr(Image& _image, bx::ReaderSeekerI& _reader, dm::AllocatorI* _allocator)
     {
         CMFT_UNUSED size_t read;
 
@@ -4383,7 +4383,7 @@ namespace cmft
 
         // Allocate data.
         const uint32_t dataSize = width * height * 4 /* bytesPerPixel */;
-        uint8_t* data = (uint8_t*)BX_ALLOC(_allocator, dataSize);
+        uint8_t* data = (uint8_t*)DM_ALLOC(_allocator, dataSize);
         MALLOC_CHECK(data);
 
         // Read first chunk.
@@ -4498,7 +4498,7 @@ namespace cmft
         return true;
     }
 
-    bool imageLoadTga(Image& _image, bx::ReaderSeekerI& _reader, bx::AllocatorI* _allocator)
+    bool imageLoadTga(Image& _image, bx::ReaderSeekerI& _reader, dm::AllocatorI* _allocator)
     {
         CMFT_UNUSED size_t read;
 
@@ -4548,7 +4548,7 @@ namespace cmft
         const uint32_t numBytesPerPixel = tgaHeader.m_bitsPerPixel/8;
         const uint32_t numPixels = tgaHeader.m_width * tgaHeader.m_height;
         const uint32_t dataSize = numPixels * numBytesPerPixel;
-        uint8_t* data = (uint8_t*)BX_ALLOC(_allocator, dataSize);
+        uint8_t* data = (uint8_t*)DM_ALLOC(_allocator, dataSize);
         MALLOC_CHECK(data);
 
         // Skip to data.
@@ -4652,7 +4652,7 @@ namespace cmft
         return false;
     }
 
-    bool imageLoad(Image& _image, bx::ReaderSeekerI& _reader, TextureFormat::Enum _convertTo, bx::AllocatorI* _allocator)
+    bool imageLoad(Image& _image, bx::ReaderSeekerI& _reader, TextureFormat::Enum _convertTo, dm::AllocatorI* _allocator)
     {
         // Read magic.
         uint32_t magic;
@@ -4695,7 +4695,7 @@ namespace cmft
         return true;
     }
 
-    bool imageLoad(Image& _image, const char* _filePath, TextureFormat::Enum _convertTo, bx::AllocatorI* _allocator)
+    bool imageLoad(Image& _image, const char* _filePath, TextureFormat::Enum _convertTo, dm::AllocatorI* _allocator)
     {
         bx::CrtFileReader fileReader;
         if (fileReader.open(_filePath))
@@ -4709,14 +4709,14 @@ namespace cmft
         return result;
     }
 
-    bool imageLoad(Image& _image, const void* _data, uint32_t _dataSize, TextureFormat::Enum _convertTo, bx::AllocatorI* _allocator)
+    bool imageLoad(Image& _image, const void* _data, uint32_t _dataSize, TextureFormat::Enum _convertTo, dm::AllocatorI* _allocator)
     {
         bx::MemoryReader reader(_data, _dataSize);
         return imageLoad(_image, reader, _convertTo, _allocator);
     }
 
     ///
-    bool imageLoadStb(Image& _image, const char* _filePath, TextureFormat::Enum _convertTo, bx::AllocatorI* _allocator)
+    bool imageLoadStb(Image& _image, const char* _filePath, TextureFormat::Enum _convertTo, dm::AllocatorI* _allocator)
     {
         // Try loading the image through stb_image.
         int stbWidth, stbHeight, stbNumComponents;
@@ -4757,7 +4757,7 @@ namespace cmft
     }
 
     ///
-    bool imageLoadStb(Image& _image, const void* _data, uint32_t _dataSize, TextureFormat::Enum _convertTo, bx::AllocatorI* _allocator)
+    bool imageLoadStb(Image& _image, const void* _data, uint32_t _dataSize, TextureFormat::Enum _convertTo, dm::AllocatorI* _allocator)
     {
         // Try loading the image through stb_image.
         int stbWidth, stbHeight, stbNumComponents;
@@ -4999,7 +4999,7 @@ namespace cmft
         return true;
     }
 
-    bool imageSaveHdr(const char* _fileName, const Image& _image, bx::AllocatorI* _allocator)
+    bool imageSaveHdr(const char* _fileName, const Image& _image, dm::AllocatorI* _allocator)
     {
         char fileName[DM_PATH_LEN];
         strcpy(fileName, _fileName);
@@ -5220,7 +5220,7 @@ namespace cmft
         return result;
     }
 
-    bool imageSave(const Image& _image, const char* _fileName, ImageFileType::Enum _ft, TextureFormat::Enum _convertTo, bx::AllocatorI* _allocator)
+    bool imageSave(const Image& _image, const char* _fileName, ImageFileType::Enum _ft, TextureFormat::Enum _convertTo, dm::AllocatorI* _allocator)
     {
         // Get image in desired format.
         ImageSoftRef image;
@@ -5274,7 +5274,7 @@ namespace cmft
         return result;
     }
 
-    bool imageSave(const Image& _image, const char* _fileName, ImageFileType::Enum _ft, OutputType::Enum _ot, TextureFormat::Enum _tf, bool _printOutput, bx::AllocatorI* _allocator)
+    bool imageSave(const Image& _image, const char* _fileName, ImageFileType::Enum _ft, OutputType::Enum _ot, TextureFormat::Enum _tf, bool _printOutput, dm::AllocatorI* _allocator)
     {
         // Input check.
         const bool validOutputType = checkValidOutputType(_ft, _ot);
@@ -5436,7 +5436,7 @@ namespace cmft
     // ImageRef
     //-----
 
-    bool imageAsCubemap(ImageSoftRef& _dst, const Image& _src, bx::AllocatorI* _allocator)
+    bool imageAsCubemap(ImageSoftRef& _dst, const Image& _src, dm::AllocatorI* _allocator)
     {
         if (imageIsCubemap(_src))
         {
@@ -5453,7 +5453,7 @@ namespace cmft
         return false;
     }
 
-    void imageRefOrConvert(ImageHardRef& _dst, TextureFormat::Enum _format, Image& _src, bx::AllocatorI* _allocator)
+    void imageRefOrConvert(ImageHardRef& _dst, TextureFormat::Enum _format, Image& _src, dm::AllocatorI* _allocator)
     {
         if (_format == _src.m_format)
         {
@@ -5466,7 +5466,7 @@ namespace cmft
         }
     }
 
-    void imageRefOrConvert(ImageSoftRef& _dst, TextureFormat::Enum _format, const Image& _src, bx::AllocatorI* _allocator)
+    void imageRefOrConvert(ImageSoftRef& _dst, TextureFormat::Enum _format, const Image& _src, dm::AllocatorI* _allocator)
     {
         if (_format == _src.m_format)
         {
@@ -5503,7 +5503,7 @@ namespace cmft
         _dst.m_origDataPtr = &_src.m_data;
     }
 
-    void imageMove(Image& _dst, ImageSoftRef& _src, bx::AllocatorI* _allocator)
+    void imageMove(Image& _dst, ImageSoftRef& _src, dm::AllocatorI* _allocator)
     {
         if (_src.isRef())
         {
@@ -5523,7 +5523,7 @@ namespace cmft
         _src.m_data     = NULL;
     }
 
-    void imageMove(Image& _dst, ImageHardRef& _src, bx::AllocatorI* _allocator)
+    void imageMove(Image& _dst, ImageHardRef& _src, dm::AllocatorI* _allocator)
     {
         imageUnload(_dst, _allocator);
         _dst.m_data     = _src.m_data;
@@ -5541,20 +5541,20 @@ namespace cmft
         }
     }
 
-    void imageUnload(ImageSoftRef& _image, bx::AllocatorI* _allocator)
+    void imageUnload(ImageSoftRef& _image, dm::AllocatorI* _allocator)
     {
         if (_image.isCopy() && _image.m_data)
         {
-            BX_FREE(_allocator, _image.m_data);
+            DM_FREE(_allocator, _image.m_data);
             _image.m_data = NULL;
         }
     }
 
-    void imageUnload(ImageHardRef& _image, bx::AllocatorI* _allocator)
+    void imageUnload(ImageHardRef& _image, dm::AllocatorI* _allocator)
     {
         if (_image.isCopy() && _image.m_data)
         {
-            BX_FREE(_allocator, _image.m_data);
+            DM_FREE(_allocator, _image.m_data);
             _image.m_data = NULL;
         }
     }
