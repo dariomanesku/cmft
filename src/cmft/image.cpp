@@ -4698,7 +4698,7 @@ namespace cmft
     bool imageLoad(Image& _image, const char* _filePath, TextureFormat::Enum _convertTo, dm::AllocatorI* _allocator)
     {
         bx::CrtFileReader fileReader;
-        if (fileReader.open(_filePath))
+        if (!fileReader.open(_filePath, NULL))
         {
             WARN("Could not open file %s for reading.", _filePath);
             return false;
