@@ -8,7 +8,7 @@
 
 #include <stdlib.h> //abort()
 #include <stdio.h>  //stderr
-
+#include <cmft/print.h> // PrintFunc
 
 // Config.
 //-----
@@ -48,18 +48,7 @@
     #define CMFT_FLUSH_OUTPUT() do {} while(0)
 #endif
 
-// Cmft info.
-#ifndef CMFT_ENABLE_INFO_MESSAGES
-    #define CMFT_ENABLE_INFO_MESSAGES 0
-#endif
-
-#if CMFT_ENABLE_INFO_MESSAGES
-    #define INFO _INFO
-#else
-    #define INFO(...) do {} while(0)
-#endif
-
-// Cmft info.
+// Cmft progress.
 #ifndef CMFT_ENABLE_PROGRESS_REPORT
     #define CMFT_ENABLE_PROGRESS_REPORT 0
 #endif
@@ -75,6 +64,27 @@
     #define CMFT_PROGRESS(...) do {} while(0)
 #endif
 
+// Cmft info.
+#ifndef CMFT_ENABLE_INFO_MESSAGES
+    #define CMFT_ENABLE_INFO_MESSAGES 0
+#endif
+
+#if CMFT_ENABLE_INFO_MESSAGES
+    #define INFO _INFO
+#else
+    #define INFO(...) do {} while(0)
+#endif
+
+namespace cmft { extern PrintFunc printfInfo; }
+#define _INFO(_format, ...)                                          \
+do                                                                   \
+{                                                                    \
+    if (NULL != cmft::printfInfo)                                    \
+    {                                                                \
+        cmft::printfInfo("CMFT info: " _format "\n", ##__VA_ARGS__); \
+    }                                                                \
+} while(0)
+
 // Cmft warning.
 #ifndef CMFT_ENABLE_WARNINGS
     #define CMFT_ENABLE_WARNINGS 0
@@ -85,6 +95,16 @@
 #else
     #define WARN(...) do {} while(0)
 #endif
+
+namespace cmft { extern PrintFunc printfWarning; }
+#define _WARN(_format, ...)                                                 \
+do                                                                          \
+{                                                                           \
+    if (NULL != cmft::printfWarning)                                        \
+    {                                                                       \
+        cmft::printfWarning("CMFT WARNING: "  _format "\n", ##__VA_ARGS__); \
+    }                                                                       \
+} while(0)
 
 // File error check.
 #ifndef CMFT_ENABLE_FILE_ERROR_CHECK

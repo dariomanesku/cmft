@@ -7,7 +7,6 @@
 #include <cmft/allocator.h>
 
 #include "base/config.h"
-#include "base/printcallback.h"
 #include "base/macros.h"
 #include "base/stb_image.h"
 #include "cubemaputils.h"

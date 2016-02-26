@@ -13,7 +13,6 @@
 
 #include "cmft/clcontext.h"
 #include "base/config.h" //INFO, WARN
-#include "base/printcallback.h" //_INFO, _WARN
 
 namespace cmft
 {
