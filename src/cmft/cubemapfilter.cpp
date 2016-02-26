@@ -4,7 +4,6 @@
  */
 
 #include "base/config.h"
-#include "base/printcallback.h"
 #include "base/macros.h"
 
 #include <cmft/cubemapfilter.h>

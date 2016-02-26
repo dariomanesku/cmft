@@ -7,7 +7,7 @@
 #define CMFT_CMFT_CLI_H_HEADER_GUARD
 
 #include <base/config.h>        // INFO, WARN
-#include <base/printcallback.h> // _INFO, _WARN, g_printInfo, g_printWarnings
+#include <base/macros.h>        // CMFT_UNUSED
 
 #include <stdio.h>
 #include <stdint.h>
@@ -18,6 +18,7 @@
 #include <cmft/image.h>
 #include <cmft/cubemapfilter.h>
 #include <cmft/clcontext.h>
+#include <cmft/print.h>         // setWarningPrintf(), setInfoPrintf()
 
 using namespace cmft;
 
@@ -870,8 +871,8 @@ int cmftMain(int _argc, char const* const* _argv)
 
     if (inputParameters.m_silent)
     {
-        g_printInfo = false;
-        g_printWarnings = false;
+        setWarningPrintf(NULL);
+        setInfoPrintf(NULL);
     }
 
     Image image;
