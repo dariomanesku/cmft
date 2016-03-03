@@ -2371,6 +2371,17 @@ namespace cmft
         imageUnload(imageRgba32f, _allocator);
     }
 
+
+	// From: http://chilliant.blogspot.pt/2012/08/srgb-approximations-for-hlsl.html
+	float ToSRGBApprox(float v)
+	{
+		float S1 = sqrtf( v );
+		float S2 = sqrtf( S1 );
+		float S3 = sqrtf( S2 );
+		float sRGB = 0.585122381f * S1 + 0.783140355f * S2 - 0.368262736f * S3;
+		return sRGB;
+	}
+
 	void imageEncodeRGBM( Image& _image, bx::AllocatorI* _allocator )
 	{
 		// Operation is done in rgba32f format.
@@ -2384,6 +2395,12 @@ namespace cmft
 		float rgbm[4];
 		for (; channel < end; channel += 4)
 		{
+			// convert to gamma space before encoding
+			channel[0] = ToSRGBApprox(channel[0]);
+			channel[1] = ToSRGBApprox(channel[1]);
+			channel[2] = ToSRGBApprox(channel[2]);
+			channel[3] = ToSRGBApprox(channel[3]);
+
 			memcpy( rgbm, channel, 4*sizeof(float) );
 
 			rgbm[0] /= 6.0f;
