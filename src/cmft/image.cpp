@@ -2371,6 +2371,70 @@ namespace cmft
         imageUnload(imageRgba32f, _allocator);
     }
 
+	void rgbm_encode( float* rgbm, float* color )
+	{
+		color[0] /= 6.0f;
+		color[1] /= 6.0f;
+		color[2] /= 6.0f;
+
+		rgbm[3] = fsaturate( fmaxf(fmaxf(color[0], color[1]), fmaxf(color[2], 1e-6f)));
+		rgbm[3] = ceil(rgbm[3] * 255.0f) / 255.0f;
+		rgbm[0] = color[0] / rgbm[3];
+		rgbm[1] = color[1] / rgbm[3];
+		rgbm[2] = color[2] / rgbm[3];
+	}
+
+	void imageEncodeRGBM( Image& _image, bx::AllocatorI* _allocator )
+	{
+		// Operation is done in rgba32f format.
+		ImageHardRef imageRgba32f;
+		imageRefOrConvert( imageRgba32f, TextureFormat::RGBA32F, _image, _allocator );
+
+		// Iterate through image channels and apply gamma function.
+		float* channel = (float*)imageRgba32f.m_data;
+		const float* end = (const float*)((const uint8_t*)imageRgba32f.m_data + imageRgba32f.m_dataSize);
+
+		for (; channel < end; channel += 4)
+		{
+			float rgbm[4];
+			memcpy( rgbm, channel, 4*sizeof(float) );
+
+			rgbm[0] /= 6.0f;
+			rgbm[1] /= 6.0f;
+			rgbm[2] /= 6.0f;
+
+ 			float m = fsaturate(fmaxf(fmaxf(rgbm[0], rgbm[1]), fmaxf(rgbm[2], 1e-6f)));
+ 			m = ceil(rgbm[3] * 255.0f) / 255.0f;
+			rgbm[0] /= m;
+			rgbm[1] /= m;
+			rgbm[2] /= m;
+			rgbm[3] = m;
+			//INFO( "%f  %f  %f  %f  --  %f  %f  %f  %f", rgbm[0], rgbm[1], rgbm[2], rgbm[3], channel[0], channel[1], channel[2], channel[3] );
+
+			channel[0] = rgbm[0];
+			channel[1] = rgbm[1];
+			channel[2] = rgbm[2];
+			channel[3] = rgbm[3];
+
+
+			/*float temp[4];
+			rgbm_encode( temp, &channel[0] );
+			channel[0] = temp[0];
+			channel[1] = temp[1];
+			channel[2] = temp[2];
+			channel[3] = temp[3];*/
+		}
+
+		// Convert to BGRA8 format as final. Overrides any format the user asks
+		if (imageRgba32f.isCopy())
+		{
+			imageConvert( _image, TextureFormat::BGRA8, imageRgba32f, _allocator );
+		}
+
+		// Cleanup.
+		imageUnload(imageRgba32f, _allocator);
+	}
+
     void imageApplyGamma(Image& _image, float _gammaPow, bx::AllocatorI* _allocator)
     {
         // Do nothing if _gammaPow is ~= 1.0f.

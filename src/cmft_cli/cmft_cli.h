@@ -232,6 +232,9 @@ struct InputParameters
 
     // Misc.
     bool m_silent;
+
+	// Encode
+	bool m_encodeRGBM;
 };
 
 void inputParametersFromCommandLine(InputParameters& _inputParameters, const bx::CommandLine& _cmdLine)
@@ -339,6 +342,9 @@ void inputParametersFromCommandLine(InputParameters& _inputParameters, const bx:
 
     // Misc.
     _inputParameters.m_silent = _cmdLine.hasArg("silent");
+
+	// Encode
+	_inputParameters.m_encodeRGBM = _cmdLine.hasArg("rgbm");
 
     // Output.
     uint32_t outputCount = 0;
@@ -822,6 +828,7 @@ void printHelp()
             "          <tga_outputType> = [latlong,hcross,vcross,hstrip,vstrip,facelist,octant]\n"
             "          <hdr_outputType> = [latlong,hcross,vcross,hstrip,vstrip,facelist,octant]\n"
             "    --silent                           Do not print any output.\n"
+			"    --rgbm                             Encode image in RGBM.\n"
 
             "\n"
             "Command line parameters are case insenitive (except for file names and paths).\n"
@@ -1070,6 +1077,13 @@ int cmftMain(int _argc, char const* const* _argv)
 
     // Apply gamma on output image.
     imageApplyGamma(image, inputParameters.m_outputGammaPowNumerator / inputParameters.m_outputGammaPowDenominator);
+
+	// Encode RGBM
+	if (inputParameters.m_encodeRGBM)
+	{
+		INFO("Encoding RGBM");
+		imageEncodeRGBM(image);
+	}
 
     // Save output images.
     for (uint32_t outputIdx = 0; outputIdx < inputParameters.m_outputFilesNum; ++outputIdx)
