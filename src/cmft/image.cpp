@@ -38,7 +38,8 @@ namespace cmft
         "RGBA16",  //RGBA16
         "RGBA16F", //RGBA16F
         "RGBA32F", //RGBA32F
-    };
+		"RGBM",	   //RGBM
+	};
 
     const char* getTextureFormatStr(TextureFormat::Enum _format)
     {
@@ -267,7 +268,8 @@ namespace cmft
         TextureFormat::RGBA16,
         TextureFormat::RGBA16F,
         TextureFormat::RGBA32F,
-        TextureFormat::Null,
+		TextureFormat::RGBM,
+		TextureFormat::Null,
     };
 
     static const TextureFormat::Enum s_ktxValidFormats[] =
@@ -280,14 +282,15 @@ namespace cmft
         TextureFormat::RGBA16,
         TextureFormat::RGBA16F,
         TextureFormat::RGBA32F,
-        TextureFormat::Null,
+		TextureFormat::Null,
     };
 
     static const TextureFormat::Enum s_tgaValidFormats[] =
     {
         TextureFormat::BGR8,
         TextureFormat::BGRA8,
-        TextureFormat::Null,
+		TextureFormat::RGBM,
+		TextureFormat::Null,
     };
 
     static const TextureFormat::Enum s_hdrValidFormats[] =

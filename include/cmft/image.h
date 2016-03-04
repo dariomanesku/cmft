@@ -89,6 +89,8 @@ namespace cmft
             RGBA16F,
             RGBA32F,
 
+			RGBM,
+
             Count,
             Null = -1,
         };
