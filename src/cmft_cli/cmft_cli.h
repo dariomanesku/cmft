@@ -568,7 +568,7 @@ void outputShCoeffs(const char* _pathName, double _shCoeffs[SH_COEFF_NUM][3])
            "#ifndef CMFT_%s_H_HEADER_GUARD\n"
            "#define CMFT_%s_H_HEADER_GUARD\n"
            "\n"
-           "static const double s_shCoeffs%s[25][3] =\n"
+           "static const float s_shCoeffs%s[25][3] =\n"
            "{\n"
            "    /* Band 0 */ { %21.18f, %21.18f, %21.18f },\n"
            "    /* Band 1 */ { %21.18f, %21.18f, %21.18f }, { %21.18f, %21.18f, %21.18f }, { %21.18f, %21.18f, %21.18f },\n"
