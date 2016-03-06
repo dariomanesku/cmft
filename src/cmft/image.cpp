@@ -38,7 +38,8 @@ namespace cmft
         "RGBA16",  //RGBA16
         "RGBA16F", //RGBA16F
         "RGBA32F", //RGBA32F
-    };
+		"RGBM",	   //RGBM
+	};
 
     const char* getTextureFormatStr(TextureFormat::Enum _format)
     {
@@ -267,7 +268,8 @@ namespace cmft
         TextureFormat::RGBA16,
         TextureFormat::RGBA16F,
         TextureFormat::RGBA32F,
-        TextureFormat::Null,
+		TextureFormat::RGBM,
+		TextureFormat::Null,
     };
 
     static const TextureFormat::Enum s_ktxValidFormats[] =
@@ -280,14 +282,15 @@ namespace cmft
         TextureFormat::RGBA16,
         TextureFormat::RGBA16F,
         TextureFormat::RGBA32F,
-        TextureFormat::Null,
+		TextureFormat::Null,
     };
 
     static const TextureFormat::Enum s_tgaValidFormats[] =
     {
         TextureFormat::BGR8,
         TextureFormat::BGRA8,
-        TextureFormat::Null,
+		TextureFormat::RGBM,
+		TextureFormat::Null,
     };
 
     static const TextureFormat::Enum s_hdrValidFormats[] =
@@ -2370,6 +2373,65 @@ namespace cmft
         // Cleanup.
         imageUnload(imageRgba32f, _allocator);
     }
+
+
+	// From: http://chilliant.blogspot.pt/2012/08/srgb-approximations-for-hlsl.html
+	float ToSRGBApprox(float v)
+	{
+		float S1 = sqrtf( v );
+		float S2 = sqrtf( S1 );
+		float S3 = sqrtf( S2 );
+		float sRGB = 0.585122381f * S1 + 0.783140355f * S2 - 0.368262736f * S3;
+		return sRGB;
+	}
+
+	void imageEncodeRGBM( Image& _image, bx::AllocatorI* _allocator )
+	{
+		// Operation is done in rgba32f format.
+		ImageHardRef imageRgba32f;
+		imageRefOrConvert( imageRgba32f, TextureFormat::RGBA32F, _image, _allocator );
+
+		// Iterate through image channels and apply gamma function.
+		float* channel = (float*)imageRgba32f.m_data;
+		const float* end = (const float*)((const uint8_t*)imageRgba32f.m_data + imageRgba32f.m_dataSize);
+
+		float rgbm[4];
+		for (; channel < end; channel += 4)
+		{
+			// convert to gamma space before encoding
+			channel[0] = ToSRGBApprox(channel[0]);
+			channel[1] = ToSRGBApprox(channel[1]);
+			channel[2] = ToSRGBApprox(channel[2]);
+			channel[3] = ToSRGBApprox(channel[3]);
+
+			memcpy( rgbm, channel, 4*sizeof(float) );
+
+			rgbm[0] /= 6.0f;
+			rgbm[1] /= 6.0f;
+			rgbm[2] /= 6.0f;
+
+ 			float m = fsaturate(fmaxf(fmaxf(rgbm[0], rgbm[1]), fmaxf(rgbm[2], 1e-6f)));
+ 			m = ceil(rgbm[3] * 255.0f) / 255.0f;
+			rgbm[0] /= m;
+			rgbm[1] /= m;
+			rgbm[2] /= m;
+			rgbm[3] = m;
+
+			channel[0] = rgbm[0];
+			channel[1] = rgbm[1];
+			channel[2] = rgbm[2];
+			channel[3] = rgbm[3];
+		}
+
+		// Convert to BGRA8 format as final. Overrides any format the user asks
+		if (imageRgba32f.isCopy())
+		{
+			imageConvert( _image, TextureFormat::BGRA8, imageRgba32f, _allocator );
+		}
+
+		// Cleanup.
+		imageUnload(imageRgba32f, _allocator);
+	}
 
     void imageApplyGamma(Image& _image, float _gammaPow, bx::AllocatorI* _allocator)
     {

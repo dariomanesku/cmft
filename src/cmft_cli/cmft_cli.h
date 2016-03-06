@@ -108,7 +108,8 @@ static const CliOptionMap s_validTextureFormats[] =
     { "rgba16",  TextureFormat::RGBA16  },
     { "rgba16f", TextureFormat::RGBA16F },
     { "rgba32f", TextureFormat::RGBA32F },
-    CLI_OPTION_MAP_TERMINATOR,
+	{ "rgbm",	 TextureFormat::RGBM   },
+	CLI_OPTION_MAP_TERMINATOR,
 };
 
 static const CliOptionMap s_validOutputTypes[] =
@@ -232,6 +233,9 @@ struct InputParameters
 
     // Misc.
     bool m_silent;
+
+	// Encode
+	bool m_encodeRGBM;
 };
 
 void inputParametersFromCommandLine(InputParameters& _inputParameters, const bx::CommandLine& _cmdLine)
@@ -339,6 +343,9 @@ void inputParametersFromCommandLine(InputParameters& _inputParameters, const bx:
 
     // Misc.
     _inputParameters.m_silent = _cmdLine.hasArg("silent");
+
+	// Encode
+	_inputParameters.m_encodeRGBM = _cmdLine.hasArg("rgbm");
 
     // Output.
     uint32_t outputCount = 0;
@@ -538,6 +545,7 @@ void inputParametersDefault(InputParameters& _inputParameters)
 
     // Misc.
     _inputParameters.m_silent = false;
+	_inputParameters.m_encodeRGBM = false;
 }
 
 /// Outputs C file.
@@ -560,7 +568,7 @@ void outputShCoeffs(const char* _pathName, double _shCoeffs[SH_COEFF_NUM][3])
            "#ifndef CMFT_%s_H_HEADER_GUARD\n"
            "#define CMFT_%s_H_HEADER_GUARD\n"
            "\n"
-           "static const double s_shCoeffs%s[25][3] =\n"
+           "static const float s_shCoeffs%s[25][3] =\n"
            "{\n"
            "    /* Band 0 */ { %21.18f, %21.18f, %21.18f },\n"
            "    /* Band 1 */ { %21.18f, %21.18f, %21.18f }, { %21.18f, %21.18f, %21.18f }, { %21.18f, %21.18f, %21.18f },\n"
@@ -822,6 +830,7 @@ void printHelp()
             "          <tga_outputType> = [latlong,hcross,vcross,hstrip,vstrip,facelist,octant]\n"
             "          <hdr_outputType> = [latlong,hcross,vcross,hstrip,vstrip,facelist,octant]\n"
             "    --silent                           Do not print any output.\n"
+			"    --rgbm                             Encode image in RGBM.\n"
 
             "\n"
             "Command line parameters are case insenitive (except for file names and paths).\n"
@@ -1071,14 +1080,29 @@ int cmftMain(int _argc, char const* const* _argv)
     // Apply gamma on output image.
     imageApplyGamma(image, inputParameters.m_outputGammaPowNumerator / inputParameters.m_outputGammaPowDenominator);
 
+	// Encode RGBM (using --rgbm arg)
+	if (inputParameters.m_encodeRGBM)
+	{
+		INFO("Encoding RGBM");
+		imageEncodeRGBM(image);
+	}
+
     // Save output images.
     for (uint32_t outputIdx = 0; outputIdx < inputParameters.m_outputFilesNum; ++outputIdx)
     {
         const OutputFile& output = inputParameters.m_outputFiles[outputIdx];
 
-        const OutputType::Enum    ot = (   OutputType::Enum)output.m_outputType;
-        const TextureFormat::Enum tf = (TextureFormat::Enum)output.m_textureFormat;
-        const ImageFileType::Enum ft = (ImageFileType::Enum)output.m_fileType;
+        OutputType::Enum    ot = (   OutputType::Enum)output.m_outputType;
+        ImageFileType::Enum ft = (ImageFileType::Enum)output.m_fileType;
+        TextureFormat::Enum tf = (TextureFormat::Enum)output.m_textureFormat;
+
+		// Encode RGBM (using texture format)
+		if( tf == TextureFormat::RGBM )
+		{
+			INFO("Encoding RGBM");
+			imageEncodeRGBM(image);
+			tf = TextureFormat::BGRA8;	// Change file format to BGRA8 for saving
+		}
 
         imageSave(image, output.m_fileName, ft, ot, tf, true);
     }
