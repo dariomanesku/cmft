@@ -11,6 +11,7 @@
 #include "base/stb_image.h"
 #include "cubemaputils.h"
 
+#include <bx/crtimpl.h>
 #include <bx/uint32_t.h>
 #include <bx/endian.h>
 #include <bx/string.h> //streol, strnl, strlcat
