@@ -5076,7 +5076,8 @@ namespace cmft
             const uint32_t mipWidth  = dm::max(UINT32_C(1), _image.m_width  >> mip);
             const uint32_t mipHeight = dm::max(UINT32_C(1), _image.m_height >> mip);
 
-            if (_image.m_numMips != 1) {
+            if (_image.m_numMips != 1)
+            {
                 char mipStr[8];
                 bx::snprintf(mipStr, sizeof(mipStr), "%d", mip);
 
@@ -5175,7 +5176,7 @@ namespace cmft
             DEBUG_CHECK(write == 1, "Error writing Hdr image size.");
             FERROR_CHECK(fp);
 
-            // Write data. //TODO: implement RLE option.
+            // Write data.
             DEBUG_CHECK(NULL != imageRgbe.m_data, "Image data is null.");
             write = fwrite(mipData, bytesPerPixel * mipWidth * mipHeight, 1, fp);
             DEBUG_CHECK(write == 1, "Error writing Hdr data.");
