@@ -1983,7 +1983,7 @@ namespace cmft
         else if (imageIsCubeCross(_image, true))
         {
             const float aspect = float(int32_t(_image.m_width))/float(int32_t(_image.m_height));
-            const bool isVertical = (aspect - 3.0f/4.0f) < 0.0001f;
+            const bool isVertical = dm::equals(aspect, 3.0f/4.0f, 0.0001f);
             if (isVertical)
             {
                 _width  = _faceSize*3;
@@ -2039,7 +2039,7 @@ namespace cmft
         else if (imageIsCubeCross(_image, true))
         {
             const float aspect = float(int32_t(_image.m_width))/float(int32_t(_image.m_height));
-            const bool isVertical = (aspect - 3.0f/4.0f) < 0.0001f;
+            const bool isVertical = dm::equals(aspect, 3.0f/4.0f, 0.0001f);
             if (isVertical)
             {
                 return _image.m_height>>2;
@@ -2577,8 +2577,8 @@ namespace cmft
 
         // Check aspect.
         const float aspect = (float)(int32_t)_image.m_width/(float)(int32_t)_image.m_height;
-        const bool isVertical   = (aspect - 3.0f/4.0f) < 0.0001f;
-        const bool isHorizontal = (aspect - 4.0f/3.0f) < 0.0001f;
+        const bool isVertical   = dm::equals(aspect, 3.0f/4.0f, 0.0001f);
+        const bool isHorizontal = dm::equals(aspect, 4.0f/3.0f, 0.0001f);
 
         if (!isVertical && !isHorizontal)
         {
@@ -2757,8 +2757,8 @@ namespace cmft
     {
         // Checking image aspect.
         const float aspect = (float)(int32_t)_src.m_width/(float)(int32_t)_src.m_height;
-        const bool isVertical   = (aspect - 3.0f/4.0f) < 0.0001f;
-        const bool isHorizontal = (aspect - 4.0f/3.0f) < 0.0001f;
+        const bool isVertical   = dm::equals(aspect, 3.0f/4.0f, 0.0001f);
+        const bool isHorizontal = dm::equals(aspect, 4.0f/3.0f, 0.0001f);
 
         if (!isVertical && !isHorizontal)
         {
