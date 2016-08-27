@@ -6,12 +6,7 @@
 #ifndef CMFT_STB_IMAGE_H_HEADER_GUARD
 #define CMFT_STB_IMAGE_H_HEADER_GUARD
 
-#include <bx/macros.h>
-
-namespace stb
-{
-    #include <stb/stb_image.h>
-}
+#include <stb/stb_image.h>
 
 #endif // CMFT_STB_IMAGE_HEADER_GUARD
 
