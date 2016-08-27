@@ -4723,7 +4723,7 @@ namespace cmft
         // Passing reqNumComponents as 4 forces RGBA8 in data.
         // After stbi_load, stbNumComponents will hold the actual # of components from the source image.
         const int reqNumComponents = 4;
-        uint8_t* data = (uint8_t*)stb::stbi_load(_filePath, &stbWidth, &stbHeight, &stbNumComponents, reqNumComponents);
+        uint8_t* data = (uint8_t*)stbi_load(_filePath, &stbWidth, &stbHeight, &stbNumComponents, reqNumComponents);
 
         if (NULL == data)
         {
@@ -4751,7 +4751,7 @@ namespace cmft
             imageCopy(_image, result, _allocator); //TODO: use imageMove instead of imageCopy if the same allocator was used from stbi_load().
         }
 
-        stb::stbi_image_free(data);
+        stbi_image_free(data);
 
         return true;
     }
@@ -4764,7 +4764,7 @@ namespace cmft
         // Passing reqNumComponents as 4 forces RGBA8 in data.
         // After stbi_load, stbNumComponents will hold the actual # of components from the source image.
         const int reqNumComponents = 4;
-        uint8_t* data = (uint8_t*)stb::stbi_load_from_memory((const stb::stbi_uc*)_data, (int)_dataSize, &stbWidth, &stbHeight, &stbNumComponents, reqNumComponents);
+        uint8_t* data = (uint8_t*)stbi_load_from_memory((const stbi_uc*)_data, (int)_dataSize, &stbWidth, &stbHeight, &stbNumComponents, reqNumComponents);
 
         if (NULL == data)
         {
@@ -4792,7 +4792,7 @@ namespace cmft
             imageCopy(_image, result, _allocator); //TODO: use imageMove instead of imageCopy if the same allocator was used from stbi_load().
         }
 
-        stb::stbi_image_free(data);
+        stbi_image_free(data);
 
         return true;
     }

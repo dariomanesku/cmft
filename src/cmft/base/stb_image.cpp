@@ -4,17 +4,14 @@
  */
 
 #include "stb_image.h"
+#include <bx/macros.h>
 
-namespace stb
-{
-    BX_PRAGMA_DIAGNOSTIC_PUSH();
-    BX_PRAGMA_DIAGNOSTIC_IGNORED_CLANG_GCC("-Wshadow");
-    BX_PRAGMA_DIAGNOSTIC_IGNORED_CLANG_GCC("-Wcast-qual");
-    #define STB_IMAGE_STATIC
-    #define STB_IMAGE_IMPLEMENTATION
-    #include <stb/stb_image.h>
-    BX_PRAGMA_DIAGNOSTIC_POP();
-
-} // namespace stb
+BX_PRAGMA_DIAGNOSTIC_PUSH();
+BX_PRAGMA_DIAGNOSTIC_IGNORED_CLANG_GCC("-Wshadow");
+BX_PRAGMA_DIAGNOSTIC_IGNORED_CLANG_GCC("-Wcast-qual");
+#define STB_IMAGE_STATIC
+#define STB_IMAGE_IMPLEMENTATION
+#include <stb/stb_image.h>
+BX_PRAGMA_DIAGNOSTIC_POP();
 
 /* vim: set sw=4 ts=4 expandtab: */
