@@ -330,7 +330,9 @@ __kernel void radianceFilterSingleFace(__write_only image2d_t _out
             const float dp = dot(normal, tapVec);
             if (dp >= _specularAngle)
             {
-                colorWeight += read_imagef(_srcData, s_sampler, coord)
+                float4 sample = read_imagef(_srcData, s_sampler, coord);
+                sample.w = 1.0f;
+                colorWeight += sample
                              * normal.w
                              * native_powr(dp, _specularPower);
             }
@@ -440,7 +442,9 @@ __kernel void radianceFilter(__write_only image2d_t _out
                 const float dp = dot(normal, tapVec);                                          \
                 if (dp >= _specularAngle)                                                      \
                 {                                                                              \
-                    colorWeight += read_imagef(_srcData ## _ii, s_sampler, coord)              \
+                    float4 sample = read_imagef(_srcData ## _ii, s_sampler, coord);            \
+                    sample.w = 1.0f;                                                           \
+                    colorWeight += sample                                                      \
                                  * normal.w                                                    \
                                  * native_powr(dp, _specularPower);                            \
                 }                                                                              \
