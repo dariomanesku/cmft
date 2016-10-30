@@ -1523,7 +1523,6 @@ namespace cmft
         _rgb16f[0] = bx::halfFromFloat(_rgba32f[0]);
         _rgb16f[1] = bx::halfFromFloat(_rgba32f[1]);
         _rgb16f[2] = bx::halfFromFloat(_rgba32f[2]);
-        _rgb16f[3] = bx::halfFromFloat(_rgba32f[3]);
     }
 
     inline void rgba16fFromRgba32f(uint16_t* _rgba16f, const float* _rgba32f)
