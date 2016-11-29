@@ -3944,9 +3944,9 @@ static stbi_uc first_row_filter[5] =
 static int stbi__paeth(int a, int b, int c)
 {
    int p = a + b - c;
-   int pa = abs(p-a);
-   int pb = abs(p-b);
-   int pc = abs(p-c);
+   int pa = ::abs(p-a);
+   int pb = ::abs(p-b);
+   int pc = ::abs(p-c);
    if (pa <= pb && pa <= pc) return a;
    if (pb <= pc) return b;
    return c;
@@ -4600,7 +4600,7 @@ static stbi_uc *stbi__bmp_load(stbi__context *s, int *x, int *y, int *comp, int 
    bpp = stbi__get16le(s);
    if (bpp == 1) return stbi__errpuc("monochrome", "BMP type not supported: 1-bit");
    flip_vertically = ((int) s->img_y) > 0;
-   s->img_y = abs((int) s->img_y);
+   s->img_y = ::abs((int) s->img_y);
    if (hsz == 12) {
       if (bpp < 24)
          psize = (offset - 14 - 24) / 3;

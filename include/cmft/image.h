@@ -89,6 +89,8 @@ namespace cmft
             RGBA16F,
             RGBA32F,
 
+            RGBM,
+
             Count,
             Null = -1,
         };
@@ -242,6 +244,9 @@ namespace cmft
 
     ///
     void imageGenerateMipMapChain(Image& _image, uint8_t _numMips=UINT8_MAX, AllocatorI* _allocator = g_allocator);
+
+    ///
+    void imageEncodeRGBM(Image& _image, AllocatorI* _allocator = g_allocator);
 
     ///
     void imageApplyGamma(Image& _image, float _gammaPow, AllocatorI* _allocator = g_allocator);

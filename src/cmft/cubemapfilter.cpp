@@ -1655,15 +1655,17 @@ namespace cmft
 
         bool run(void* _out, uint8_t _faceIdx, uint32_t _dstFaceSize, float _specularPower, float _specularAngle, float _filterSize, EdgeFixup::Enum _edgeFixup = EdgeFixup::None)
         {
-            if (m_srcFaceSize > 512)
-            {
-                // Prevents driver crash by running 6+1 smaller kernels instead of a big one.
-                return processFaceByFaceAndSum(_out, _faceIdx, _dstFaceSize, _specularPower, _specularAngle, _filterSize, _edgeFixup);
-            }
-            else
-            {
-                return processAllAtOnce(_out, _faceIdx, _dstFaceSize, _specularPower, _specularAngle, _filterSize, _edgeFixup);
-            }
+            /// if (m_srcFaceSize > 512)
+            /// {
+            ///     // Prevents driver crash by running 6+1 smaller kernels instead of a big one.
+            ///     return processFaceByFaceAndSum(_out, _faceIdx, _dstFaceSize, _specularPower, _specularAngle, _filterSize, _edgeFixup);
+            /// }
+            /// else
+            /// {
+            ///     return processAllAtOnce(_out, _faceIdx, _dstFaceSize, _specularPower, _specularAngle, _filterSize, _edgeFixup);
+            /// }
+
+            return processFaceByFaceAndSum(_out, _faceIdx, _dstFaceSize, _specularPower, _specularAngle, _filterSize, _edgeFixup);
         }
 
         bool isIdle() const
