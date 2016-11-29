@@ -878,11 +878,11 @@ namespace cmft
 
     static const DdsPixelFormat s_ddsPixelFormat[] =
     {
-        { sizeof(DdsPixelFormat), DDPF_RGB,    D3DFMT_R8G8B8,    24, 0x00ff0000, 0x0000ff00, 0x000000ff, 0x00000000 }, //BGR8
-        { sizeof(DdsPixelFormat), DDPF_RGBA,   D3DFMT_A8B8G8R8,  32, 0x00ff0000, 0x0000ff00, 0x000000ff, 0xff000000 }, //BGRA8
-        { sizeof(DdsPixelFormat), DDPF_FOURCC, DDS_DX10,         64, 0x00ff0000, 0x0000ff00, 0x000000ff, 0xff000000 }, //RGBA16
-        { sizeof(DdsPixelFormat), DDPF_FOURCC, DDS_DX10,         64, 0x00ff0000, 0x0000ff00, 0x000000ff, 0xff000000 }, //RGBA16F
-        { sizeof(DdsPixelFormat), DDPF_FOURCC, DDS_DX10,        128, 0x00ff0000, 0x0000ff00, 0x000000ff, 0xff000000 }, //RGBA32F
+        { sizeof(DdsPixelFormat), DDPF_RGB,           0,  24, 0x00ff0000, 0x0000ff00, 0x000000ff, 0x00000000 }, //BGR8
+        { sizeof(DdsPixelFormat), DDPF_RGBA,          0,  32, 0x00ff0000, 0x0000ff00, 0x000000ff, 0xff000000 }, //BGRA8
+        { sizeof(DdsPixelFormat), DDPF_FOURCC, DDS_DX10,  64, 0x00ff0000, 0x0000ff00, 0x000000ff, 0xff000000 }, //RGBA16
+        { sizeof(DdsPixelFormat), DDPF_FOURCC, DDS_DX10,  64, 0x00ff0000, 0x0000ff00, 0x000000ff, 0xff000000 }, //RGBA16F
+        { sizeof(DdsPixelFormat), DDPF_FOURCC, DDS_DX10, 128, 0x00ff0000, 0x0000ff00, 0x000000ff, 0xff000000 }, //RGBA32F
     };
 
     static inline const DdsPixelFormat& getDdsPixelFormat(TextureFormat::Enum _format)
