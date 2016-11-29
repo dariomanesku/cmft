@@ -17,10 +17,10 @@
 
 namespace cmft
 {
-    // Input/output.
+    // Read/write.
     //-----
 
-    struct IoError
+    struct RwError
     {
         enum Enum
         {
@@ -32,16 +32,16 @@ namespace cmft
         };
     };
 
-    struct IoType
+    struct RwType
     {
         enum Enum
         {
-            FilePath,
             Memory,
+            FilePath,
         };
     };
 
-    struct Io
+    struct Rw
     {
         uint8_t m_error;
         uint8_t m_type;
@@ -72,80 +72,80 @@ namespace cmft
         };
     };
 
-    typedef int64_t (*IoSeekFn)(Io* _io, int64_t _offset, Whence::Enum _whence);
-    typedef size_t  (*IoReadFn)(Io* _io, void* _data, size_t _size);
+    typedef int64_t (*RwSeekFn)(Rw* _rw, int64_t _offset, Whence::Enum _whence);
+    typedef size_t  (*RwReadFn)(Rw* _rw, void* _data, size_t _size);
 
-    void     ioInit(Io* _io, const char* _path);
-    void     ioInit(Io* _io, FILE* _file);
-    void     ioInit(Io* _io, void* _mem, size_t _size);
-    bool     ioFileOpen(Io* _io, const char* _mode = "rb");
-    bool     ioFileOpened(const Io* _io);
-    void     ioFileClose(Io* _io);
-    uint8_t  ioGetError(Io* _io);
-    void     ioClearError(Io* _io);
-    IoSeekFn ioSeekFnFor(const Io* _io);
-    IoReadFn ioReadFnFor(const Io* _io);
+    void     rwInit(Rw* _rw, const char* _path);
+    void     rwInit(Rw* _rw, FILE* _file);
+    void     rwInit(Rw* _rw, void* _mem, size_t _size);
+    bool     rwFileOpen(Rw* _rw, const char* _mode = "rb");
+    bool     rwFileOpened(const Rw* _rw);
+    void     rwFileClose(Rw* _rw);
+    uint8_t  rwGetError(Rw* _rw);
+    void     rwClearError(Rw* _rw);
+    RwSeekFn rwSeekFnFor(const Rw* _rw);
+    RwReadFn rwReadFnFor(const Rw* _rw);
 
-    struct IoScopeFileClose
+    struct RwScopeFileClose
     {
-        IoScopeFileClose(Io* _io, bool _condition = true)
+        RwScopeFileClose(Rw* _rw, bool _condition = true)
         {
-            m_io = _io;
+            m_rw = _rw;
             m_condition = _condition;
         }
 
-        ~IoScopeFileClose()
+        ~RwScopeFileClose()
         {
             if (m_condition)
             {
-                ioFileClose(m_io);
+                rwFileClose(m_rw);
             }
         }
     private:
-        Io* m_io;
+        Rw* m_rw;
         bool m_condition;
     };
 
-    void ioInit(Io* _io, const char* _path)
+    void rwInit(Rw* _rw, void* _mem, size_t _size)
     {
-        _io->m_error = IoError::None;
-        _io->m_type  = IoType::FilePath;
-        _io->m_path  = _path;
-        _io->m_file  = NULL;
+        _rw->m_error = RwError::None;
+        _rw->m_type  = RwType::Memory;
+        _rw->m_mem   = _mem;
+        _rw->m_size  = _size;
     }
 
-    void ioInit(Io* _io, FILE* _file)
+    void rwInit(Rw* _rw, FILE* _file)
     {
-        _io->m_error = IoError::None;
-        _io->m_type  = IoType::FilePath;
-        _io->m_path  = NULL;
-        _io->m_file  = _file;
+        _rw->m_error = RwError::None;
+        _rw->m_type  = RwType::FilePath;
+        _rw->m_path  = NULL;
+        _rw->m_file  = _file;
     }
 
-    void ioInit(Io* _io, void* _mem, size_t _size)
+    void rwInit(Rw* _rw, const char* _path)
     {
-        _io->m_error = IoError::None;
-        _io->m_type  = IoType::Memory;
-        _io->m_mem   = _mem;
-        _io->m_size  = _size;
+        _rw->m_error = RwError::None;
+        _rw->m_type  = RwType::FilePath;
+        _rw->m_path  = _path;
+        _rw->m_file  = NULL;
     }
 
-    bool ioFileOpen(Io* _io, const char* _mode)
+    bool rwFileOpen(Rw* _rw, const char* _mode)
     {
-        if (IoType::FilePath == _io->m_type
-        &&  NULL == _io->m_file)
+        if (RwType::FilePath == _rw->m_type
+        &&  NULL == _rw->m_file)
         {
-            FILE* file = fopen(_io->m_path, _mode);
+            FILE* file = fopen(_rw->m_path, _mode);
             if (NULL != file)
             {
-                _io->m_error = 0;
-                _io->m_file  = file;
+                _rw->m_error = 0;
+                _rw->m_file  = file;
 
                 return true;
             }
             else
             {
-                _io->m_error = IoError::Open; // Error opening file.
+                _rw->m_error = RwError::Open; // Error opening file.
 
                 return false;
             }
@@ -154,35 +154,35 @@ namespace cmft
         return false;
     }
 
-    bool ioFileOpened(const Io* _io)
+    bool rwFileOpened(const Rw* _rw)
     {
-        return (NULL != _io->m_file);
+        return (NULL != _rw->m_file);
     }
 
-    void ioFileClose(Io* _io)
+    void rwFileClose(Rw* _rw)
     {
-        if (NULL != _io->m_file)
+        if (NULL != _rw->m_file)
         {
-            int result = fclose(_io->m_file);
+            int result = fclose(_rw->m_file);
             if (0 == result)
             {
-                _io->m_file = NULL;
+                _rw->m_file = NULL;
             }
             else
             {
-                _io->m_error = IoError::Eof; // Error closing file.
+                _rw->m_error = RwError::Eof; // Error closing file.
             }
         }
     }
 
-    uint8_t ioGetError(Io* _io)
+    uint8_t rwGetError(Rw* _rw)
     {
-        return _io->m_error;
+        return _rw->m_error;
     }
 
-    void ioClearError(Io* _io)
+    void rwClearError(Rw* _rw)
     {
-        _io->m_error = 0;
+        _rw->m_error = 0;
     }
 
     #if CMFT_COMPILER_MSVC
@@ -193,13 +193,13 @@ namespace cmft
     #   define ftello64 ftello
     #endif // CMFT_
 
-    int64_t ioSeekFile(Io* _io, int64_t _offset = 0, Whence::Enum _whence = Whence::Current)
+    int64_t rwSeekFile(Rw* _rw, int64_t _offset = 0, Whence::Enum _whence = Whence::Current)
     {
-        fseeko64(_io->m_file, _offset, _whence);
-        return ftello64(_io->m_file);
+        fseeko64(_rw->m_file, _offset, _whence);
+        return ftello64(_rw->m_file);
     }
 
-    int64_t ioSeekMem(Io* _io, int64_t _offset = 0, Whence::Enum _whence = Whence::Current)
+    int64_t rwSeekMem(Rw* _rw, int64_t _offset = 0, Whence::Enum _whence = Whence::Current)
     {
         int64_t offset;
         if (Whence::Begin == _whence)
@@ -208,73 +208,73 @@ namespace cmft
         }
         else if (Whence::Current == _whence)
         {
-            offset = int64_t(_io->m_offset) + _offset;
+            offset = int64_t(_rw->m_offset) + _offset;
         }
         else /*.if (Whence::End == _whence).*/
         {
-            offset = int64_t(_io->m_size) - _offset;
+            offset = int64_t(_rw->m_size) - _offset;
         }
-        offset = CMFT_CLAMP(offset, 0, int64_t(_io->m_size));
+        offset = CMFT_CLAMP(offset, 0, int64_t(_rw->m_size));
 
-        _io->m_offset = offset;
+        _rw->m_offset = offset;
 
         return offset;
     }
 
-    IoSeekFn ioSeekFnFor(const Io* _io)
+    RwSeekFn rwSeekFnFor(const Rw* _rw)
     {
-        if (IoType::Memory == _io->m_type)
+        if (RwType::Memory == _rw->m_type)
         {
-            return ioSeekMem;
+            return rwSeekMem;
         }
         else
         {
-            return ioSeekFile;
+            return rwSeekFile;
         }
     }
 
-    size_t ioReadFile(Io* _src, void* _data, size_t _size)
+    size_t rwReadFile(Rw* _src, void* _data, size_t _size)
     {
         const size_t size = fread(_data, 1, _size, _src->m_file);
         if (size != _size)
         {
             if (0 != feof(_src->m_file))
             {
-                _src->m_error = IoError::Eof;
+                _src->m_error = RwError::Eof;
             }
             else if (0 != ferror(_src->m_file))
             {
-                _src->m_error = IoError::Read;
+                _src->m_error = RwError::Read;
             }
         }
 
         return size;
     }
 
-    size_t ioReadMem(Io* _io, void* _data, size_t _size)
+    size_t rwReadMem(Rw* _rw, void* _data, size_t _size)
     {
-        const size_t remainder  = _io->m_size - _io->m_offset;
+        const size_t remainder  = _rw->m_size - _rw->m_offset;
         const size_t sizeToRead = _size < remainder ? _size : remainder;
         if (_size != sizeToRead)
         {
-            _io->m_error = IoError::Read; // Size truncated.
+            _rw->m_error = RwError::Read; // Size truncated.
         }
-        _io->m_offset += sizeToRead;
+        _rw->m_offset += sizeToRead;
 
-        memcpy(_data, _io->m_mem, sizeToRead);
+        memcpy(_data, _rw->m_mem, sizeToRead);
 
         return sizeToRead;
     }
 
-    IoReadFn ioReadFnFor(const Io* _io)
+    RwReadFn rwReadFnFor(const Rw* _rw)
     {
-        if (IoType::Memory == _io->m_type)
+        if (RwType::Memory == _rw->m_type)
         {
-            return ioReadMem;
+            return rwReadMem;
         }
         else
         {
-            return ioReadFile;
+            return rwReadFile;
         }
     }
 
@@ -4265,20 +4265,20 @@ namespace cmft
     // Image loading.
     //-----
 
-    bool imageLoadDds(Image& _image, Io* _io, AllocatorI* _allocator)
+    bool imageLoadDds(Image& _image, Rw* _rw, AllocatorI* _allocator)
     {
         size_t read;
         CMFT_UNUSED(read);
 
-        bool didOpen = ioFileOpen(_io, "rb");
-        IoScopeFileClose scopeClose(_io, didOpen);
+        bool didOpen = rwFileOpen(_rw, "rb");
+        RwScopeFileClose scopeClose(_rw, didOpen);
 
-        IoSeekFn seekFn = ioSeekFnFor(_io);
-        IoReadFn readFn = ioReadFnFor(_io);
+        RwSeekFn seekFn = rwSeekFnFor(_rw);
+        RwReadFn readFn = rwReadFnFor(_rw);
 
         // Read magic.
         uint32_t magic;
-        readFn(_io, &magic, sizeof(uint32_t));
+        readFn(_rw, &magic, sizeof(uint32_t));
 
         // Check magic.
         if (DDS_MAGIC != magic)
@@ -4290,27 +4290,27 @@ namespace cmft
         // Read header.
         DdsHeader ddsHeader;
         read = 0;
-        read += readFn(_io, &ddsHeader.m_size, sizeof(ddsHeader.m_size));
-        read += readFn(_io, &ddsHeader.m_flags, sizeof(ddsHeader.m_flags));
-        read += readFn(_io, &ddsHeader.m_height, sizeof(ddsHeader.m_height));
-        read += readFn(_io, &ddsHeader.m_width, sizeof(ddsHeader.m_width));
-        read += readFn(_io, &ddsHeader.m_pitchOrLinearSize, sizeof(ddsHeader.m_pitchOrLinearSize));
-        read += readFn(_io, &ddsHeader.m_depth, sizeof(ddsHeader.m_depth));
-        read += readFn(_io, &ddsHeader.m_mipMapCount, sizeof(ddsHeader.m_mipMapCount));
-        read += readFn(_io, &ddsHeader.m_reserved1, sizeof(ddsHeader.m_reserved1));
-        read += readFn(_io, &ddsHeader.m_pixelFormat.m_size, sizeof(ddsHeader.m_pixelFormat.m_size));
-        read += readFn(_io, &ddsHeader.m_pixelFormat.m_flags, sizeof(ddsHeader.m_pixelFormat.m_flags));
-        read += readFn(_io, &ddsHeader.m_pixelFormat.m_fourcc, sizeof(ddsHeader.m_pixelFormat.m_fourcc));
-        read += readFn(_io, &ddsHeader.m_pixelFormat.m_rgbBitCount, sizeof(ddsHeader.m_pixelFormat.m_rgbBitCount));
-        read += readFn(_io, &ddsHeader.m_pixelFormat.m_rBitMask, sizeof(ddsHeader.m_pixelFormat.m_rBitMask));
-        read += readFn(_io, &ddsHeader.m_pixelFormat.m_gBitMask, sizeof(ddsHeader.m_pixelFormat.m_gBitMask));
-        read += readFn(_io, &ddsHeader.m_pixelFormat.m_bBitMask, sizeof(ddsHeader.m_pixelFormat.m_bBitMask));
-        read += readFn(_io, &ddsHeader.m_pixelFormat.m_aBitMask, sizeof(ddsHeader.m_pixelFormat.m_aBitMask));
-        read += readFn(_io, &ddsHeader.m_caps, sizeof(ddsHeader.m_caps));
-        read += readFn(_io, &ddsHeader.m_caps2, sizeof(ddsHeader.m_caps2));
-        read += readFn(_io, &ddsHeader.m_caps3, sizeof(ddsHeader.m_caps3));
-        read += readFn(_io, &ddsHeader.m_caps4, sizeof(ddsHeader.m_caps4));
-        read += readFn(_io, &ddsHeader.m_reserved2, sizeof(ddsHeader.m_reserved2));
+        read += readFn(_rw, &ddsHeader.m_size, sizeof(ddsHeader.m_size));
+        read += readFn(_rw, &ddsHeader.m_flags, sizeof(ddsHeader.m_flags));
+        read += readFn(_rw, &ddsHeader.m_height, sizeof(ddsHeader.m_height));
+        read += readFn(_rw, &ddsHeader.m_width, sizeof(ddsHeader.m_width));
+        read += readFn(_rw, &ddsHeader.m_pitchOrLinearSize, sizeof(ddsHeader.m_pitchOrLinearSize));
+        read += readFn(_rw, &ddsHeader.m_depth, sizeof(ddsHeader.m_depth));
+        read += readFn(_rw, &ddsHeader.m_mipMapCount, sizeof(ddsHeader.m_mipMapCount));
+        read += readFn(_rw, &ddsHeader.m_reserved1, sizeof(ddsHeader.m_reserved1));
+        read += readFn(_rw, &ddsHeader.m_pixelFormat.m_size, sizeof(ddsHeader.m_pixelFormat.m_size));
+        read += readFn(_rw, &ddsHeader.m_pixelFormat.m_flags, sizeof(ddsHeader.m_pixelFormat.m_flags));
+        read += readFn(_rw, &ddsHeader.m_pixelFormat.m_fourcc, sizeof(ddsHeader.m_pixelFormat.m_fourcc));
+        read += readFn(_rw, &ddsHeader.m_pixelFormat.m_rgbBitCount, sizeof(ddsHeader.m_pixelFormat.m_rgbBitCount));
+        read += readFn(_rw, &ddsHeader.m_pixelFormat.m_rBitMask, sizeof(ddsHeader.m_pixelFormat.m_rBitMask));
+        read += readFn(_rw, &ddsHeader.m_pixelFormat.m_gBitMask, sizeof(ddsHeader.m_pixelFormat.m_gBitMask));
+        read += readFn(_rw, &ddsHeader.m_pixelFormat.m_bBitMask, sizeof(ddsHeader.m_pixelFormat.m_bBitMask));
+        read += readFn(_rw, &ddsHeader.m_pixelFormat.m_aBitMask, sizeof(ddsHeader.m_pixelFormat.m_aBitMask));
+        read += readFn(_rw, &ddsHeader.m_caps, sizeof(ddsHeader.m_caps));
+        read += readFn(_rw, &ddsHeader.m_caps2, sizeof(ddsHeader.m_caps2));
+        read += readFn(_rw, &ddsHeader.m_caps3, sizeof(ddsHeader.m_caps3));
+        read += readFn(_rw, &ddsHeader.m_caps4, sizeof(ddsHeader.m_caps4));
+        read += readFn(_rw, &ddsHeader.m_reserved2, sizeof(ddsHeader.m_reserved2));
         DEBUG_CHECK(read == DDS_HEADER_SIZE, "Error reading file header.");
 
         // Read DdsDxt10 header if present.
@@ -4320,11 +4320,11 @@ namespace cmft
         if (hasDdsDxt10)
         {
             read = 0;
-            read += readFn(_io, &ddsHeaderDxt10.m_dxgiFormat, sizeof(ddsHeaderDxt10.m_dxgiFormat));
-            read += readFn(_io, &ddsHeaderDxt10.m_resourceDimension, sizeof(ddsHeaderDxt10.m_resourceDimension));
-            read += readFn(_io, &ddsHeaderDxt10.m_miscFlags, sizeof(ddsHeaderDxt10.m_miscFlags));
-            read += readFn(_io, &ddsHeaderDxt10.m_arraySize, sizeof(ddsHeaderDxt10.m_arraySize));
-            read += readFn(_io, &ddsHeaderDxt10.m_miscFlags2, sizeof(ddsHeaderDxt10.m_miscFlags2));
+            read += readFn(_rw, &ddsHeaderDxt10.m_dxgiFormat, sizeof(ddsHeaderDxt10.m_dxgiFormat));
+            read += readFn(_rw, &ddsHeaderDxt10.m_resourceDimension, sizeof(ddsHeaderDxt10.m_resourceDimension));
+            read += readFn(_rw, &ddsHeaderDxt10.m_miscFlags, sizeof(ddsHeaderDxt10.m_miscFlags));
+            read += readFn(_rw, &ddsHeaderDxt10.m_arraySize, sizeof(ddsHeaderDxt10.m_arraySize));
+            read += readFn(_rw, &ddsHeaderDxt10.m_miscFlags2, sizeof(ddsHeaderDxt10.m_miscFlags2));
             DEBUG_CHECK(read == DDS_DX10_HEADER_SIZE, "Error reading Dds dx10 file header.");
         }
 
@@ -4439,17 +4439,17 @@ namespace cmft
         // Therefore, to handle those situations, image data size will be checked against remaining unread data size.
 
         // Seek to the end to get remaining data size.
-        const int64_t currentPos = seekFn(_io, 0, Whence::Current);
-        const int64_t endPos     = seekFn(_io, 0, Whence::End);
+        const int64_t currentPos = seekFn(_rw, 0, Whence::Current);
+        const int64_t endPos     = seekFn(_rw, 0, Whence::End);
         const int64_t remaining  = endPos - currentPos;
 
         // Seek back to currentPos or 20 before currentPos in case remaining unread data size does match image data size.
-        seekFn(_io, currentPos - DDS_DX10_HEADER_SIZE*(remaining == dataSize-DDS_DX10_HEADER_SIZE), Whence::Begin);
+        seekFn(_rw, currentPos - DDS_DX10_HEADER_SIZE*(remaining == dataSize-DDS_DX10_HEADER_SIZE), Whence::Begin);
 
         // Alloc and read data.
         void* data = CMFT_ALLOC(_allocator, dataSize);
         MALLOC_CHECK(data);
-        read = readFn(_io, data, dataSize);
+        read = readFn(_rw, data, dataSize);
         DEBUG_CHECK(read == dataSize, "Could not read dds image data.");
 
         // Fill image structure.
@@ -4468,22 +4468,22 @@ namespace cmft
         return true;
     }
 
-    bool imageLoadKtx(Image& _image, Io* _io, AllocatorI* _allocator)
+    bool imageLoadKtx(Image& _image, Rw* _rw, AllocatorI* _allocator)
     {
         size_t read;
         CMFT_UNUSED(read);
 
-        bool didOpen = ioFileOpen(_io, "rb");
-        IoScopeFileClose scopeClose(_io, didOpen);
+        bool didOpen = rwFileOpen(_rw, "rb");
+        RwScopeFileClose scopeClose(_rw, didOpen);
 
-        IoSeekFn seekFn = ioSeekFnFor(_io);
-        IoReadFn readFn = ioReadFnFor(_io);
+        RwSeekFn seekFn = rwSeekFnFor(_rw);
+        RwReadFn readFn = rwReadFnFor(_rw);
 
         KtxHeader ktxHeader;
 
         // Read magic.
         uint8_t magic[12];
-        read = readFn(_io, &magic, KTX_MAGIC_LEN);
+        read = readFn(_rw, &magic, KTX_MAGIC_LEN);
         DEBUG_CHECK(read == 12, "Could not read from file.");
 
         const uint8_t ktxMagic[12] = KTX_MAGIC;
@@ -4495,19 +4495,19 @@ namespace cmft
 
         // Read header.
         read = 0;
-        read += readFn(_io, &ktxHeader.m_endianness, sizeof(ktxHeader.m_endianness));
-        read += readFn(_io, &ktxHeader.m_glType, sizeof(ktxHeader.m_glType));
-        read += readFn(_io, &ktxHeader.m_glTypeSize, sizeof(ktxHeader.m_glTypeSize));
-        read += readFn(_io, &ktxHeader.m_glFormat, sizeof(ktxHeader.m_glFormat));
-        read += readFn(_io, &ktxHeader.m_glInternalFormat, sizeof(ktxHeader.m_glInternalFormat));
-        read += readFn(_io, &ktxHeader.m_glBaseInternalFormat, sizeof(ktxHeader.m_glBaseInternalFormat));
-        read += readFn(_io, &ktxHeader.m_pixelWidth, sizeof(ktxHeader.m_pixelWidth));
-        read += readFn(_io, &ktxHeader.m_pixelHeight, sizeof(ktxHeader.m_pixelHeight));
-        read += readFn(_io, &ktxHeader.m_pixelDepth, sizeof(ktxHeader.m_pixelDepth));
-        read += readFn(_io, &ktxHeader.m_numArrayElements, sizeof(ktxHeader.m_numArrayElements));
-        read += readFn(_io, &ktxHeader.m_numFaces, sizeof(ktxHeader.m_numFaces));
-        read += readFn(_io, &ktxHeader.m_numMips, sizeof(ktxHeader.m_numMips));
-        read += readFn(_io, &ktxHeader.m_bytesKeyValue, sizeof(ktxHeader.m_bytesKeyValue));
+        read += readFn(_rw, &ktxHeader.m_endianness, sizeof(ktxHeader.m_endianness));
+        read += readFn(_rw, &ktxHeader.m_glType, sizeof(ktxHeader.m_glType));
+        read += readFn(_rw, &ktxHeader.m_glTypeSize, sizeof(ktxHeader.m_glTypeSize));
+        read += readFn(_rw, &ktxHeader.m_glFormat, sizeof(ktxHeader.m_glFormat));
+        read += readFn(_rw, &ktxHeader.m_glInternalFormat, sizeof(ktxHeader.m_glInternalFormat));
+        read += readFn(_rw, &ktxHeader.m_glBaseInternalFormat, sizeof(ktxHeader.m_glBaseInternalFormat));
+        read += readFn(_rw, &ktxHeader.m_pixelWidth, sizeof(ktxHeader.m_pixelWidth));
+        read += readFn(_rw, &ktxHeader.m_pixelHeight, sizeof(ktxHeader.m_pixelHeight));
+        read += readFn(_rw, &ktxHeader.m_pixelDepth, sizeof(ktxHeader.m_pixelDepth));
+        read += readFn(_rw, &ktxHeader.m_numArrayElements, sizeof(ktxHeader.m_numArrayElements));
+        read += readFn(_rw, &ktxHeader.m_numFaces, sizeof(ktxHeader.m_numFaces));
+        read += readFn(_rw, &ktxHeader.m_numMips, sizeof(ktxHeader.m_numMips));
+        read += readFn(_rw, &ktxHeader.m_bytesKeyValue, sizeof(ktxHeader.m_bytesKeyValue));
         DEBUG_CHECK(read == KTX_HEADER_SIZE, "Error reading Ktx file header.");
 
         if (0 == ktxHeader.m_numMips)
@@ -4554,7 +4554,7 @@ namespace cmft
         MALLOC_CHECK(data);
 
         // Jump header key-value data.
-        seekFn(_io, ktxHeader.m_bytesKeyValue, Whence::Current);
+        seekFn(_rw, ktxHeader.m_bytesKeyValue, Whence::Current);
 
         // Read data.
         for (uint8_t mip = 0; mip < ktxHeader.m_numMips; ++mip)
@@ -4565,7 +4565,7 @@ namespace cmft
 
             // Read face size.
             uint32_t faceSize;
-            read = readFn(_io, &faceSize, sizeof(faceSize));
+            read = readFn(_rw, &faceSize, sizeof(faceSize));
             DEBUG_CHECK(read == 4, "Error reading Ktx data.");
 
             const uint32_t mipSize = faceSize * ktxHeader.m_numFaces;
@@ -4585,7 +4585,7 @@ namespace cmft
                 if (0 == pitchRounding)
                 {
                     // Read entire face at once.
-                    read = readFn(_io, &faceData, faceSize);
+                    read = readFn(_rw, &faceData, faceSize);
                     DEBUG_CHECK(read == faceSize, "Error reading Ktx face data.");
                 }
                 else
@@ -4595,20 +4595,20 @@ namespace cmft
                     {
                         // Read row.
                         uint8_t* dst = (uint8_t*)faceData + yy*pitch;
-                        read = readFn(_io, dst, pitch);
+                        read = readFn(_rw, dst, pitch);
                         DEBUG_CHECK(read == pitch, "Error reading Ktx row data.");
 
                         // Jump row rounding.
-                        seekFn(_io, pitchRounding, Whence::Current);
+                        seekFn(_rw, pitchRounding, Whence::Current);
                     }
                 }
 
                 // Jump face rounding.
-                seekFn(_io, faceRounding, Whence::Current);
+                seekFn(_rw, faceRounding, Whence::Current);
             }
 
             // Jump mip rounding.
-            seekFn(_io, mipRounding, Whence::Current);
+            seekFn(_rw, mipRounding, Whence::Current);
         }
 
         // Fill image structure.
@@ -4627,9 +4627,9 @@ namespace cmft
         return true;
     }
 
-    static inline const char* readLine(Io* _io, IoSeekFn _ioSeekFn, IoReadFn _ioReadFn, char* _out, uint32_t _max)
+    static inline const char* readLine(Rw* _rw, RwSeekFn _rwSeekFn, RwReadFn _rwReadFn, char* _out, uint32_t _max)
     {
-        _ioReadFn(_io, _out, _max);
+        _rwReadFn(_rw, _out, _max);
 
         const char* eol = cmft::streol(_out);
         const char* nl  = cmft::strnl(eol);
@@ -4638,29 +4638,29 @@ namespace cmft
         if (NULL != nl)
         {
             const int64_t pos = nl - _out - int32_t(_max);
-            _ioSeekFn(_io, pos, Whence::Current);
+            _rwSeekFn(_rw, pos, Whence::Current);
         }
 
         return nl;
     }
 
-    bool imageLoadHdr(Image& _image, Io* _io, AllocatorI* _allocator)
+    bool imageLoadHdr(Image& _image, Rw* _rw, AllocatorI* _allocator)
     {
         size_t read;
         CMFT_UNUSED(read);
 
-        bool didOpen = ioFileOpen(_io, "rb");
-        IoScopeFileClose scopeClose(_io, didOpen);
+        bool didOpen = rwFileOpen(_rw, "rb");
+        RwScopeFileClose scopeClose(_rw, didOpen);
 
-        IoSeekFn seekFn = ioSeekFnFor(_io);
-        IoReadFn readFn = ioReadFnFor(_io);
+        RwSeekFn seekFn = rwSeekFnFor(_rw);
+        RwReadFn readFn = rwReadFnFor(_rw);
 
         // Read magic.
         char magic[HDR_MAGIC_LEN];
-        readFn(_io, magic, HDR_MAGIC_LEN);
+        readFn(_rw, magic, HDR_MAGIC_LEN);
 
         // Skip nl char.
-        seekFn(_io, 1, Whence::Current);
+        seekFn(_rw, 1, Whence::Current);
 
         // Check magic.
         if (0 != strncmp(magic, HDR_MAGIC_FULL, HDR_MAGIC_LEN))
@@ -4680,7 +4680,7 @@ namespace cmft
         {
             // Read next line.
             char buf[64];
-            const char* nl = readLine(_io, seekFn, readFn, buf, sizeof(buf));
+            const char* nl = readLine(_rw, seekFn, readFn, buf, sizeof(buf));
 
             if ((0 == buf[0])
             || ('\n' == buf[0]))
@@ -4713,7 +4713,7 @@ namespace cmft
         int32_t width;
         int32_t height;
         char buf[64];
-        readLine(_io, seekFn, readFn, buf, sizeof(buf));
+        readLine(_rw, seekFn, readFn, buf, sizeof(buf));
         sscanf(buf, "-Y %d +X %d", &height, &width);
 
         // Allocate data.
@@ -4723,7 +4723,7 @@ namespace cmft
 
         // Read first chunk.
         unsigned char rgbe[4];
-        readFn(_io, rgbe, sizeof(rgbe));
+        readFn(_rw, rgbe, sizeof(rgbe));
 
         uint8_t* dataPtr = (uint8_t*)data;
 
@@ -4744,7 +4744,7 @@ namespace cmft
 
             // Read rest of the file.
             const uint32_t remainingDataSize = dataSize - 4;
-            read = readFn(_io, dataPtr, remainingDataSize);
+            read = readFn(_rw, dataPtr, remainingDataSize);
             DEBUG_CHECK(read == remainingDataSize, "Error reading Hdr image data.");
         }
         else
@@ -4768,7 +4768,7 @@ namespace cmft
                     while (ptr < ptrEnd)
                     {
                         unsigned char rle[2];
-                        readFn(_io, rle, sizeof(rle));
+                        readFn(_rw, rle, sizeof(rle));
 
                         if (rle[0] > 128)
                         {
@@ -4788,7 +4788,7 @@ namespace cmft
                             *ptr++ = rle[1];
                             if (--count > 0)
                             {
-                                read = readFn(_io, ptr, count);
+                                read = readFn(_rw, ptr, count);
                                 DEBUG_CHECK(int32_t(read) == count, "Error reading Hdr image data.");
                                 ptr += count;
                             }
@@ -4813,7 +4813,7 @@ namespace cmft
                 }
 
                 // Read next scanline.
-                readFn(_io, rgbe, sizeof(rgbe));
+                readFn(_rw, rgbe, sizeof(rgbe));
             }
         }
 
@@ -4833,32 +4833,32 @@ namespace cmft
         return true;
     }
 
-    bool imageLoadTga(Image& _image, Io* _io, AllocatorI* _allocator)
+    bool imageLoadTga(Image& _image, Rw* _rw, AllocatorI* _allocator)
     {
         size_t read;
         CMFT_UNUSED(read);
 
-        bool didOpen = ioFileOpen(_io, "rb");
-        IoScopeFileClose scopeClose(_io, didOpen);
+        bool didOpen = rwFileOpen(_rw, "rb");
+        RwScopeFileClose scopeClose(_rw, didOpen);
 
-        IoSeekFn seekFn = ioSeekFnFor(_io);
-        IoReadFn readFn = ioReadFnFor(_io);
+        RwSeekFn seekFn = rwSeekFnFor(_rw);
+        RwReadFn readFn = rwReadFnFor(_rw);
 
         // Load header.
         TgaHeader tgaHeader;
         read = 0;
-        read += readFn(_io, &tgaHeader.m_idLength, sizeof(tgaHeader.m_idLength));
-        read += readFn(_io, &tgaHeader.m_colorMapType, sizeof(tgaHeader.m_colorMapType));
-        read += readFn(_io, &tgaHeader.m_imageType, sizeof(tgaHeader.m_imageType));
-        read += readFn(_io, &tgaHeader.m_colorMapOrigin, sizeof(tgaHeader.m_colorMapOrigin));
-        read += readFn(_io, &tgaHeader.m_colorMapLength, sizeof(tgaHeader.m_colorMapLength));
-        read += readFn(_io, &tgaHeader.m_colorMapDepth, sizeof(tgaHeader.m_colorMapDepth));
-        read += readFn(_io, &tgaHeader.m_xOrigin, sizeof(tgaHeader.m_xOrigin));
-        read += readFn(_io, &tgaHeader.m_yOrigin, sizeof(tgaHeader.m_yOrigin));
-        read += readFn(_io, &tgaHeader.m_width, sizeof(tgaHeader.m_width));
-        read += readFn(_io, &tgaHeader.m_height, sizeof(tgaHeader.m_height));
-        read += readFn(_io, &tgaHeader.m_bitsPerPixel, sizeof(tgaHeader.m_bitsPerPixel));
-        read += readFn(_io, &tgaHeader.m_imageDescriptor, sizeof(tgaHeader.m_imageDescriptor));
+        read += readFn(_rw, &tgaHeader.m_idLength, sizeof(tgaHeader.m_idLength));
+        read += readFn(_rw, &tgaHeader.m_colorMapType, sizeof(tgaHeader.m_colorMapType));
+        read += readFn(_rw, &tgaHeader.m_imageType, sizeof(tgaHeader.m_imageType));
+        read += readFn(_rw, &tgaHeader.m_colorMapOrigin, sizeof(tgaHeader.m_colorMapOrigin));
+        read += readFn(_rw, &tgaHeader.m_colorMapLength, sizeof(tgaHeader.m_colorMapLength));
+        read += readFn(_rw, &tgaHeader.m_colorMapDepth, sizeof(tgaHeader.m_colorMapDepth));
+        read += readFn(_rw, &tgaHeader.m_xOrigin, sizeof(tgaHeader.m_xOrigin));
+        read += readFn(_rw, &tgaHeader.m_yOrigin, sizeof(tgaHeader.m_yOrigin));
+        read += readFn(_rw, &tgaHeader.m_width, sizeof(tgaHeader.m_width));
+        read += readFn(_rw, &tgaHeader.m_height, sizeof(tgaHeader.m_height));
+        read += readFn(_rw, &tgaHeader.m_bitsPerPixel, sizeof(tgaHeader.m_bitsPerPixel));
+        read += readFn(_rw, &tgaHeader.m_imageDescriptor, sizeof(tgaHeader.m_imageDescriptor));
         DEBUG_CHECK(read == TGA_HEADER_SIZE, "Error reading file header.");
 
         // Check header.
@@ -4895,7 +4895,7 @@ namespace cmft
 
         // Skip to data.
         const uint32_t skip = tgaHeader.m_idLength + (tgaHeader.m_colorMapType&0x1)*tgaHeader.m_colorMapLength;
-        seekFn(_io, skip, Whence::Current);
+        seekFn(_rw, skip, Whence::Current);
 
         // Load data.
         const bool bCompressed = (0 != (tgaHeader.m_imageType&TGA_IT_RLE));
@@ -4906,7 +4906,7 @@ namespace cmft
             uint8_t* dataPtr = data;
             while (n < numPixels)
             {
-                read = readFn(_io, buf, 1+numBytesPerPixel);
+                read = readFn(_rw, buf, 1+numBytesPerPixel);
                 DEBUG_CHECK(read == (1+numBytesPerPixel), "Could not read from file.");
 
                 const uint8_t count = buf[0] & 0x7f;
@@ -4930,7 +4930,7 @@ namespace cmft
                     // Normal chunk.
                     for (uint8_t ii = 0; ii < count; ++ii)
                     {
-                        read = readFn(_io, buf, numBytesPerPixel);
+                        read = readFn(_rw, buf, numBytesPerPixel);
                         DEBUG_CHECK(read == +numBytesPerPixel, "Could not read from file.");
 
                         memcpy(dataPtr, buf, numBytesPerPixel);
@@ -4942,7 +4942,7 @@ namespace cmft
         }
         else
         {
-            read = readFn(_io, data, dataSize);
+            read = readFn(_rw, data, dataSize);
             DEBUG_CHECK(read == dataSize, "Could not read from file.");
         }
 
@@ -4994,38 +4994,38 @@ namespace cmft
         return false;
     }
 
-    bool imageLoad(Image& _image, Io* _io, TextureFormat::Enum _convertTo, AllocatorI* _allocator)
+    bool imageLoad(Image& _image, Rw* _rw, TextureFormat::Enum _convertTo, AllocatorI* _allocator)
     {
-        bool didOpen = ioFileOpen(_io, "rb");
-        IoScopeFileClose scopeClose(_io, didOpen);
+        bool didOpen = rwFileOpen(_rw, "rb");
+        RwScopeFileClose scopeClose(_rw, didOpen);
 
-        IoSeekFn seekFn = ioSeekFnFor(_io);
-        IoReadFn readFn = ioReadFnFor(_io);
+        RwSeekFn seekFn = rwSeekFnFor(_rw);
+        RwReadFn readFn = rwReadFnFor(_rw);
 
         // Read magic.
         uint32_t magic;
-        readFn(_io, &magic, sizeof(magic));
+        readFn(_rw, &magic, sizeof(magic));
 
         // Seek to beginning.
-        seekFn(_io, 0, Whence::Begin);
+        seekFn(_rw, 0, Whence::Begin);
 
         // Load image.
         bool loaded = false;
         if (DDS_MAGIC == magic)
         {
-            loaded = imageLoadDds(_image, _io, _allocator);
+            loaded = imageLoadDds(_image, _rw, _allocator);
         }
         else if (HDR_MAGIC == magic)
         {
-            loaded = imageLoadHdr(_image, _io, _allocator);
+            loaded = imageLoadHdr(_image, _rw, _allocator);
         }
         else if (KTX_MAGIC_SHORT == magic)
         {
-            loaded = imageLoadKtx(_image, _io, _allocator);
+            loaded = imageLoadKtx(_image, _rw, _allocator);
         }
         else if (isTga(magic))
         {
-            loaded = imageLoadTga(_image, _io, _allocator);
+            loaded = imageLoadTga(_image, _rw, _allocator);
         }
 
         if (!loaded)
@@ -5045,18 +5045,18 @@ namespace cmft
 
     bool imageLoad(Image& _image, const char* _filePath, TextureFormat::Enum _convertTo, AllocatorI* _allocator)
     {
-        Io io;
-        ioInit(&io, _filePath);
+        Rw rw;
+        rwInit(&rw, _filePath);
 
-        return imageLoad(_image, &io, _convertTo, _allocator);
+        return imageLoad(_image, &rw, _convertTo, _allocator);
     }
 
     bool imageLoad(Image& _image, const void* _data, uint32_t _dataSize, TextureFormat::Enum _convertTo, AllocatorI* _allocator)
     {
-        Io io;
-        ioInit(&io, const_cast<void*>(_data), _dataSize);
+        Rw rw;
+        rwInit(&rw, const_cast<void*>(_data), _dataSize);
 
-        return imageLoad(_image, &io, _convertTo, _allocator);
+        return imageLoad(_image, &rw, _convertTo, _allocator);
     }
 
     ///
