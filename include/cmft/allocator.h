@@ -61,8 +61,8 @@ namespace cmft
     #   define CMFT_ALIGNED_ALLOC(_allocator, _size, _align)         (_allocator)->realloc(NULL, _size, _align, __FILE__, __LINE__)
     #   define CMFT_ALIGNED_REALLOC(_allocator, _ptr, _size, _align) (_allocator)->realloc(_ptr, _size, _align, __FILE__, __LINE__)
     #   define CMFT_ALIGNED_FREE(_allocator, _ptr, _align)           (_allocator)->realloc(_ptr,     0, _align, __FILE__, __LINE__)
-    #   define CMFT_PUSH(_stackAllocator) _stackAllocator->push(__FILE__, __LINE__)
-    #   define CMFT_POP(_stackAllocator) _stackAllocator->pop(__FILE__, __LINE__)
+    #   define CMFT_PUSH(_stackAllocator) (_stackAllocator)->push(__FILE__, __LINE__)
+    #   define CMFT_POP(_stackAllocator)  (_stackAllocator)->pop(__FILE__, __LINE__)
     #else
     #   define CMFT_ALLOC(_allocator, _size)                         (_allocator)->realloc(NULL, _size,      0, 0, 0)
     #   define CMFT_REALLOC(_allocator, _ptr, _size)                 (_allocator)->realloc(_ptr, _size,      0, 0, 0)
@@ -70,8 +70,8 @@ namespace cmft
     #   define CMFT_ALIGNED_ALLOC(_allocator, _size, _align)         (_allocator)->realloc(NULL, _size, _align, 0, 0)
     #   define CMFT_ALIGNED_REALLOC(_allocator, _ptr, _size, _align) (_allocator)->realloc(_ptr, _size, _align, 0, 0)
     #   define CMFT_ALIGNED_FREE(_allocator, _ptr, _align)           (_allocator)->realloc(_ptr,     0, _align, 0, 0)
-    #   define CMFT_PUSH(_stackAllocator) _stackAllocator->push(0, 0)
-    #   define CMFT_POP(_stackAllocator) _stackAllocator->pop(0, 0)
+    #   define CMFT_PUSH(_stackAllocator) (_stackAllocator)->push(0, 0)
+    #   define CMFT_POP(_stackAllocator)  (_stackAllocator)->pop(0, 0)
     #endif // CMFT_ALLOCATOR_DEBUG
 
     struct CrtAllocator : AllocatorI
