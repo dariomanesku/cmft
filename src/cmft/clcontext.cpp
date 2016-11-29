@@ -1,26 +1,53 @@
 /*
- * Copyright 2014-2015 Dario Manesku. All rights reserved.
+ * Copyright 2014-2016 Dario Manesku. All rights reserved.
  * License: http://www.opensource.org/licenses/BSD-2-Clause
  */
 
+#define CMFT_CL_IMPLEMENTATION
+#include "common/cl.h"
+
+#include <cmft/clcontext.h>
+#include "clcontext_internal.h"
+
 #include <stdint.h>
 
-#include <bx/string.h>
-#define BX_CL_IMPLEMENTATION
-#include <bx/cl.h>
-
-#include <dm/misc.h> //dm::strscpya
-
-#include "cmft/clcontext.h"
-#include "base/config.h" //INFO, WARN
+#include "common/config.h"
+#include "common/utils.h"
+#include "common/handlealloc.h"
 
 namespace cmft
 {
-    bool ClContext::init(uint8_t _vendor
-                       , cl_device_type _preferredDeviceType
-                       , cl_uint _preferredDeviceIdx
-                       , char* _vendorStrPart
-                       )
+    struct ClContextStorage
+    {
+        ClContext* alloc()
+        {
+            return &m_context[m_handleAlloc.alloc()];
+        }
+
+        void free(ClContext* _context)
+        {
+            if (&m_context[0] <= _context && _context <= &m_context[MaxClContexts])
+            {
+                uint32_t idx = _context - m_context;
+                if (m_handleAlloc.contains(idx))
+                {
+                    m_handleAlloc.free(idx);
+                }
+            }
+        }
+
+        enum { MaxClContexts = 1024 };
+
+        HandleAllocT<MaxClContexts> m_handleAlloc;
+        ClContext m_context[MaxClContexts];
+    };
+    static ClContextStorage s_clContextStorage;
+
+    ClContext* clInit(uint32_t _vendor
+                    , uint32_t _preferredDeviceType
+                    , uint32_t _preferredDeviceIdx
+                    , const char* _vendorStrPart
+                    )
     {
         cl_int err = CL_SUCCESS;
 
@@ -42,7 +69,7 @@ namespace cmft
                 if (_vendor&CMFT_CL_VENDOR_OTHER)
                 {
                     // If specific vendor is requested, check for it.
-                    const char* searchSpecific = bx::stristr(buffer, _vendorStrPart, 256);
+                    const char* searchSpecific = cmft::stristr(buffer, _vendorStrPart, 256);
                     if (NULL != searchSpecific)
                     {
                         choosenPlatform = platforms[ii];
@@ -56,19 +83,19 @@ namespace cmft
                     // Check for predefined vendors.
                     if (_vendor&CMFT_CL_VENDOR_AMD)
                     {
-                        const char* searchAmd = bx::stristr(buffer, "advanced micro devices", 256);
+                        const char* searchAmd = cmft::stristr(buffer, "advanced micro devices", 256);
                         found |= (NULL != searchAmd);
                     }
 
                     if (_vendor&CMFT_CL_VENDOR_INTEL)
                     {
-                        const char* searchIntel  = bx::stristr(buffer, "intel", 256);
+                        const char* searchIntel  = cmft::stristr(buffer, "intel", 256);
                         found |= (NULL != searchIntel);
                     }
 
                     if (_vendor&CMFT_CL_VENDOR_NVIDIA)
                     {
-                        const char* searchNvidia = bx::stristr(buffer, "nvidia", 256);
+                        const char* searchNvidia = cmft::stristr(buffer, "nvidia", 256);
                         found |= (NULL != searchNvidia);
                     }
 
@@ -88,7 +115,7 @@ namespace cmft
         // First try to get preferred device type.
         for (cl_uint ii = 0; ii < numPlatforms; ++ii)
         {
-            err = clGetDeviceIDs(platforms[ii], _preferredDeviceType, 8, devices, &numDevices);
+            err = clGetDeviceIDs(platforms[ii], (cl_device_type)_preferredDeviceType, 8, devices, &numDevices);
             if (CL_SUCCESS == err)
             {
                 choosenPlatform = platforms[ii];
@@ -113,7 +140,7 @@ namespace cmft
         if (CL_SUCCESS != err)
         {
             WARN("OpenCL context initialization failed!");
-            return false;
+            return NULL;
         }
 
         // Choose preferred device and create context.
@@ -127,16 +154,9 @@ namespace cmft
             if (CL_SUCCESS != err)
             {
                 WARN("OpenCL context initialization failed!");
-                return false;
+                return NULL;
             }
         }
-
-        // Get device name, vendor and type.
-        char deviceVendor[128];
-        CL_CHECK(clGetPlatformInfo(choosenPlatform, CL_PLATFORM_VENDOR, sizeof(deviceVendor), deviceVendor, NULL));
-        char deviceName[128];
-        CL_CHECK(clGetDeviceInfo(chosenDevice, CL_DEVICE_NAME, sizeof(deviceName), deviceName, NULL));
-        CL_CHECK(clGetDeviceInfo(chosenDevice, CL_DEVICE_TYPE, sizeof(m_deviceType), &m_deviceType, NULL));
 
         // Create command queue
         cl_command_queue commandQueue;
@@ -144,32 +164,26 @@ namespace cmft
         if (CL_SUCCESS != err)
         {
             WARN("OpenCL context initialization failed!");
-            return false;
+            return NULL;
         }
+
+        ClContext* clContext = s_clContextStorage.alloc();
+
+        // Get device name, vendor and type.
+        char deviceVendor[128];
+        CL_CHECK(clGetPlatformInfo(choosenPlatform, CL_PLATFORM_VENDOR, sizeof(deviceVendor), deviceVendor, NULL));
+        char deviceName[128];
+        CL_CHECK(clGetDeviceInfo(chosenDevice, CL_DEVICE_NAME, sizeof(deviceName), deviceName, NULL));
+        CL_CHECK(clGetDeviceInfo(chosenDevice, CL_DEVICE_TYPE, sizeof(clContext->m_deviceType), &clContext->m_deviceType, NULL));
 
         // Fill structure.
-        dm::strscpya(m_deviceVendor, dm::trim(deviceVendor));
-        dm::strscpya(m_deviceName, dm::trim(deviceName));
-        m_device = chosenDevice;
-        m_context = context;
-        m_commandQueue = commandQueue;
+        cmft::stracpy(clContext->m_deviceVendor, cmft::trim(deviceVendor));
+        cmft::stracpy(clContext->m_deviceName, cmft::trim(deviceName));
+        clContext->m_device = chosenDevice;
+        clContext->m_context = context;
+        clContext->m_commandQueue = commandQueue;
 
-        return true;
-    }
-
-    void ClContext::destroy()
-    {
-        if (NULL != m_commandQueue)
-        {
-            clReleaseCommandQueue(m_commandQueue);
-            m_commandQueue = NULL;
-        }
-
-        if (NULL != m_context)
-        {
-            clReleaseContext(m_context);
-            m_context = NULL;
-        }
+        return clContext;
     }
 
     void clPrintDevices()
@@ -189,21 +203,21 @@ namespace cmft
 
             // Check for known vendors and save vendor str for later printing.
             char platformOutputStr[32];
-            if (NULL != bx::stristr(vendor, "advanced micro devices", 256))
+            if (NULL != cmft::stristr(vendor, "advanced micro devices", 256))
             {
-                dm::strscpya(platformOutputStr, "amd");
+                cmft::stracpy(platformOutputStr, "amd");
             }
-            else if (NULL != bx::stristr(vendor, "intel", 256))
+            else if (NULL != cmft::stristr(vendor, "intel", 256))
             {
-                dm::strscpya(platformOutputStr, "intel");
+                cmft::stracpy(platformOutputStr, "intel");
             }
-            else if (NULL != bx::stristr(vendor, "nvidia", 256))
+            else if (NULL != cmft::stristr(vendor, "nvidia", 256))
             {
-                dm::strscpya(platformOutputStr, "nvidia");
+                cmft::stracpy(platformOutputStr, "nvidia");
             }
             else
             {
-                dm::strscpya(platformOutputStr, dm::trim(vendor));
+                cmft::stracpy(platformOutputStr, cmft::trim(vendor));
             }
 
             // Enumerate current platform devices.
@@ -226,24 +240,24 @@ namespace cmft
                     char deviceTypeOutputStr[16];
                     if (CMFT_CL_DEVICE_TYPE_GPU == deviceType)
                     {
-                        dm::strscpya(deviceTypeOutputStr, "gpu");
+                        cmft::stracpy(deviceTypeOutputStr, "gpu");
                     }
                     else if (CMFT_CL_DEVICE_TYPE_CPU == deviceType)
                     {
-                        dm::strscpya(deviceTypeOutputStr, "cpu");
+                        cmft::stracpy(deviceTypeOutputStr, "cpu");
                     }
                     else if (CMFT_CL_DEVICE_TYPE_ACCELERATOR == deviceType)
                     {
-                        dm::strscpya(deviceTypeOutputStr, "accelerator");
+                        cmft::stracpy(deviceTypeOutputStr, "accelerator");
                     }
                     else //if (CMFT_CL_DEVICE_TYPE_DEFAULT == deviceType)
                     {
-                        dm::strscpya(deviceTypeOutputStr, "default");
+                        cmft::stracpy(deviceTypeOutputStr, "default");
                     }
 
                     // Print device info.
                     INFO("%-40s --clVendor %-6s --deviceIndex %u --deviceType %s"
-                        , dm::trim(deviceName)
+                        , cmft::trim(deviceName)
                         , platformOutputStr
                         , uint32_t(jj)
                         , deviceTypeOutputStr
@@ -251,6 +265,28 @@ namespace cmft
                 }
             }
         }
+    }
+
+    void clDestroy(ClContext* _clContext)
+    {
+        if (NULL == _clContext)
+        {
+            return;
+        }
+
+        if (NULL != _clContext->m_commandQueue)
+        {
+            clReleaseCommandQueue(_clContext->m_commandQueue);
+            _clContext->m_commandQueue = NULL;
+        }
+
+        if (NULL != _clContext->m_context)
+        {
+            clReleaseContext(_clContext->m_context);
+            _clContext->m_context = NULL;
+        }
+
+        s_clContextStorage.free(_clContext);
     }
 
 } // namespace cmft

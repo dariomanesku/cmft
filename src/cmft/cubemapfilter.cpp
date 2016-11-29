@@ -3,12 +3,15 @@
  * License: http://www.opensource.org/licenses/BSD-2-Clause
  */
 
-#include "base/config.h"
-#include "base/macros.h"
+#include "common/config.h"
+#include "common/utils.h"
+#include "common/timer.h"
 
 #include <cmft/cubemapfilter.h>
 #include <cmft/clcontext.h>
 #include <cmft/allocator.h>
+
+#include "clcontext_internal.h"
 
 #include "cubemaputils.h"
 #include "radiance.h"
@@ -17,13 +20,8 @@
 #include <math.h>         //pow, sqrt
 #include <float.h>        //FLT_MAX
 
-#include <dm/misc.h>      //dm::min/max,dm::fsize
-
-#include <bx/timer.h>     //bx::getHPFrequency
-#include <bx/os.h>        //bx::sleep
-#include <bx/thread.h>    //bx::thread
-#include <bx/mutex.h>     //bx::mutex
-#include <bx/allocator.h> //DM_FREE, DM_ALLOC
+#include <thread> // C++11
+#include <mutex>  // C++11
 
 #define CMFT_COMPUTE_FILTER_AREA_ON_CPU 1
 
@@ -112,10 +110,10 @@ namespace cmft
         return (uint8_t*)_mem + _size;
     }
 
-    float* buildCubemapNormalSolidAngle(uint32_t _cubemapFaceSize, EdgeFixup::Enum _fixup = EdgeFixup::None, dm::AllocatorI* _allocator = g_allocator)
+    float* buildCubemapNormalSolidAngle(uint32_t _cubemapFaceSize, EdgeFixup::Enum _fixup = EdgeFixup::None, AllocatorI* _allocator = g_allocator)
     {
         const size_t size = cubemapNormalSolidAngleSize(_cubemapFaceSize);
-        float* mem = (float*)DM_ALLOC(_allocator, size);
+        float* mem = (float*)CMFT_ALLOC(_allocator, size);
         MALLOC_CHECK(mem);
 
         buildCubemapNormalSolidAngle(mem, size, _cubemapFaceSize, _fixup);
@@ -225,10 +223,10 @@ namespace cmft
             _shCoeffs[ii][2] *= norm;
         }
 
-        DM_FREE(g_allocator, cubemapVectors);
+        CMFT_FREE(g_allocator, cubemapVectors);
     }
 
-    bool imageShCoeffs(double _shCoeffs[SH_COEFF_NUM][3], const Image& _image, dm::AllocatorI* _allocator)
+    bool imageShCoeffs(double _shCoeffs[SH_COEFF_NUM][3], const Image& _image, AllocatorI* _allocator)
     {
         // Input image must be a cubemap.
         if (!imageIsCubemap(_image))
@@ -253,7 +251,7 @@ namespace cmft
         return true;
     }
 
-    bool imageIrradianceFilterSh(Image& _dst, uint32_t _dstFaceSize, const Image& _src, dm::AllocatorI* _allocator)
+    bool imageIrradianceFilterSh(Image& _dst, uint32_t _dstFaceSize, const Image& _src, AllocatorI* _allocator)
     {
         // Input image must be a cubemap.
         if (!imageIsCubemap(_src))
@@ -279,7 +277,7 @@ namespace cmft
         const uint32_t dstPitch = dstFaceSize*dstBytesPerPixel;
         const uint32_t dstFaceDataSize = dstPitch * dstFaceSize;
         const uint32_t dstDataSize = dstFaceDataSize * 6 /*numFaces*/;
-        void* dstData = DM_ALLOC(_allocator, dstDataSize);
+        void* dstData = CMFT_ALLOC(_allocator, dstDataSize);
         MALLOC_CHECK(dstData);
 
         // Build cubemap texel vectors.
@@ -288,7 +286,7 @@ namespace cmft
         const uint32_t vectorPitch = dstFaceSize * vectorBytesPerPixel;
         const uint32_t vectorFaceDataSize = vectorPitch * dstFaceSize;
 
-        uint64_t totalTime = bx::getHPCounter();
+        uint64_t totalTime = cmft::getHPCounter();
 
         // Output info.
         INFO("Running irradiance filter for:\n"
@@ -353,9 +351,9 @@ namespace cmft
         }
 
         // Output progress info.
-        const double freq = double(bx::getHPFrequency());
+        const double freq = double(cmft::getHPFrequency());
         const double toSec = 1.0/freq;
-        totalTime = bx::getHPCounter() - totalTime;
+        totalTime = cmft::getHPCounter() - totalTime;
         INFO("Irradiance -> Done! Total time: %.3f seconds.", double(totalTime)*toSec);
 
         // Fill structure.
@@ -387,12 +385,12 @@ namespace cmft
         // Cleanup.
         imageUnload(imageRgba32f, _allocator);
 
-        DM_FREE(g_allocator, cubemapVectors);
+        CMFT_FREE(g_allocator, cubemapVectors);
 
         return true;
     }
 
-    void imageIrradianceFilterSh(Image& _image, uint32_t _faceSize, dm::AllocatorI* _allocator)
+    void imageIrradianceFilterSh(Image& _image, uint32_t _faceSize, AllocatorI* _allocator)
     {
         Image tmp;
         if (imageIrradianceFilterSh(tmp, _faceSize, _image, _allocator))
@@ -416,22 +414,22 @@ namespace cmft
 
         void add(float _x, float _y)
         {
-            m_min[0] = dm::min(m_min[0], _x);
-            m_min[1] = dm::min(m_min[1], _y);
-            m_max[0] = dm::max(m_max[0], _x);
-            m_max[1] = dm::max(m_max[1], _y);
+            m_min[0] = CMFT_MIN(m_min[0], _x);
+            m_min[1] = CMFT_MIN(m_min[1], _y);
+            m_max[0] = CMFT_MAX(m_max[0], _x);
+            m_max[1] = CMFT_MAX(m_max[1], _y);
         }
 
         inline void clampMin(float _x, float _y)
         {
-            m_min[0] = dm::max(m_min[0], _x);
-            m_min[1] = dm::max(m_min[1], _y);
+            m_min[0] = CMFT_MAX(m_min[0], _x);
+            m_min[1] = CMFT_MAX(m_min[1], _y);
         }
 
         inline void clampMax(float _x, float _y)
         {
-            m_max[0] = dm::min(m_max[0], _x);
-            m_max[1] = dm::min(m_max[1], _y);
+            m_max[0] = CMFT_MIN(m_max[0], _x);
+            m_max[1] = CMFT_MIN(m_max[1], _y);
         }
 
         void clamp(float _minX, float _minY, float _maxX, float _maxY)
@@ -763,10 +761,10 @@ namespace cmft
         return (uint8_t*)_mem + _size;
     }
 
-    float* buildCubemapFilterArea(uint8_t _faceIdx, uint32_t _cubemapFaceSize, float _filterSize, EdgeFixup::Enum _fixup = EdgeFixup::None, dm::AllocatorI* _allocator = g_allocator)
+    float* buildCubemapFilterArea(uint8_t _faceIdx, uint32_t _cubemapFaceSize, float _filterSize, EdgeFixup::Enum _fixup = EdgeFixup::None, AllocatorI* _allocator = g_allocator)
     {
         const size_t size = cubemapFilterAreaSize(_cubemapFaceSize);
-        float* mem = (float*)DM_ALLOC(_allocator, size);
+        float* mem = (float*)CMFT_ALLOC(_allocator, size);
         MALLOC_CHECK(mem);
 
         buildCubemapFilterArea(mem, size, _faceIdx, _cubemapFaceSize, _filterSize, _fixup);
@@ -982,20 +980,20 @@ namespace cmft
 
         uint8_t getThreadId()
         {
-            bx::MutexScope lock(m_threadIdMutex);
+            std::lock_guard<std::mutex> lock(m_threadIdMutex);
             return m_threadId++;
         }
 
         void incrCompletedTasksGpu()
         {
-            bx::MutexScope lock(m_completedTasks);
+            std::lock_guard<std::mutex> lock(m_completedTasks);
             m_completedTasksGpu++;
             CMFT_PROGRESS("%d %d", m_completedTasksCpu + m_completedTasksGpu, m_totalTasks);
         }
 
         void incrCompletedTasksCpu()
         {
-            bx::MutexScope lock(m_completedTasks);
+            std::lock_guard<std::mutex> lock(m_completedTasks);
             m_completedTasksCpu++;
             CMFT_PROGRESS("%d %d", m_completedTasksCpu + m_completedTasksGpu, m_totalTasks);
         }
@@ -1005,8 +1003,8 @@ namespace cmft
         uint16_t m_completedTasksCpu;
         uint16_t m_totalTasks;
         uint8_t m_threadId;
-        bx::Mutex m_threadIdMutex;
-        bx::Mutex m_completedTasks;
+        std::mutex m_threadIdMutex;
+        std::mutex m_completedTasks;
     };
     static RadianceFilterGlobalState s_globalState;
 
@@ -1043,7 +1041,7 @@ namespace cmft
         // Returns cube face radiance filter parameters starting from the top mip level.
         const RadianceFilterParams* getFromTop()
         {
-            bx::MutexScope lock(m_access);
+            std::lock_guard<std::mutex> lock(m_access);
 
             while (m_mipStart <= m_mipEnd)
             {
@@ -1065,7 +1063,7 @@ namespace cmft
         // Returns cube face radiance filter parameters starting from the bottom mip level.
         const RadianceFilterParams* getFromBottom()
         {
-            bx::MutexScope lock(m_access);
+            std::lock_guard<std::mutex> lock(m_access);
 
             while (m_mipStart <= m_mipEnd)
             {
@@ -1085,13 +1083,13 @@ namespace cmft
 
         void pushUnfinished(const RadianceFilterParams* _params)
         {
-            bx::MutexScope lock(m_accessUnfinished);
+            std::lock_guard<std::mutex> lock(m_accessUnfinished);
             m_unfinished[m_unfinishedCount++] = _params;
         }
 
         const RadianceFilterParams* popUnfinished()
         {
-            bx::MutexScope lock(m_accessUnfinished);
+            std::lock_guard<std::mutex> lock(m_accessUnfinished);
             return (0 == m_unfinishedCount) ? NULL : m_unfinished[--m_unfinishedCount];
         }
 
@@ -1101,13 +1099,13 @@ namespace cmft
         }
 
     private:
-        bx::Mutex m_access;
+        std::mutex m_access;
         int8_t m_mipStart;
         int8_t m_mipEnd;
         int8_t m_mipFace[MAX_MIP_NUM];
         RadianceFilterParams m_params[MAX_MIP_NUM][CUBE_FACE_NUM];
 
-        bx::Mutex m_accessUnfinished;
+        std::mutex m_accessUnfinished;
         uint16_t m_unfinishedCount;
         const RadianceFilterParams* m_unfinished[MAX_MIP_NUM*CUBE_FACE_NUM];
     };
@@ -1115,7 +1113,7 @@ namespace cmft
     int32_t radianceFilterCpu(void* _taskList)
     {
         const uint8_t threadId = s_globalState.getThreadId();
-        const double freq = double(bx::getHPFrequency());
+        const double freq = double(cmft::getHPFrequency());
         const double toSec = 1.0/freq;
 
         RadianceFilterTaskList* taskList = (RadianceFilterTaskList*)_taskList;
@@ -1126,7 +1124,7 @@ namespace cmft
         ||     (params = taskList->popUnfinished()) != NULL)
         {
             // Start timer.
-            const uint64_t startTime = bx::getHPCounter();
+            const uint64_t startTime = cmft::getHPCounter();
 
             // Process data.
             radianceFilter(params->m_dstPtr
@@ -1142,7 +1140,7 @@ namespace cmft
                          );
 
             // Determine task duration.
-            const uint64_t currentTime = bx::getHPCounter();
+            const uint64_t currentTime = cmft::getHPCounter();
             const uint64_t taskDuration = currentTime - startTime;
             const uint64_t totalDuration = currentTime - s_globalState.m_startTime;
 
@@ -1280,7 +1278,8 @@ namespace cmft
 
         bool createFromFile(const char* _filePath, const char* _header = NULL, size_t _headerSize = 0)
         {
-            CMFT_UNUSED size_t read;
+            size_t read;
+            CMFT_UNUSED(read);
 
             // Open file.
             FILE* fp = fopen(_filePath, "rb");
@@ -1289,11 +1288,10 @@ namespace cmft
                 WARN("Could not open file %s for reading.", _filePath);
                 return false;
             }
-            dm::ScopeFclose cleanup0(fp);
 
             // Alloc data for string.
-            const size_t fileSize = dm::fsize(fp);
-            char* sourceData = (char*)DM_ALLOC(g_allocator, fileSize);
+            const size_t fileSize = cmft::fsize(fp);
+            char* sourceData = (char*)CMFT_ALLOC(g_allocator, fileSize);
 
             // Read opencl source file.
             read = fread(sourceData, fileSize, 1, fp);
@@ -1310,7 +1308,8 @@ namespace cmft
                 result = createFromStr(sourceData, fileSize);
             }
 
-            DM_FREE(g_allocator, sourceData);
+            CMFT_FREE(g_allocator, sourceData);
+            fclose(fp);
 
             return result;
         }
@@ -1414,7 +1413,7 @@ namespace cmft
 
             #if CMFT_COMPUTE_FILTER_AREA_ON_CPU
                 // Build filter area info.
-                float* filterArea = buildCubemapFilterArea(_faceIdx, _dstFaceSize, _filterSize, _edgeFixup, g_allocator);
+                float* filterArea = buildCubemapFilterArea(_faceIdx, _dstFaceSize, _filterSize, _edgeFixup, &g_crtAllocator);
                 const size_t width = _dstFaceSize*6;
                 const size_t height = _dstFaceSize;
                 cl_mem area = clCreateImage2D(m_clContext->m_context
@@ -1428,7 +1427,7 @@ namespace cmft
                                             );
                 CL_CHECK_RETURN(err);
             #endif //CMFT_COMPUTE_FILTER_AREA_ON_CPU
-            BX_UNUSED(_edgeFixup);
+            CMFT_UNUSED(_edgeFixup);
 
             // Set arguments.
             CL_CHECK_EXPR_RETURN(clSetKernelArg(m_radFilter,  0, sizeof(cl_mem),  (const void*)&m_memOut));
@@ -1465,8 +1464,8 @@ namespace cmft
                     const size_t workOffset[2] = { xx*tileSize, yy*tileSize };
                     const size_t workSize[2] =
                     {
-                        DM_MIN(tileSize, _dstFaceSize-workOffset[0]),
-                        DM_MIN(tileSize, _dstFaceSize-workOffset[1]),
+                        CMFT_MIN(tileSize, _dstFaceSize-workOffset[0]),
+                        CMFT_MIN(tileSize, _dstFaceSize-workOffset[1]),
                     };
                     CL_CHECK_EXPR_RETURN(clEnqueueNDRangeKernel(m_clContext->m_commandQueue
                                                               , m_radFilter
@@ -1498,7 +1497,7 @@ namespace cmft
 
             #if CMFT_COMPUTE_FILTER_AREA_ON_CPU
                 clReleaseMemObject(area);
-                DM_FREE(g_allocator, filterArea);
+                CMFT_FREE(g_allocator, filterArea);
             #endif //CMFT_COMPUTE_FILTER_AREA_ON_CPU
 
             return true;
@@ -1522,7 +1521,7 @@ namespace cmft
 
             #if CMFT_COMPUTE_FILTER_AREA_ON_CPU
                 // Build filter area info.
-                float* filterArea = buildCubemapFilterArea(_faceIdx, _dstFaceSize, _filterSize, _edgeFixup, g_allocator);
+                float* filterArea = buildCubemapFilterArea(_faceIdx, _dstFaceSize, _filterSize, _edgeFixup, &g_crtAllocator);
                 const size_t width = _dstFaceSize*6;
                 const size_t height = _dstFaceSize;
                 cl_mem area = clCreateImage2D(m_clContext->m_context
@@ -1536,7 +1535,7 @@ namespace cmft
                                             );
                 CL_CHECK_RETURN(err);
             #endif //CMFT_COMPUTE_FILTER_AREA_ON_CPU
-            BX_UNUSED(_edgeFixup);
+            CMFT_UNUSED(_edgeFixup);
 
             // Set arguments that do not change for the entire task.
             CL_CHECK_EXPR_RETURN(clSetKernelArg(m_radFilterSingle,  4, sizeof(int32_t), (const void*)&_dstFaceSize));
@@ -1580,8 +1579,8 @@ namespace cmft
                         const size_t tileWorkOffset[2] = { xx*tileSize, yy*tileSize };
                         const size_t tileWorkSize[2] =
                         {
-                            DM_MIN(tileSize, _dstFaceSize-tileWorkOffset[0]),
-                            DM_MIN(tileSize, _dstFaceSize-tileWorkOffset[1]),
+                            CMFT_MIN(tileSize, _dstFaceSize-tileWorkOffset[0]),
+                            CMFT_MIN(tileSize, _dstFaceSize-tileWorkOffset[1]),
                         };
                         CL_CHECK_EXPR_RETURN(clEnqueueNDRangeKernel(m_clContext->m_commandQueue
                                                                   , m_radFilterSingle
@@ -1645,7 +1644,7 @@ namespace cmft
 
             #if CMFT_COMPUTE_FILTER_AREA_ON_CPU
                 clReleaseMemObject(area);
-                DM_FREE(g_allocator, filterArea);
+                CMFT_FREE(&g_crtAllocator, filterArea);
             #endif //CMFT_COMPUTE_FILTER_AREA_ON_CPU
 
             return true;
@@ -1732,7 +1731,7 @@ namespace cmft
             return EXIT_FAILURE;
         }
 
-        const double freq = double(bx::getHPFrequency());
+        const double freq = double(cmft::getHPFrequency());
         const double toSec = 1.0/freq;
 
         RadianceFilterTaskList* taskList = (RadianceFilterTaskList*)_taskList;
@@ -1742,7 +1741,7 @@ namespace cmft
         while ((params = taskList->getFromTop()) != NULL)
         {
             // Start timer.
-            const uint64_t startTime = bx::getHPCounter();
+            const uint64_t startTime = cmft::getHPCounter();
 
             // Run radiance program.
             const bool result = s_radianceProgram.run(params->m_dstPtr
@@ -1756,7 +1755,7 @@ namespace cmft
             if (result)
             {
                 // Determine task duration.
-                const uint64_t currentTime = bx::getHPCounter();
+                const uint64_t currentTime = cmft::getHPCounter();
                 const uint64_t taskDuration = currentTime - startTime;
                 const uint64_t totalDuration = currentTime - s_globalState.m_startTime;
 
@@ -1809,7 +1808,7 @@ namespace cmft
 
     float specularPowerFor(float _mip, float _mipCount, float _glossScale, float _glossBias)
     {
-        const float glossiness = dm::max(0.0f, 1.0f - _mip/(_mipCount-(1.0f+0.0000001f)));
+        const float glossiness = CMFT_MAX(0.0f, 1.0f - _mip/(_mipCount-(1.0f+0.0000001f)));
         const float specularPower = powf(2.0f, _glossScale * glossiness + _glossBias);
         return specularPower;
     }
@@ -1863,8 +1862,8 @@ namespace cmft
                            , const Image& _src
                            , EdgeFixup::Enum _edgeFixup
                            , uint8_t _numCpuProcessingThreads
-                           , const ClContext* _clContext
-                           , dm::AllocatorI* _allocator
+                           , ClContext* _clContext
+                           , AllocatorI* _allocator
                            )
     {
         // Input image must be a cubemap.
@@ -1876,9 +1875,9 @@ namespace cmft
         }
 
         // Multi-threading parameters.
-        bx::Thread cpuThreads[64];
-        uint8_t activeCpuThreads = 0;
-        const uint8_t maxActiveCpuThreads = (uint8_t)DM_CLAMP(_numCpuProcessingThreads, 0, 64);
+        std::thread cpuThreads[64];
+        uint32_t activeCpuThreads = 0;
+        const uint32_t maxActiveCpuThreads = (uint32_t)CMFT_CLAMP(_numCpuProcessingThreads, 0, 64);
 
         // Prepare OpenCL kernel and device memory.
 
@@ -1936,13 +1935,23 @@ namespace cmft
 
         // Processing is done in Rgba32f format.
         ImageSoftRef imageRgba32f;
-        imageRefOrConvert(imageRgba32f, TextureFormat::RGBA32F, _src, _allocator);
+        if (_allocator != &g_crtAllocator)
+        {
+            // Must be allocated with crtAllocator. Otherwise, opencl gpu driver will crash.
+            Image imageCrtMemory;
+            imageCopy(imageCrtMemory, _src, &g_crtAllocator);
+            imageRefOrConvert(imageRgba32f, TextureFormat::RGBA32F, _src, &g_crtAllocator);
+        }
+        else
+        {
+            imageRefOrConvert(imageRgba32f, TextureFormat::RGBA32F, _src, _allocator);
+        }
 
         // Alloc dst data.
         const uint32_t dstFaceSize = (0 == _dstFaceSize) ? _src.m_width : _dstFaceSize;
         const uint8_t mipMin = 1;
-        const uint8_t mipMax = uint8_t(dm::log2(dstFaceSize) + 1);
-        const uint8_t mipCount = dm::clamp(_mipCount, mipMin, mipMax);
+        const uint8_t mipMax = uint8_t(cmft::ftou(cmft::log2f(cmft::utof(dstFaceSize))) + 1);
+        const uint8_t mipCount = CMFT_CLAMP(_mipCount, mipMin, mipMax);
         const uint32_t bytesPerPixel = 4 /*numChannels*/ * 4 /*bytesPerChannel*/;
         uint32_t dstOffsets[CUBE_FACE_NUM][MAX_MIP_NUM];
         uint32_t dstDataSize = 0;
@@ -1951,11 +1960,11 @@ namespace cmft
             for (uint8_t mip = 0; mip < mipCount; ++mip)
             {
                 dstOffsets[face][mip] = dstDataSize;
-                uint32_t faceSize = DM_MAX(1, dstFaceSize >> mip);
+                uint32_t faceSize = CMFT_MAX(1, dstFaceSize >> mip);
                 dstDataSize += faceSize * faceSize * bytesPerPixel;
             }
         }
-        void* dstData = DM_ALLOC(_allocator, dstDataSize);
+        void* dstData = CMFT_ALLOC(&g_crtAllocator, dstDataSize);
         MALLOC_CHECK(dstData);
 
         // Get source image offsets.
@@ -1985,8 +1994,8 @@ namespace cmft
         {
             INFO("Radiance -> Excluding base image.");
 
-            const float    dstToSrcRatiof = dm::utof(imageRgba32f.m_width)/dm::utof(dstFaceSize);
-            const uint32_t dstToSrcRatio  = dm::max(UINT32_C(1), dm::ftou(dstToSrcRatiof));
+            const float    dstToSrcRatiof = cmft::utof(imageRgba32f.m_width)/cmft::utof(dstFaceSize);
+            const uint32_t dstToSrcRatio  = CMFT_MAX(UINT32_C(1), cmft::ftou(dstToSrcRatiof));
             const uint32_t dstFacePitch   = dstFaceSize * bytesPerPixel;
             const uint32_t srcFacePitch   = imageRgba32f.m_width * bytesPerPixel;
 
@@ -2011,13 +2020,13 @@ namespace cmft
                         float color[3] = { 0.0f, 0.0f, 0.0f };
                         uint32_t weightAccum = 0;
 
-                        for (uint32_t ySrc = dm::ftou(yDstf*dstToSrcRatiof)
+                        for (uint32_t ySrc = cmft::ftou(yDstf*dstToSrcRatiof)
                             , yEnd = ySrc + dstToSrcRatio
                             ; ySrc < yEnd ; ++ySrc)
                         {
                             const uint8_t* srcRowData = (const uint8_t*)srcFaceData + ySrc*srcFacePitch;
 
-                            for (uint32_t xSrc = dm::ftou(xDstf*dstToSrcRatiof)
+                            for (uint32_t xSrc = cmft::ftou(xDstf*dstToSrcRatiof)
                                 , xEnd = xSrc + dstToSrcRatio
                                 ; xSrc < xEnd ; ++xSrc)
                             {
@@ -2030,7 +2039,7 @@ namespace cmft
                         }
 
                         // Divide by weight and save to destination pixel.
-                        const float invWeight = 1.0f/dm::utof(dm::max(weightAccum, UINT32_C(1)));
+                        const float invWeight = 1.0f/cmft::utof(CMFT_MAX(weightAccum, UINT32_C(1)));
                         dstFaceColumn[0] = color[0] * invWeight;
                         dstFaceColumn[1] = color[1] * invWeight;
                         dstFaceColumn[2] = color[2] * invWeight;
@@ -2047,7 +2056,7 @@ namespace cmft
         else
         {
             // Build cubemap vectors.
-            float* cubemapVectors = buildCubemapNormalSolidAngle(imageRgba32f.m_width, _edgeFixup, g_allocator);
+            float* cubemapVectors = buildCubemapNormalSolidAngle(imageRgba32f.m_width, _edgeFixup, &g_crtAllocator);
 
             // Enqueue memory transfer for cl device.
             if (s_radianceProgram.isValid())
@@ -2061,7 +2070,7 @@ namespace cmft
 
             // Start global timer.
             s_globalState.reset();
-            s_globalState.m_startTime = bx::getHPCounter();
+            s_globalState.m_startTime = cmft::getHPCounter();
             s_globalState.m_totalTasks = mipCount*6;
             INFO("Radiance -> Starting filter...");
 
@@ -2084,17 +2093,17 @@ namespace cmft
             for (uint32_t mip = mipStart; mip < mipCount; ++mip)
             {
                 // Determine filter parameters.
-                const uint32_t mipFaceSize = DM_MAX(1, dstFaceSize >> mip);
+                const uint32_t mipFaceSize = CMFT_MAX(1, dstFaceSize >> mip);
                 const float mipFaceSizef = float(int32_t(mipFaceSize));
                 const float minAngle = atan2f(1.0f, mipFaceSizef);
-                const float maxAngle = dm::piHalf;
+                const float maxAngle = (0.5f*CMFT_PI);
                 const float toFilterSize = 1.0f/(minAngle*mipFaceSizef*2.0f);
                 const float specularPowerRef = specularPowerFor(float(int32_t(mip)), mipCountf, glossScalef, glossBiasf);
                 const float specularPower = applyLightningModel(specularPowerRef, _lightingModel);
-                const float filterAngle = dm::clamp(cosinePowerFilterAngle(specularPower), minAngle, maxAngle);
-                const float cosAngle = dm::max(0.0f, cosf(filterAngle));
+                const float filterAngle = CMFT_CLAMP(cosinePowerFilterAngle(specularPower), minAngle, maxAngle);
+                const float cosAngle = CMFT_MAX(0.0f, cosf(filterAngle));
                 const float texelSize = 1.0f/mipFaceSizef;
-                const float filterSize = dm::max(texelSize, filterAngle * toFilterSize);
+                const float filterSize = CMFT_MAX(texelSize, filterAngle * toFilterSize);
 
                 for (uint8_t face = 0; face < 6; ++face)
                 {
@@ -2136,19 +2145,19 @@ namespace cmft
                 // Start CPU processing threads.
                 while (activeCpuThreads < maxActiveCpuThreads)
                 {
-                    cpuThreads[activeCpuThreads++].init(radianceFilterCpu, (void*)&taskList);
+                    cpuThreads[activeCpuThreads++] = std::thread(radianceFilterCpu, (void*)&taskList);
                 }
 
                 // Start one GPU host thread.
                 if (s_radianceProgram.isValid() && s_radianceProgram.isIdle())
                 {
-                    cpuThreads[activeCpuThreads++].init(radianceFilterGpu, (void*)&taskList);
+                    cpuThreads[activeCpuThreads++] = std::thread(radianceFilterGpu, (void*)&taskList);
                 }
 
                 // Wait for everything to finish.
-                for (uint8_t ii = 0; ii < activeCpuThreads; ++ii)
+                for (uint32_t ii = 0; ii < activeCpuThreads; ++ii)
                 {
-                    cpuThreads[ii].shutdown();
+                    cpuThreads[ii].join();
                 }
 
                 // OpenCL failed and no CPU threads were selected for procesing.
@@ -2159,10 +2168,10 @@ namespace cmft
                 }
 
                 // Process unfinished tasks on CPU.
-                const uint8_t numThreads = DM_MIN(unfinished, maxActiveCpuThreads);
+                const uint8_t numThreads = CMFT_MIN(unfinished, maxActiveCpuThreads);
                 for (uint8_t ii = 0; ii < numThreads; ++ii)
                 {
-                    cpuThreads[ii].init(radianceFilterCpu, (void*)&taskList);
+                    radianceFilterCpu((void*)&taskList);
                 }
             }
 
@@ -2189,9 +2198,9 @@ namespace cmft
             }
 
             // Get filter duration.
-            const double freq = double(bx::getHPFrequency());
+            const double freq = double(cmft::getHPFrequency());
             const double toSec = 1.0/freq;
-            const uint64_t totalTime = bx::getHPCounter() - s_globalState.m_startTime;
+            const uint64_t totalTime = cmft::getHPCounter() - s_globalState.m_startTime;
 
             // Output progress info.
             INFO("Radiance -> ------------------------------------");
@@ -2207,7 +2216,7 @@ namespace cmft
             }
             s_globalState.reset();
 
-            DM_FREE(g_allocator, cubemapVectors);
+            CMFT_FREE(&g_crtAllocator, cubemapVectors);
         }
 
         // Fill result structure.
@@ -2246,8 +2255,8 @@ namespace cmft
                            , uint8_t _glossBias
                            , EdgeFixup::Enum _edgeFixup
                            , uint8_t _numCpuProcessingThreads
-                           , const ClContext* _clContext
-                           , dm::AllocatorI* _allocator
+                           , ClContext* _clContext
+                           , AllocatorI* _allocator
                            )
     {
         Image tmp;

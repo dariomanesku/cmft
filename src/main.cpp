@@ -3,14 +3,14 @@
  * License: http://www.opensource.org/licenses/BSD-2-Clause
  */
 
-#include <base/config.h>
+#include <common/config.h>
 
 #ifndef CMFT_TEST_BUILD
     #define CMFT_TEST_BUILD 0
 #endif
 
 #if CMFT_TEST_BUILD
-    #include "tests/tests.h"
+    #include "cmft_tests/tests.h"
     int main(int _argc, char const* const* _argv)
     {
         return testsMain(_argc, _argv);

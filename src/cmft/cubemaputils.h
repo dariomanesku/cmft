@@ -6,11 +6,16 @@
 #ifndef CMFT_CUBEMAPUTILS_H_HEADER_GUARD
 #define CMFT_CUBEMAPUTILS_H_HEADER_GUARD
 
-#include <dm/pi.h>
-#include "base/fpumath.h"
+#include "common/fpumath.h"
 
 namespace cmft
 {
+    #define CMFT_PI       3.14159265358979323846f
+    #define CMFT_RPI      0.31830988618379067153f
+    #define CMFT_2PI      6.28318530717958647692f
+    #define CMFT_DEGTORAD 0.01745329251994329576f
+    #define CMFT_RADTODEG 57.2957795130823208767f
+
     ///
     ///
     ///              +----------+
@@ -218,14 +223,14 @@ namespace cmft
         const float phi = atan2f(_vec[0], _vec[2]);
         const float theta = acosf(_vec[1]);
 
-        _u = (dm::pi + phi)*dm::invPiHalf;
-        _v = theta*dm::invPi;
+        _u = (CMFT_PI + phi)*(0.5f/CMFT_PI);
+        _v = theta*CMFT_RPI;
     }
 
     static inline void vecFromLatLong(float _vec[3], float _u, float _v)
     {
-        const float phi   = _u * dm::twoPi;
-        const float theta = _v * dm::pi;
+        const float phi   = _u * CMFT_2PI;
+        const float theta = _v * CMFT_PI;
 
         _vec[0] = -sinf(theta)*sinf(phi);
         _vec[1] = cosf(theta);

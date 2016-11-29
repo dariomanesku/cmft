@@ -23,8 +23,8 @@ configurations { "Debug", "Release" }
 platforms { "x32", "x64" }
 
 -- Toolchain.
-dofile (DM_SCRIPTS_DIR .. "dm_toolchain.lua")
-dm_toolchain(CMFT_BUILD_DIR, CMFT_PROJECTS_DIR, DEPENDENCY_DIR, BX_DIR)
+dofile "toolchain.lua"
+cmft_toolchain(CMFT_BUILD_DIR, CMFT_PROJECTS_DIR, DEPENDENCY_DIR, BX_DIR)
 
 -- cmft_cli project.
 dofile "cmft_cli.lua"
