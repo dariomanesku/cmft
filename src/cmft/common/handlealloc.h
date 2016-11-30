@@ -8,6 +8,14 @@
 
 #include <stdint.h>
 
+#ifdef max
+#   undef max
+#endif // max
+
+#ifdef min
+#   undef min
+#endif // max
+
 namespace cmft
 {
     template <typename HandleAllocStorageTy>

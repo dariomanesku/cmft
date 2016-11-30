@@ -15,7 +15,12 @@
 #include <math.h>
 #include <ctype.h>
 #include <float.h>
-#include <alloca.h>
+#if defined(_WIN32)
+#   include <malloc.h>
+#   define alloca _alloca
+#else /* Unix */
+#   include <alloca.h>
+#endif // defined(_WIN32)
 
 #include "platform.h"
 
