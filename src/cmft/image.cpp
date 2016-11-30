@@ -4999,6 +4999,11 @@ namespace cmft
         bool didOpen = rwFileOpen(_rw, "rb");
         RwScopeFileClose scopeClose(_rw, didOpen);
 
+        if (!rwFileOpened(_rw))
+        {
+            return false;
+        }
+
         RwSeekFn seekFn = rwSeekFnFor(_rw);
         RwReadFn readFn = rwReadFnFor(_rw);
 
