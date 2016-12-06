@@ -28,7 +28,7 @@ namespace cmft
         {
             if (&m_context[0] <= _context && _context <= &m_context[MaxClContexts])
             {
-                uint32_t idx = _context - m_context;
+                uint32_t idx = uint32_t(_context - m_context);
                 if (m_handleAlloc.contains(idx))
                 {
                     m_handleAlloc.free(idx);
