@@ -15,6 +15,7 @@
 #include <math.h>
 #include <ctype.h>
 #include <float.h>
+#include <alloca.h>
 
 #include "platform.h"
 
