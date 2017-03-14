@@ -1318,8 +1318,7 @@ namespace cmft
 
         // Get color in rgba32f format.
         float color[4];
-        const uint32_t abgr = cmft::endianSwap(_rgba);
-        toRgba32f(color, TextureFormat::RGBA8, &abgr);
+        toRgba32f(color, TextureFormat::RGBA8, &_rgba);
 
         // Fill data with specified color.
         float* dstPtr = (float*)dstData;
