@@ -7,15 +7,16 @@ VS2008_DEVENV_DIR=C:\Program Files (x86)\Microsoft Visual Studio 9.0\Common7\IDE
 VS2010_DEVENV_DIR=C:\Program Files (x86)\Microsoft Visual Studio 11.0\Common7\IDE
 VS2012_DEVENV_DIR=C:\Program Files (x86)\Microsoft Visual Studio 11.0\Common7\IDE
 
-UNAME := $(shell uname -s)
-ifeq ($(UNAME),$(filter $(UNAME),Linux Darwin))
-	ifeq ($(UNAME),$(filter $(UNAME),Darwin))
+ifeq ($(OS),Windows_NT)
+	OS=windows
+else
+	UNAME := $(shell uname -s)
+	ifeq ($(UNAME),Darwin)
 		OS=darwin
-	else
+	endif
+	ifeq ($(UNAME),Linux)
 		OS=linux
 	endif
-else
-	OS=windows
 endif
 
 GENIE=./dependency/bx/tools/bin/$(OS)/genie
