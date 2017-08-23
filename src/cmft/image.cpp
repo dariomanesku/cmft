@@ -422,13 +422,25 @@ namespace cmft
 
     // HDR format.
     //-----
-
+    // There are two different magic identifiers commonly used in HDR files.
+    // One is #?RADIANCE which is also shared by other file formats used by the
+    // radiance renderer, and the other is #?RGBE, which is more unambiguous.
+    // The file reader is capable of recognizing both, but to select which one
+    // to use when outputing HDR files, change the last 3 defines of the
+    // following block to either HDR_MAGIC_RAD* or HDR_MAGIC_RGBE*
 #define HDR_VALID_PROGRAMTYPE 0x01
 #define HDR_VALID_GAMMA       0x02
 #define HDR_VALID_EXPOSURE    0x04
-#define HDR_MAGIC             CMFT_MAKEFOURCC('#','?','R','A')
-#define HDR_MAGIC_FULL        "#?RADIANCE"
-#define HDR_MAGIC_LEN         10
+#define HDR_MAGIC_RAD         CMFT_MAKEFOURCC('#','?','R','A')
+#define HDR_MAGIC_RAD_FULL    "#?RADIANCE"
+#define HDR_MAGIC_RAD_LEN     10
+#define HDR_MAGIC_RGBE        CMFT_MAKEFOURCC('#','?','R','G')
+#define HDR_MAGIC_RGBE_FULL   "#?RGBE"
+#define HDR_MAGIC_RGBE_LEN    6
+    // default magic to use when outputing HDR files
+#define HDR_MAGIC       HDR_MAGIC_RAD
+#define HDR_MAGIC_LEN   HDR_MAGIC_RAD_LEN
+#define HDR_MAGIC_FULL  HDR_MAGIC_RAD_FULL
 
     struct HdrHeader
     {
@@ -3992,19 +4004,23 @@ namespace cmft
     {
         CMFT_UNUSED size_t read;
 
-        // Read magic.
-        char magic[HDR_MAGIC_LEN];
-        bx::read(&_reader, magic, HDR_MAGIC_LEN);
+        // Read and check magic.
+        char magic[HDR_MAGIC_RAD_LEN];
+        bx::read(&_reader, magic, HDR_MAGIC_RGBE_LEN);
+        if (0 != memcmp(magic, HDR_MAGIC_RGBE_FULL, HDR_MAGIC_RGBE_LEN))
+        {
+            char *dest = magic + HDR_MAGIC_RGBE_LEN;
+            bx::read(&_reader, dest, HDR_MAGIC_RAD_LEN - HDR_MAGIC_RGBE_LEN);
+
+            if (0 != memcmp(magic, HDR_MAGIC_RAD_FULL, HDR_MAGIC_RAD_LEN))
+            {
+                WARN("HDR magic not valid.");
+                return false;
+            }
+        }
 
         // Skip nl char.
         bx::seek(&_reader, 1, bx::Whence::Current);
-
-        // Check magic.
-        if (0 != strncmp(magic, HDR_MAGIC_FULL, HDR_MAGIC_LEN))
-        {
-            WARN("HDR magic not valid.");
-            return false;
-        }
 
         HdrHeader hdrHeader;
         hdrHeader.m_valid = 0;
@@ -4339,7 +4355,7 @@ namespace cmft
         {
             loaded = imageLoadDds(_image, _reader, _allocator);
         }
-        else if (HDR_MAGIC == magic)
+        else if (HDR_MAGIC_RAD == magic || HDR_MAGIC_RGBE == magic)
         {
             loaded = imageLoadHdr(_image, _reader, _allocator);
         }
