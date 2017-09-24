@@ -4630,6 +4630,8 @@ namespace cmft
     {
         _rwReadFn(_rw, _out, _max);
 
+        _out[_max-1] = '\0'; // Make sure the string is null terminated.
+
         const char* eol = cmft::streol(_out);
         const char* nl  = cmft::strnl(eol);
 
@@ -4678,7 +4680,7 @@ namespace cmft
         for (uint8_t ii = 0, stop = 20; ii < stop; ++ii)
         {
             // Read next line.
-            char buf[64];
+            char buf[256];
             const char* nl = readLine(_rw, seekFn, readFn, buf, sizeof(buf));
 
             if ((0 == buf[0])
@@ -4711,7 +4713,7 @@ namespace cmft
         // Read image size.
         int32_t width;
         int32_t height;
-        char buf[64];
+        char buf[256];
         readLine(_rw, seekFn, readFn, buf, sizeof(buf));
         sscanf(buf, "-Y %d +X %d", &height, &width);
 
