@@ -2145,7 +2145,7 @@ namespace cmft
             else
             {
                 // Start CPU processing threads.
-                while (activeCpuThreads < maxActiveCpuThreads)
+                while (activeCpuThreads < maxActiveCpuThreads - 1)
                 {
                     cpuThreads[activeCpuThreads++] = std::thread(radianceFilterCpu, (void*)&taskList);
                 }
