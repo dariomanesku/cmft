@@ -969,6 +969,9 @@ namespace cmft
     #define GL_RGB              0x1907
     #define GL_RGBA             0x1908
 
+    #define GL_RGB8             0x8051
+    #define GL_RGBA8            0x8058
+  
     #define GL_RGBA32F          0x8814
     #define GL_RGB32F           0x8815
     #define GL_RGBA16F          0x881A
@@ -1053,11 +1056,13 @@ namespace cmft
     } s_translateKtxFormat[] =
     {
         { GL_RGB,      TextureFormat::RGB8    },
+        { GL_RGB8,     TextureFormat::RGB8    },
         { GL_RGB8UI,   TextureFormat::RGB8    },
         { GL_RGB16UI,  TextureFormat::RGB16   },
         { GL_RGB16F,   TextureFormat::RGB16F  },
         { GL_RGB32F,   TextureFormat::RGB32F  },
         { GL_RGBA,     TextureFormat::RGBA8   },
+        { GL_RGBA8,    TextureFormat::RGBA8   },
         { GL_RGBA8UI,  TextureFormat::RGBA8   },
         { GL_RGBA16UI, TextureFormat::RGBA16  },
         { GL_RGBA16F,  TextureFormat::RGBA16F },
