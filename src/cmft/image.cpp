@@ -4589,7 +4589,7 @@ namespace cmft
                 if (0 == pitchRounding)
                 {
                     // Read entire face at once.
-                    read = readFn(_rw, &faceData, faceSize);
+                    read = readFn(_rw, faceData, faceSize);
                     DEBUG_CHECK(read == faceSize, "Error reading Ktx face data.");
                 }
                 else
