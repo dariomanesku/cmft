@@ -4,7 +4,7 @@ add_executable(cmft_cli
         main.cpp)
 
 target_link_libraries(cmft_cli
-        cmft)
+        cmft -ldl -lpthread)
 
 install(TARGETS cmft_cli
     RUNTIME DESTINATION bin
