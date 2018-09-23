@@ -15,6 +15,16 @@
 
 #include <string.h>
 
+
+#if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__))
+#include <sys/param.h>
+#if defined(BSD)
+    /* BSD (DragonFly BSD, FreeBSD, OpenBSD, NetBSD). ----------- */
+#   define fseeko64 fseeko
+#   define ftello64 ftello
+#endif
+#endif
+
 namespace cmft
 {
     // Read/write.

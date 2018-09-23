@@ -19,7 +19,13 @@
 #   include <malloc.h>
 #   define alloca _alloca
 #else /* Unix */
+#if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__))
+#include <sys/param.h>
+#if !defined(BSD)
+    /* BSD (DragonFly BSD, FreeBSD, OpenBSD, NetBSD). ----------- */
 #   include <alloca.h>
+#endif
+#endif
 #endif // defined(_WIN32)
 
 #include "platform.h"
