@@ -2169,7 +2169,7 @@ namespace cmft
                     {
                         float* dstFaceColumn = (float*)((uint8_t*)dstFaceRow + xDst*bytesPerPixel);
 
-                        float color[3] = { 0.0f, 0.0f, 0.0f };
+                        float color[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
                         uint32_t weight = 0;
 
                         uint32_t       ySrc    = cmft::ftou(float(yDst)*dstToSrcRatioYf);
@@ -2186,6 +2186,7 @@ namespace cmft
                                 color[0] += srcColumnData[0];
                                 color[1] += srcColumnData[1];
                                 color[2] += srcColumnData[2];
+                                color[3] += srcColumnData[3];
                                 weight++;
                             }
                         }
@@ -2194,7 +2195,7 @@ namespace cmft
                         dstFaceColumn[0] = color[0] * invWeight;
                         dstFaceColumn[1] = color[1] * invWeight;
                         dstFaceColumn[2] = color[2] * invWeight;
-                        dstFaceColumn[3] = 1.0f;
+                        dstFaceColumn[3] = color[3] * invWeight;
                     }
                 }
             }
