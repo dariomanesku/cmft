@@ -107,6 +107,14 @@ inline void vec3Mul(float* __restrict _result, const float* __restrict _a, float
 	_result[2] = _a[2] * _b;
 }
 
+inline void vec4Mul(float* __restrict _result, const float* __restrict _a, float _b)
+{
+	_result[0] = _a[0] * _b;
+	_result[1] = _a[1] * _b;
+	_result[2] = _a[2] * _b;
+	_result[3] = _a[3] * _b;
+}
+
 inline float vec3Dot(const float* __restrict _a, const float* __restrict _b)
 {
 	return _a[0]*_b[0] + _a[1]*_b[1] + _a[2]*_b[2];
