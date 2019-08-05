@@ -2169,7 +2169,7 @@ namespace cmft
                     {
                         float* dstFaceColumn = (float*)((uint8_t*)dstFaceRow + xDst*bytesPerPixel);
 
-                        float color[3] = { 0.0f, 0.0f, 0.0f };
+                        float color[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
                         uint32_t weight = 0;
 
                         uint32_t       ySrc    = cmft::ftou(float(yDst)*dstToSrcRatioYf);
@@ -2186,6 +2186,7 @@ namespace cmft
                                 color[0] += srcColumnData[0];
                                 color[1] += srcColumnData[1];
                                 color[2] += srcColumnData[2];
+                                color[3] += srcColumnData[3];
                                 weight++;
                             }
                         }
@@ -2194,7 +2195,7 @@ namespace cmft
                         dstFaceColumn[0] = color[0] * invWeight;
                         dstFaceColumn[1] = color[1] * invWeight;
                         dstFaceColumn[2] = color[2] * invWeight;
-                        dstFaceColumn[3] = 1.0f;
+                        dstFaceColumn[3] = color[3] * invWeight;
                     }
                 }
             }
@@ -3198,23 +3199,24 @@ namespace cmft
                         const float invTx = 1.0f - tx;
                         const float invTy = 1.0f - ty;
 
-                        float p0[3];
-                        float p1[3];
-                        float p2[3];
-                        float p3[3];
-                        vec3Mul(p0, src0, invTx*invTy);
-                        vec3Mul(p1, src1,    tx*invTy);
-                        vec3Mul(p2, src2, invTx*   ty);
-                        vec3Mul(p3, src3,    tx*   ty);
+                        float p0[4];
+                        float p1[4];
+                        float p2[4];
+                        float p3[4];
+                        vec4Mul(p0, src0, invTx*invTy);
+                        vec4Mul(p1, src1,    tx*invTy);
+                        vec4Mul(p2, src2, invTx*   ty);
+                        vec4Mul(p3, src3,    tx*   ty);
 
                         const float rr = p0[0] + p1[0] + p2[0] + p3[0];
                         const float gg = p0[1] + p1[1] + p2[1] + p3[1];
                         const float bb = p0[2] + p1[2] + p2[2] + p3[2];
+                        const float aa = p0[3] + p1[3] + p2[3] + p3[3];
 
                         dstColumnData[0] = rr;
                         dstColumnData[1] = gg;
                         dstColumnData[2] = bb;
-                        dstColumnData[3] = 1.0f;
+                        dstColumnData[3] = aa;
                     }
                     else
                     {
@@ -3225,7 +3227,7 @@ namespace cmft
                         dstColumnData[0] = src[0];
                         dstColumnData[1] = src[1];
                         dstColumnData[2] = src[2];
-                        dstColumnData[3] = 1.0f;
+                        dstColumnData[3] = src[3];
                     }
 
                 }
@@ -3363,23 +3365,24 @@ namespace cmft
                         const float invTx = 1.0f - tx;
                         const float invTy = 1.0f - ty;
 
-                        float p0[3];
-                        float p1[3];
-                        float p2[3];
-                        float p3[3];
-                        vec3Mul(p0, src0, invTx*invTy);
-                        vec3Mul(p1, src1,    tx*invTy);
-                        vec3Mul(p2, src2, invTx*   ty);
-                        vec3Mul(p3, src3,    tx*   ty);
+                        float p0[4];
+                        float p1[4];
+                        float p2[4];
+                        float p3[4];
+                        vec4Mul(p0, src0, invTx*invTy);
+                        vec4Mul(p1, src1,    tx*invTy);
+                        vec4Mul(p2, src2, invTx*   ty);
+                        vec4Mul(p3, src3,    tx*   ty);
 
                         const float rr = p0[0] + p1[0] + p2[0] + p3[0];
                         const float gg = p0[1] + p1[1] + p2[1] + p3[1];
                         const float bb = p0[2] + p1[2] + p2[2] + p3[2];
+                        const float aa = p0[3] + p1[3] + p2[3] + p3[3];
 
                         dstColumnData[0] = rr;
                         dstColumnData[1] = gg;
                         dstColumnData[2] = bb;
-                        dstColumnData[3] = 1.0f;
+                        dstColumnData[3] = aa;
                     }
                     else
                     {
@@ -3392,7 +3395,7 @@ namespace cmft
                         dstColumnData[0] = src[0];
                         dstColumnData[1] = src[1];
                         dstColumnData[2] = src[2];
-                        dstColumnData[3] = 1.0f;
+                        dstColumnData[3] = src[3];
                     }
                 }
             }
@@ -4057,23 +4060,24 @@ namespace cmft
                         const float invTx = 1.0f - tx;
                         const float invTy = 1.0f - ty;
 
-                        float p0[3];
-                        float p1[3];
-                        float p2[3];
-                        float p3[3];
-                        vec3Mul(p0, src0, invTx*invTy);
-                        vec3Mul(p1, src1,    tx*invTy);
-                        vec3Mul(p2, src2, invTx*   ty);
-                        vec3Mul(p3, src3,    tx*   ty);
+                        float p0[4];
+                        float p1[4];
+                        float p2[4];
+                        float p3[4];
+                        vec4Mul(p0, src0, invTx*invTy);
+                        vec4Mul(p1, src1,    tx*invTy);
+                        vec4Mul(p2, src2, invTx*   ty);
+                        vec4Mul(p3, src3,    tx*   ty);
 
                         const float rr = p0[0] + p1[0] + p2[0] + p3[0];
                         const float gg = p0[1] + p1[1] + p2[1] + p3[1];
                         const float bb = p0[2] + p1[2] + p2[2] + p3[2];
+                        const float aa = p0[3] + p1[3] + p2[3] + p3[3];
 
                         dstColumnData[0] = rr;
                         dstColumnData[1] = gg;
                         dstColumnData[2] = bb;
-                        dstColumnData[3] = 1.0f;
+                        dstColumnData[3] = aa;
                     }
                     else
                     {
@@ -4086,7 +4090,7 @@ namespace cmft
                         dstColumnData[0] = src[0];
                         dstColumnData[1] = src[1];
                         dstColumnData[2] = src[2];
-                        dstColumnData[3] = 1.0f;
+                        dstColumnData[3] = src[3];
                     }
                 }
             }
@@ -4193,23 +4197,24 @@ namespace cmft
                         const float invTx = 1.0f - tx;
                         const float invTy = 1.0f - ty;
 
-                        float p0[3];
-                        float p1[3];
-                        float p2[3];
-                        float p3[3];
-                        vec3Mul(p0, src0, invTx*invTy);
-                        vec3Mul(p1, src1,    tx*invTy);
-                        vec3Mul(p2, src2, invTx*   ty);
-                        vec3Mul(p3, src3,    tx*   ty);
+                        float p0[4];
+                        float p1[4];
+                        float p2[4];
+                        float p3[4];
+                        vec4Mul(p0, src0, invTx*invTy);
+                        vec4Mul(p1, src1,    tx*invTy);
+                        vec4Mul(p2, src2, invTx*   ty);
+                        vec4Mul(p3, src3,    tx*   ty);
 
                         const float rr = p0[0] + p1[0] + p2[0] + p3[0];
                         const float gg = p0[1] + p1[1] + p2[1] + p3[1];
                         const float bb = p0[2] + p1[2] + p2[2] + p3[2];
+                        const float aa = p0[3] + p1[3] + p2[3] + p3[3];
 
                         dstColumnData[0] = rr;
                         dstColumnData[1] = gg;
                         dstColumnData[2] = bb;
-                        dstColumnData[3] = 1.0f;
+                        dstColumnData[3] = aa;
                     }
                     else
                     {
@@ -4220,7 +4225,7 @@ namespace cmft
                         dstColumnData[0] = src[0];
                         dstColumnData[1] = src[1];
                         dstColumnData[2] = src[2];
-                        dstColumnData[3] = 1.0f;
+                        dstColumnData[3] = src[3];
                     }
 
                 }
