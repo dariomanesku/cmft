@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 Dario Manesku. All rights reserved.
+ * Copyright 2014-2019 Dario Manesku. All rights reserved.
  * License: http://www.opensource.org/licenses/BSD-2-Clause
  */
 
@@ -820,7 +820,7 @@ void printHelp()
             "    --output[0..N-1] <file name>       File name without extension.\n"
             "    --output[0..N-1]params <params>    Output parameters as following:\n"
             "          <params> = <fileFormat>,<textureFormat>,<outputType>\n"
-            "          <fileFromat> = [dds,ktx,tga,hdr]\n"
+            "          <fileFormat> = [dds,ktx,tga,hdr]\n"
             "          <dds_textureFormat> = [bgr8,bgra8,rgba16,rgba16f,rgba32f]\n"
             "          <ktx_textureFormat> = [rgb8,rgb16,rgb16f,rgb32f,rgba8,rgba16,rgba16f,rgba32f]\n"
             "          <tga_textureFormat> = [bgr8,bgra8]\n"
