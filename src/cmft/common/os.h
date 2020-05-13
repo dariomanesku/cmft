@@ -50,6 +50,20 @@
 #   endif // CMFT_PLATFORM_LINUX
 #endif // CMFT_PLATFORM_
 
+#if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__))
+#include <sys/param.h>
+#if defined(BSD)
+    /* BSD (DragonFly BSD, FreeBSD, OpenBSD, NetBSD). ----------- */
+#   include <sched.h> // sched_yield
+#       include <pthread.h> // mach_port_t
+#
+#   include <dlfcn.h> // dlopen, dlclose, dlsym
+#
+#       include <unistd.h> // syscall
+#       include <sys/syscall.h>
+#endif
+#endif
+
 namespace cmft
 {
     inline void* dlopen(const char* _filePath)
