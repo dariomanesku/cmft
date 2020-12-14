@@ -145,7 +145,7 @@ namespace cmft
         }
     };
 
-    /// _u and _v should be center adressing and in [-1.0+invSize..1.0-invSize] range.
+    /// _u and _v should be center addressing and in [-1.0+invSize..1.0-invSize] range.
     static inline void texelCoordToVec(float* _out3f, float _u, float _v, uint8_t _faceId)
     {
         // out = u * s_faceUv[0] + v * s_faceUv[1] + s_faceUv[2].
@@ -175,7 +175,7 @@ namespace cmft
         return (fs*fs) / (fsmo*fsmo*fsmo);
     }
 
-    /// _u and _v should be center adressing and in [-1.0+invSize..1.0-invSize] range.
+    /// _u and _v should be center addressing and in [-1.0+invSize..1.0-invSize] range.
     static inline void texelCoordToVecWarp(float* _out3f, float _u, float _v, uint8_t _faceId, float _warpFixup)
     {
         _u = (_warpFixup * _u*_u*_u) + _u;
@@ -293,7 +293,7 @@ namespace cmft
         return atan2f(_x*_y, sqrtf(_x*_x + _y*_y + 1.0f));
     }
 
-    /// _u and _v should be center adressing and in [-1.0+invSize..1.0-invSize] range.
+    /// _u and _v should be center addressing and in [-1.0+invSize..1.0-invSize] range.
     static inline float texelSolidAngle(float _u, float _v, float _invFaceSize)
     {
         // Specify texel area.
